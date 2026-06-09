@@ -28,4 +28,4 @@ Stop-ListeningPort 5757
 Stop-ListeningPort 11434
 Stop-ListeningPort 8000
 
-Write-Host "LocalTranslateHub environment stopped."
+Write-Host "YomiBridge environment stopped."

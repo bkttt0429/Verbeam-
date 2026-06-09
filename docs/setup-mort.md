@@ -1,13 +1,13 @@
 # MORT Setup
 
-MORT supports a Custom API translation type over HTTP. LocalTranslateHub implements the default MORT request and response shape.
+MORT supports a Custom API translation type over HTTP. YomiBridge implements the default MORT request and response shape.
 
 ## Steps
 
-1. Start LocalTranslateHub:
+1. Start YomiBridge:
 
 ```powershell
-dotnet run --project .\src\LocalTranslateHub.Api\LocalTranslateHub.Api.csproj
+dotnet run --project .\src\YomiBridge.Api\YomiBridge.Api.csproj
 ```
 
 2. Open MORT advanced settings.
@@ -28,11 +28,11 @@ For no-overlay play, open the live viewer on a phone, tablet, or second display:
 http://localhost:5757/viewer
 ```
 
-For a phone or tablet on the same LAN, run LocalTranslateHub on a LAN-reachable URL:
+For a phone or tablet on the same LAN, run YomiBridge on a LAN-reachable URL:
 
 ```powershell
-$env:LTH_Urls='http://0.0.0.0:5757'
-dotnet run --project .\src\LocalTranslateHub.Api\LocalTranslateHub.Api.csproj
+$env:YB_Urls='http://0.0.0.0:5757'
+dotnet run --project .\src\YomiBridge.Api\YomiBridge.Api.csproj
 ```
 
 Then open this from the device browser:
@@ -56,7 +56,7 @@ MORT sends JSON similar to:
 }
 ```
 
-LocalTranslateHub returns:
+YomiBridge returns:
 
 ```json
 {
@@ -66,4 +66,4 @@ LocalTranslateHub returns:
 }
 ```
 
-On provider failure, LocalTranslateHub returns a nonzero `errorCode` and keeps the original OCR text in `result` so the overlay is not blank.
+On provider failure, YomiBridge returns a nonzero `errorCode` and keeps the original OCR text in `result` so the overlay is not blank.

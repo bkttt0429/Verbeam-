@@ -1,6 +1,6 @@
 # Headroom-Style Memory Design
 
-This document defines the LocalTranslateHub memory system inspired by
+This document defines the YomiBridge memory system inspired by
 Headroom-style ideas: keep full raw history, compress it into small reversible
 context, retrieve only the highest-value snippets, and keep memory scoped by
 profile/session so unrelated games or reading projects do not bleed into each

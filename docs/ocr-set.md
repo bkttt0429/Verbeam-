@@ -1,6 +1,6 @@
 # OCR SET
 
-LocalTranslateHub separates OCR engines into three lanes:
+YomiBridge separates OCR engines into three lanes:
 
 | Lane | Engines | Status |
 | --- | --- | --- |

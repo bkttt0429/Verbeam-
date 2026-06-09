@@ -17,7 +17,7 @@ os.environ.setdefault("TESSDATA_PREFIX", str(DEFAULT_OCR_SET_ROOT / "tessdata"))
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="LocalTranslateHub local OCR set wrapper.")
+    parser = argparse.ArgumentParser(description="YomiBridge local OCR set wrapper.")
     parser.add_argument(
         "--engine",
         required=True,

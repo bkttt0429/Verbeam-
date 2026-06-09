@@ -4,7 +4,7 @@ $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $Workspace = Split-Path $Root -Parent
 $OllamaExe = Join-Path $Workspace "tools\ollama\bin\ollama.exe"
 $ModelDir = Join-Path $Workspace "models\ollama"
-$ApiProject = Join-Path $Root "src\LocalTranslateHub.Api\LocalTranslateHub.Api.csproj"
+$ApiProject = Join-Path $Root "src\YomiBridge.Api\YomiBridge.Api.csproj"
 $CreateOllamaProfiles = Join-Path $Root "scripts\create-ollama-profiles.ps1"
 $StartAsr = Join-Path $Root "scripts\start-asr.ps1"
 $DataDir = Join-Path $Root "data"
@@ -52,15 +52,15 @@ if (Test-Path $CreateOllamaProfiles) {
     & $CreateOllamaProfiles
 }
 
-if ($env:LTH_SKIP_ASR -eq "1") {
-    Write-Host "Skipping FunASR startup because LTH_SKIP_ASR=1"
+if ($env:YB_SKIP_ASR -eq "1") {
+    Write-Host "Skipping FunASR startup because YB_SKIP_ASR=1"
 }
 elseif (Test-Path $StartAsr) {
     & $StartAsr
 }
 
 if (Test-PortListening 5757) {
-    Write-Host "LocalTranslateHub API is already listening on http://localhost:5757"
+    Write-Host "YomiBridge API is already listening on http://localhost:5757"
 }
 else {
     Start-Process `
@@ -72,7 +72,7 @@ else {
         -RedirectStandardError $ApiErr
 
     Start-Sleep -Seconds 3
-    Write-Host "Started LocalTranslateHub API on http://localhost:5757"
+    Write-Host "Started YomiBridge API on http://localhost:5757"
 }
 
 Write-Host ""

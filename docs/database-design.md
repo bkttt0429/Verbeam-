@@ -1,6 +1,6 @@
 # Database Design
 
-LocalTranslateHub uses one local SQLite database as a runtime memory store. The
+YomiBridge uses one local SQLite database as a runtime memory store. The
 current API path should stay simple:
 
 ```text

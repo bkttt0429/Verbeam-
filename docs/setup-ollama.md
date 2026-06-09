@@ -21,7 +21,7 @@ After editing the Modelfile, recreate the profile:
 This creates:
 
 ```text
-lth-mort-qwen2.5-0.5b:latest
+yomibridge-mort-qwen2.5-0.5b:latest
 ```
 
 The profile is based on `qwen2.5:0.5b` and sets a smaller context, short output cap, deterministic temperature, and a strict translation-only system prompt. The Modelfile is [ollama/Modelfile.mort-qwen2.5-0.5b](../ollama/Modelfile.mort-qwen2.5-0.5b).
@@ -32,7 +32,7 @@ Confirm the local API is available:
 Invoke-RestMethod http://localhost:11434/api/tags
 ```
 
-LocalTranslateHub uses Ollama's native chat endpoint:
+YomiBridge uses Ollama's native chat endpoint:
 
 ```text
 POST http://localhost:11434/api/chat
@@ -41,17 +41,17 @@ POST http://localhost:11434/api/chat
 Change model or base URL in:
 
 ```text
-src/LocalTranslateHub.Api/appsettings.json
+src/YomiBridge.Api/appsettings.json
 ```
 
 Useful settings:
 
 ```json
 {
-  "LocalTranslateHub": {
+  "YomiBridge": {
     "Ollama": {
       "BaseUrl": "http://localhost:11434",
-      "Model": "lth-mort-qwen2.5-0.5b:latest",
+      "Model": "yomibridge-mort-qwen2.5-0.5b:latest",
       "TimeoutSeconds": 30,
       "NumContext": 1024,
       "NumPredict": 64,

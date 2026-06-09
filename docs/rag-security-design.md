@@ -1,6 +1,6 @@
 # RAG 與共用資料庫安全設計
 
-這份設計補上 LocalTranslateHub 未來開放共用 RAG、共用 SQLite/資料庫、匯入外部文件、或多人共用 profile 時必須具備的安全邊界。核心原則是：RAG 檢索到的內容永遠是「資料」，不是「指令」。Prompt injection 不能只靠 prompt 文字解決，必須用資料權限、信任分級、prompt 結構化、輸出驗證與稽核一起防守。
+這份設計補上 YomiBridge 未來開放共用 RAG、共用 SQLite/資料庫、匯入外部文件、或多人共用 profile 時必須具備的安全邊界。核心原則是：RAG 檢索到的內容永遠是「資料」，不是「指令」。Prompt injection 不能只靠 prompt 文字解決，必須用資料權限、信任分級、prompt 結構化、輸出驗證與稽核一起防守。
 
 參考基線：
 

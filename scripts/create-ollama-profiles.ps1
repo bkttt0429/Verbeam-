@@ -10,7 +10,7 @@ $OllamaExe = Join-Path $Workspace "tools\ollama\bin\ollama.exe"
 $ModelDir = Join-Path $Workspace "models\ollama"
 $Modelfile = Join-Path $Root "ollama\Modelfile.mort-qwen2.5-0.5b"
 $BaseModel = "qwen2.5:0.5b"
-$ProfileModel = "lth-mort-qwen2.5-0.5b:latest"
+$ProfileModel = "yomibridge-mort-qwen2.5-0.5b:latest"
 
 function Test-OllamaModel {
     param([string]$Name)

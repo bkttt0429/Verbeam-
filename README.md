@@ -1,10 +1,10 @@
-# LocalTranslateHub
+# YomiBridge
 
-LocalTranslateHub is a local translation gateway for MORT Custom API, OCR tools, and reading workflows. It exposes a MORT-compatible `POST /translate` endpoint, calls a local Ollama model, and adds prompt presets, glossary terms, and a SQLite translation cache.
+YomiBridge is a local translation gateway for MORT Custom API, OCR tools, and reading workflows. It exposes a MORT-compatible `POST /translate` endpoint, calls a local Ollama model, and adds prompt presets, glossary terms, and a SQLite translation cache.
 
 No API key. No cloud upload. No subscription by default.
 
-Product direction: LocalTranslateHub is evolving toward an "即時螢幕語境翻譯器" that remembers terms, story context, character voice, and user corrections. See the Chinese [product roadmap](docs/product-roadmap.md).
+Product direction: YomiBridge is evolving toward an "即時螢幕語境翻譯器" that remembers terms, story context, character voice, and user corrections. See the Chinese [product roadmap](docs/product-roadmap.md).
 
 ## Quick Start
 
@@ -12,17 +12,17 @@ Requirements:
 
 - .NET 9 SDK or runtime
 - Ollama running at `http://localhost:11434`
-- A local translation-capable model, for example `lth-mort-qwen2.5-0.5b:latest`
+- A local translation-capable model, for example `yomibridge-mort-qwen2.5-0.5b:latest`
 
 Run:
 
 ```powershell
-dotnet run --project .\src\LocalTranslateHub.Api\LocalTranslateHub.Api.csproj
+dotnet run --project .\src\YomiBridge.Api\YomiBridge.Api.csproj
 ```
 
 The API listens on `http://localhost:5757` by default.
 
-To start the prepared local environment, including the standalone Ollama server and LocalTranslateHub API:
+To start the prepared local environment, including the standalone Ollama server and YomiBridge API:
 
 ```powershell
 .\scripts\start-env.ps1
@@ -115,7 +115,7 @@ Start the local FunASR/SenseVoice server:
 .\scripts\start-asr.ps1
 ```
 
-The script creates a Python venv under `app\.asr-funasr`, stores model caches under `models\funasr`, and starts an OpenAI-compatible ASR endpoint at `http://localhost:8000/v1/audio/transcriptions`. The first launch downloads SenseVoiceSmall and can take several minutes. `.\scripts\start-env.ps1` also starts ASR unless `LTH_SKIP_ASR=1` is set.
+The script creates a Python venv under `app\.asr-funasr`, stores model caches under `models\funasr`, and starts an OpenAI-compatible ASR endpoint at `http://localhost:8000/v1/audio/transcriptions`. The first launch downloads SenseVoiceSmall and can take several minutes. `.\scripts\start-env.ps1` also starts ASR unless `YB_SKIP_ASR=1` is set.
 
 ASR smoke test with the mock provider:
 
@@ -140,7 +140,7 @@ $json = @{
 Invoke-RestMethod http://localhost:5757/asr/translate -Method Post -ContentType 'application/json; charset=utf-8' -Body $json
 ```
 
-YouTube URLs can be passed through `sourceUrl`; LocalTranslateHub tries captions first, then falls back to `yt-dlp` + `ffmpeg` audio extraction when those tools are configured.
+YouTube URLs can be passed through `sourceUrl`; YomiBridge tries captions first, then falls back to `yt-dlp` + `ffmpeg` audio extraction when those tools are configured.
 
 ## Pro Broadcast Mode
 
@@ -149,8 +149,8 @@ Open `http://localhost:5757/viewer` on a second screen to see translations witho
 For a phone or tablet on the same LAN, start the API on a reachable interface:
 
 ```powershell
-$env:LTH_Urls='http://0.0.0.0:5757'
-dotnet run --project .\src\LocalTranslateHub.Api\LocalTranslateHub.Api.csproj
+$env:YB_Urls='http://0.0.0.0:5757'
+dotnet run --project .\src\YomiBridge.Api\YomiBridge.Api.csproj
 ```
 
 Then open:
@@ -163,13 +163,13 @@ The viewer connects to `/broadcast` over WebSocket and updates whenever `POST /t
 
 ## Configuration
 
-Edit `src/LocalTranslateHub.Api/appsettings.json` or use environment variables with the `LTH_` prefix.
+Edit `src/YomiBridge.Api/appsettings.json` or use environment variables with the `YB_` prefix.
 
 Defaults:
 
 - Provider: `ollama`
 - Ollama URL: `http://localhost:11434`
-- Model: `lth-mort-qwen2.5-0.5b:latest`
+- Model: `yomibridge-mort-qwen2.5-0.5b:latest`
 - Ollama low-latency options: `num_ctx=1024`, `num_predict=64`, `temperature=0`, `keep_alive=30m`
 - Mode: `game_dialogue`
 - Source/target: `ja` to `zh-TW`
