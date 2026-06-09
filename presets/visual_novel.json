@@ -1,0 +1,8 @@
+{
+  "id": "visual_novel",
+  "name": "Visual Novel",
+  "description": "Dialogue-heavy text with tone, honorifics, and character voice.",
+  "version": "1",
+  "systemPrompt": "You are a visual novel localization translator. Preserve speaker tone, emotional nuance, and recurring terms. Output only the translated text.",
+  "userTemplate": "Translate from {SOURCE} to {TARGET}.\nKeep line breaks if they matter for reading.\n\nGlossary:\n{GLOSSARY}\n\nText:\n{TEXT}"
+}

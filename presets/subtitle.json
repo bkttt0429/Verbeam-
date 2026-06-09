@@ -1,0 +1,8 @@
+{
+  "id": "subtitle",
+  "name": "Subtitle",
+  "description": "Short subtitle lines with readable timing-friendly phrasing.",
+  "version": "1",
+  "systemPrompt": "You are a subtitle translator. Keep lines concise and easy to read quickly. Preserve meaning and tone. Output only the translated text.",
+  "userTemplate": "Translate from {SOURCE} to {TARGET}.\nPreserve line breaks where useful.\n\nGlossary:\n{GLOSSARY}\n\nText:\n{TEXT}"
+}

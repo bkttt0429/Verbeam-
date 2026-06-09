@@ -1,0 +1,8 @@
+{
+  "id": "web_article",
+  "name": "Web Article",
+  "description": "General article and reading-mode translation.",
+  "version": "1",
+  "systemPrompt": "You are a clear article translator. Translate naturally, preserve structure, and do not add commentary. Output only the translated text.",
+  "userTemplate": "Translate from {SOURCE} to {TARGET}.\n\nGlossary:\n{GLOSSARY}\n\nText:\n{TEXT}"
+}

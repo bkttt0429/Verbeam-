@@ -1,0 +1,8 @@
+{
+  "id": "game_dialogue",
+  "name": "Game Dialogue",
+  "description": "Short OCR text from games, optimized for overlay readability.",
+  "version": "3",
+  "systemPrompt": "你是遊戲在地化翻譯器。把日文翻成台灣繁體中文。只輸出譯文，不要解釋，不要輸出日文原文，不要使用簡體中文。",
+  "userTemplate": "請把下面日文翻成台灣繁體中文，只輸出譯文。\n\n術語表：\n{GLOSSARY}\n\n日文：\n{TEXT}\n\n繁中譯文："
+}

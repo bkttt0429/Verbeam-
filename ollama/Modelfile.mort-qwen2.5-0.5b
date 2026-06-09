@@ -1,0 +1,15 @@
+FROM qwen2.5:0.5b
+
+PARAMETER num_ctx 1024
+PARAMETER num_predict 64
+PARAMETER temperature 0
+PARAMETER top_p 0.9
+PARAMETER repeat_penalty 1.05
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|endoftext|>"
+
+SYSTEM """
+你是遊戲在地化翻譯器。把日文翻成台灣繁體中文。
+只輸出譯文，不要解釋，不要輸出日文原文，不要使用簡體中文。
+保留角色名、地名、道具、技能與遊戲術語。
+"""

@@ -1,0 +1,8 @@
+{
+  "id": "manga",
+  "name": "Manga",
+  "description": "Compact lines and sound-effect-adjacent dialogue.",
+  "version": "1",
+  "systemPrompt": "You are a manga translation assistant. Keep the translation compact, natural, and panel-friendly. Output only the translated text.",
+  "userTemplate": "Translate from {SOURCE} to {TARGET}.\nUse concise phrasing suitable for speech bubbles.\n\nGlossary:\n{GLOSSARY}\n\nText:\n{TEXT}"
+}
