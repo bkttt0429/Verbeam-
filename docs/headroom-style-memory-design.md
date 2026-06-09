@@ -1,6 +1,6 @@
 # Headroom-Style Memory Design
 
-This document defines the YomiBridge memory system inspired by
+This document defines the Verbeam memory system inspired by
 Headroom-style ideas: keep full raw history, compress it into small reversible
 context, retrieve only the highest-value snippets, and keep memory scoped by
 profile/session so unrelated games or reading projects do not bleed into each
@@ -507,21 +507,23 @@ POST /translate
 
 ### Current Implementation Status
 
-Phase 1 is implemented:
+Phase 1 and Phase 2 are implemented:
 
 - `IMemoryStore`
 - `SqliteMemoryStore`
+- `MemoryContextBuilder`
 - `GET /memories`
 - `POST /memories`
 - `POST /translation/corrections`
 - exact `memory_items(memory_kind='translation')` lookup before provider/cache
 - profile-scoped exact memory
+- prompt memory context for trusted terms, OCR corrections, style notes, and
+  approved examples
+- context hash based on selected memory snippets in the generated cache key
 - usage counting through `last_used_at` and `use_count`
 
 Not implemented yet:
 
-- prompt memory context
-- context hash based on selected memory snippets
 - scene summary maintenance
 - auto-extracted memory candidates
 - semantic retrieval
@@ -545,9 +547,11 @@ Success criteria:
 
 ### Phase 2: Prompt Memory Context
 
+Implemented.
+
 Deliverables:
 
-- `MemoryRetriever`
+- deterministic memory retrieval through `IMemoryStore.SearchAsync`
 - `MemoryContextBuilder`
 - `ProviderTranslationRequest.MemoryContext` or equivalent
 - context hash in generated cache key

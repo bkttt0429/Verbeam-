@@ -9,7 +9,7 @@ from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 
-app = FastAPI(title="YomiBridge FunASR Server")
+app = FastAPI(title="Verbeam FunASR Server")
 asr_model: Any | None = None
 server_config: dict[str, Any] = {}
 

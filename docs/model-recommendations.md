@@ -2,7 +2,7 @@
 
 Start with a small local model for smoke tests:
 
-- `yomibridge-mort-qwen2.5-0.5b:latest`, created from `qwen2.5:0.5b` with the MORT low-latency Modelfile
+- `verbeam-mort-qwen2.5-0.5b:latest`, created from `qwen2.5:0.5b` with the MORT low-latency Modelfile
 
 For better translation quality, try a larger translation-focused local model if available:
 

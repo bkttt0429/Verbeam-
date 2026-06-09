@@ -1,6 +1,6 @@
 # Database Design
 
-YomiBridge uses one local SQLite database as a runtime memory store. The
+Verbeam uses one local SQLite database as a runtime memory store. The
 current API path should stay simple:
 
 ```text
@@ -188,3 +188,11 @@ User-approved translation memory is implemented through `SqliteMemoryStore`.
 `POST /translation/corrections` promotes a translation event into
 `memory_items(memory_kind='translation')`. `TranslationService` checks exact
 profile-scoped translation memory before calling the provider.
+
+Prompt memory context is now implemented through `MemoryContextBuilder`.
+Translation requests retrieve active trusted memory rows for the same
+profile/language pair, render only selected terms, OCR corrections, style notes,
+and approved examples into the provider prompt, and include the selected memory
+context hash in the generated cache key. Usage counters update `last_used_at`
+and `use_count` without changing `updated_at`, so memory statistics do not
+invalidate stable generated-cache keys.

@@ -1,6 +1,6 @@
 # OCR SET
 
-YomiBridge separates OCR engines into three lanes:
+Verbeam separates OCR engines into three lanes:
 
 | Lane | Engines | Status |
 | --- | --- | --- |

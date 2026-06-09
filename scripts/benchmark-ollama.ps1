@@ -1,5 +1,5 @@
 param(
-    [string]$Model = "yomibridge-mort-qwen2.5-0.5b:latest",
+    [string]$Model = "verbeam-mort-qwen2.5-0.5b:latest",
     [string]$Text = "",
     [int]$Iterations = 3,
     [int]$NumContext = 1024,
