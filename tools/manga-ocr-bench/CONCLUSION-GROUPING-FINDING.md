@@ -92,6 +92,52 @@ det_ms 228/84 (<400). New stats: `broad_split_attempts / broad_split_children / 
 Phase 2 temporal cache (§7):** NEW→STABLE→OCR_DONE→HOLD→EXPIRE, OCR only on blocks stable 2–3 frames, skip
 `hard_mixed_art_text`.
 
+> ⚠️ **SUPERSEDED by UPDATE 3** for the "48s これ FIXED / 48s 6 boxes" claim — a 48s overlay shows
+> これ has NO box and the purple ワガママ block is missing its 語っといて column. Re-measured below.
+
+---
+
+## UPDATE 3 — 2026-06-30 — 48s is NOT fixed; both misses are UPSTREAM of the proposal lifecycle.
+
+A fresh 48s overlay (`frames/detector_48.png`) shows **これ has no box** and the purple block keeps only
+the **散々ワガママ** column, not **語っといて**. The proposed fix (a `column_seed` proposal_kind preserved
+through merge/confirm/NMS) assumes the weak columns are *proposed then swallowed*. **Measured: they are
+never proposed at all** — both die before merge. `column_seed` preservation operates at merge→confirm→NMS
+and so cannot fix either. The two misses have *different* root causes, both upstream of grouping output:
+
+- **これ — component recall (mask).** `--stage proposal` at 48s = 8 proposals, **none** covers これ
+  (x≈745–790 y≈175–255, in the gap between proposal#0 ending x705 and proposal#3 at x941). Probing the
+  これ column: only **1** comp survives per mask — the 「れ」 glyph (blackhat area 91 / tophat 213, cy≈236).
+  The 「こ」 glyph (cy≈185) is in the raw mask only as **sub-threshold fragments** (blackhat areas 21/10/8),
+  which `component_filter_global` correctly discards. 1 comp → graph needs `len(group) ≥ 2` → no group →
+  no proposal. **Not a lifecycle bug; faint-gray micro-caption under-segments at the glyph level.**
+- **語っといて — `_graph_edge` gates too strict.** proposal#3 `[941,558,992,868]` is only the *right*
+  column (51px wide = 1 col). The left column has **4 real comps** (cx≈864, cy 569/622/679/726) but
+  **zero edges form** between them: 語→っ fails the size gate (`size_ratio 2.35 > GRAPH_SIZE_RATIO 2.0`,
+  kanji-vs-kana); っ→と (`ygap 43 > stack_thresh 32`) and と→い (`ygap 35 ≮ 35`) fail `GRAPH_STACK_GAP`.
+  4 isolated comps → no group → no proposal. **The size-ratio gate (meant to refuse text↔art) wrongly
+  refuses kanji+kana in one column; the stack-gap, computed from the two glyphs' own heights, is too tight
+  for small sparse kana.**
+
+**Corrected fix (smaller, right layer — do NOT build the column_seed/NMS machinery for this):**
+fix `_graph_edge`, not the lifecycle.
+- Loosen/skip the **size-ratio gate on the stacked (same-column) branch** — within a vertical column a big
+  kanji next to a small kana is normal text; the size gate's text↔art job belongs only to the
+  *adjacent-column* branch.
+- Give `GRAPH_STACK_GAP` an **absolute pixel floor** (or derive `along_ext` from a column-median glyph
+  height, not the two endpoints) so small kana don't fall out on gap-relative-to-tiny-height.
+- これ specifically additionally needs **component recall** (morphological close before
+  `component_filter_global`, or a lower min-area rescue for collinear fragments) — or accept it as a
+  deferred low-contrast micro-caption. Lower value than 語っといて; weigh against added noise.
+
+**Broad-block split stays as-is (already shipped, UPDATE 2) — it is orthogonal** (handles confirmed
+`vertical_rl` with cols>4). Neither 48s miss is a broad-split case. **視感 + character art** stays
+`hard_mixed_art_text` / deferred (UPDATE 1 conclusion unchanged).
+
+**Acceptance for "48s fixed" (column-level, from the overlay):** これ has its own clean box · 語っといて
+restored as a column · 他に何がある？ / 以上 · 何がそんな / 不満なんだ · teal 3-col · all still present ·
+視感 mixed stays withheld · `robustness.py --no-ocr` still `raw 16/20 | core 15/15`.
+
 ---
 
 ## 1. Current pipeline (what already works)
