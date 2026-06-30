@@ -234,6 +234,8 @@ def main():
                 "merged_proposal_count": stats.get("merged_proposal_count", 0),
                 "proposal_count": stats.get("proposal_count", 0),
                 "confirmed_count": stats.get("confirmed_count", len(candidates)),
+                "broad_split_attempts": stats.get("broad_split_attempts", 0),
+                "broad_split_children": stats.get("broad_split_children", 0),
                 "candidate_count": len(candidates),
                 "ocr_calls": ocr_calls,
                 "reject_breakdown": json.dumps(
@@ -268,7 +270,8 @@ def main():
         "time_s", "stage", "scorer", "group", "detector_ms", "mask_ms", "cc_ms",
         "group_ms", "window_ms", "confirm_ms", "ocr_ms",
         "raw_proposal_count", "merged_proposal_count", "proposal_count",
-        "confirmed_count", "candidate_count", "ocr_calls", "reject_breakdown",
+        "confirmed_count", "broad_split_attempts", "broad_split_children",
+        "candidate_count", "ocr_calls", "reject_breakdown",
     ]
     metrics_tsv = out_dir / "metrics.tsv"
     with metrics_tsv.open("w", newline="", encoding="utf-8") as f:

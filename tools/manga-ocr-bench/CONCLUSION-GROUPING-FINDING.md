@@ -63,6 +63,37 @@ rules to hold dilate's recall, then move to temporal cache (§7). See `mangaocr-
 
 ---
 
+## UPDATE 2 — 2026-06-30 — Patch 1+2 SHIPPED: broad-block split + hard_mixed tag. [1508] fixed, 既視感 shelved.
+
+Decision (user): do NOT cheap-CV-solve 既視感; broad-split the *controllable* over-chain; then go temporal.
+
+- **Patch 1 — broad-block split** (`_confirm_candidate_on_raw_many` + `_split_broad_columns` +
+  `_build_split_child`): a confirmed `vertical_rl` block with `cols > MAX_COLS_PER_BLOCK`(4) AND
+  `occ ≤ CONFIRM_OCC_MAX`(0.48) AND `tl ≥ 0.5` AND not line_dominated is **split at gutters** (cut where an
+  inter-column gap > `1.25·median_col_w`, then chunk to ≤4) into sub-blocks, instead of being killed by the
+  confirm `cols≤4` gate. **GOTCHA (measured): do NOT re-columnize the fragments** — a 1–2-column fragment
+  re-reads as `unknown`/`horizontal_ltr` (too few comps to score an axis) → dies on require_vertical
+  (kids=0). Fix: emit children **directly from the parent's already-validated vertical columns** (rebased to
+  child-crop coords), trusting the parent's occ/tl/line gates. detector still outputs *blocks*; columns
+  stay `columnize()`'s product — guardrail intact.
+- **Patch 2 — hard_mixed_art_text tag**: a `require_vertical/status/weak_mask` reject with `occ > 0.55` is
+  re-tagged `hard_mixed_art_text`. 既視感 (no_text, occ 0.61) lands here — a metrics tag for an offline/VLM
+  fallback, **NOT emitted, does NOT block realtime**.
+- **occ cap 0.45→0.48** in confirm (graph block pad reverted to 10). Measured: pad≥14 mega-merges [1508]
+  into an occ-0.55 no_text block (unsplittable); the occ bump recovers the [201] left block (occ 0.47)
+  without any geometry change; 既視感 (0.61) stays blocked.
+
+**Measured 42/48 (graph = default):** 48s [1508] recovered as **2 clean split children → 48s 6 boxes**
+(parity with dilate's 7, cleaner); 42s **4 boxes + 既視感 correctly tagged & withheld** (dilate wrongly
+emits the mixed box `[1299,247,1557,827]`); これ still its own column; core gate `raw 16/20 | core 15/15`;
+det_ms 228/84 (<400). New stats: `broad_split_attempts / broad_split_children / reject_cols_over_limit`.
+
+**Status:** grouping recall recovered; 既視感 = `hard_mixed_art_text` (offline-only, not realtime). **Next =
+Phase 2 temporal cache (§7):** NEW→STABLE→OCR_DONE→HOLD→EXPIRE, OCR only on blocks stable 2–3 frames, skip
+`hard_mixed_art_text`.
+
+---
+
 ## 1. Current pipeline (what already works)
 
 ```

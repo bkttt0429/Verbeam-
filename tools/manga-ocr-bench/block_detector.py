@@ -10,6 +10,7 @@ It is not production realtime code yet:
   - selected OCR crops must still be raw crops from the original frame.
 """
 from dataclasses import dataclass
+import statistics
 import time
 
 import cv2
@@ -54,7 +55,14 @@ GRAPH_ALIGN_FRAC = 0.8       # cross-axis center delta < this * avg cross-axis e
 GRAPH_STACK_GAP = 2.5        # along-axis edge gap < this * avg along-axis extent = stacked/inline glyphs
 GRAPH_ADJ_OVERLAP = 0.50     # along-axis band overlap fraction to treat two comps as one block
 GRAPH_ADJ_GAP = 1.2          # adjacent column/row cross-axis gap < this * avg cross-axis extent
-GRAPH_BLOCK_PAD = 18         # graph boxes hug the comps; extra pad lowers occ at the confirm gate
+
+# Broad vertical-block split (Patch 1): a confirmed vertical_rl block with > MAX_COLS_PER_BLOCK
+# columns is split at gutters into sub-blocks instead of being rejected. Only fires on clean
+# vertical text (occ/tl/line gated), so hard mixed art/text (既視感) is NOT broad-split.
+MAX_COLS_PER_BLOCK = 4
+BROAD_SPLIT_MIN_GAP_FRAC = 1.25   # cut where an inter-column gap exceeds this * median column width
+CONFIRM_OCC_MAX = 0.48            # confirm/split occ ceiling (measured: a real dense 3-col block = 0.47)
+HARD_MIXED_OCC = 0.55             # above this, a reject is tagged hard_mixed_art_text (offline fallback)
 
 
 @dataclass
@@ -175,6 +183,8 @@ def _new_stats(scorer):
         "merged_proposal_count": 0,
         "proposal_count": 0,
         "confirmed_count": 0,
+        "broad_split_attempts": 0,
+        "broad_split_children": 0,
     }
 
 
@@ -345,12 +355,7 @@ def group_components_into_blocks_graph(comps, frame_shape, mode="vertical", stat
         y0 = min(c.y for c in group)
         x1 = max(c.x + c.w for c in group)
         y1 = max(c.y + c.h for c in group)
-        bbox = (
-            max(0, x0 - GRAPH_BLOCK_PAD),
-            max(0, y0 - GRAPH_BLOCK_PAD),
-            min(frame_w, x1 + GRAPH_BLOCK_PAD),
-            min(frame_h, y1 + GRAPH_BLOCK_PAD),
-        )
+        bbox = _pad_bbox(x0, y0, x1 - x0, y1 - y0, frame_w, frame_h)
         bw = bbox[2] - bbox[0]
         bh = bbox[3] - bbox[1]
         if bw < 24 or bh < 24 or bw > MAX_BLOCK_W or bh > MAX_BLOCK_H:
@@ -560,8 +565,14 @@ def _is_line_dominated(features, occ):
     )
 
 
-def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None):
+def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None, result=None, roi=None):
+    occ = 1.0  # known after columnize; used by reject() to tag hard mixed art/text
+
     def reject(reason):
+        # An over-dense reject (text glued to same-colour art, e.g. 既視感) is not a grouping bug
+        # cheap-CV can fix — tag it for an offline/VLM fallback instead of blocking realtime.
+        if reason in ("require_vertical", "status", "weak_mask") and occ > HARD_MIXED_OCC:
+            reason = "hard_mixed_art_text"
         if stats is not None:
             stats[f"reject_{reason}"] = stats.get(f"reject_{reason}", 0) + 1
         return None
@@ -571,8 +582,11 @@ def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None):
     if x1 >= frame_w - 2 and x0 > frame_w * 0.85:
         return reject("right_edge")
 
-    roi = frame[y0:y1, x0:x1]
-    result = columnize(roi)
+    if roi is None:
+        roi = frame[y0:y1, x0:x1]
+    if result is None:
+        result = columnize(roi)
+    occ = float(result["mask_dbg"].get("occ", 1.0))
     if result["status"] == "reject":
         return reject("status")
     if require_vertical and result["layout"] != "vertical_rl":
@@ -582,10 +596,9 @@ def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None):
 
     cols = len(result["columns"])
     dbg = result["mask_dbg"]
-    occ = float(dbg.get("occ", 1.0))
     tl = float(dbg.get("tl", 0.0))
     n = int(dbg.get("n", 0))
-    if not (1 <= cols <= 4 and occ <= 0.45 and tl >= 0.50 and n >= 2):
+    if not (1 <= cols <= MAX_COLS_PER_BLOCK and occ <= CONFIRM_OCC_MAX and tl >= 0.50 and n >= 2):
         return reject("weak_mask")
 
     max_col_w = max((col["bbox"][2] - col["bbox"][0]) for col in result["columns"])
@@ -629,6 +642,108 @@ def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None):
     )
 
 
+def _split_broad_columns(columns):
+    """Split a too-wide vertical_rl column list (R->L) into groups of <= MAX_COLS_PER_BLOCK,
+    cutting at the widest gutters first, then chunking any group still over the limit."""
+    if len(columns) <= MAX_COLS_PER_BLOCK:
+        return [columns]
+    med_w = statistics.median([c["bbox"][2] - c["bbox"][0] for c in columns]) or 1.0
+    # columns are right-to-left: gutter between i and i+1 is col[i].x0 - col[i+1].x1
+    cuts = {
+        i for i in range(len(columns) - 1)
+        if (columns[i]["bbox"][0] - columns[i + 1]["bbox"][2]) > BROAD_SPLIT_MIN_GAP_FRAC * med_w
+    }
+    groups, start = [], 0
+    for i in range(len(columns)):
+        if i in cuts:
+            groups.append(columns[start:i + 1])
+            start = i + 1
+    groups.append(columns[start:])
+    out = []
+    for g in groups:
+        if len(g) <= MAX_COLS_PER_BLOCK:
+            out.append(g)
+        else:  # no clear gutter inside this group -> fall back to fixed max-cols chunks
+            for k in range(0, len(g), MAX_COLS_PER_BLOCK):
+                out.append(g[k:k + MAX_COLS_PER_BLOCK])
+    return out
+
+
+def _build_split_child(parent, parent_result, group_cols, off_x, off_y, frame_shape):
+    """Emit a sub-block from a subset of an already-confirmed vertical_rl parent's columns.
+    We do NOT re-columnize the fragment: a 1-2 column fragment re-reads as unknown/horizontal
+    (too few comps to score an axis), so it would wrongly die on require_vertical. The parent
+    already cleared occ/tl/line gates, so the fragment inherits vertical_rl by construction."""
+    frame_h, frame_w = frame_shape[:2]
+    cb = _columns_bbox(group_cols, off_x, off_y, frame_w, frame_h)
+    bw, bh = cb[2] - cb[0], cb[3] - cb[1]
+    if bw * bh < 1800 or bw > 620 or bh > 620:
+        return None
+    ox, oy = off_x - cb[0], off_y - cb[1]  # rebase parent-relative cols to the child crop origin
+    child_cols = [
+        {"order": i, "bbox": [c["bbox"][0] + ox, c["bbox"][1] + oy,
+                              c["bbox"][2] + ox, c["bbox"][3] + oy]}
+        for i, c in enumerate(group_cols)
+    ]
+    dbg = parent_result["mask_dbg"]
+    child_result = {**parent_result, "layout": "vertical_rl", "status": "ok", "columns": child_cols}
+    return BlockCandidate(
+        bbox=cb, score=parent.score, rank=parent.rank, vote=parent.vote,
+        layout="vertical_rl", columns=len(child_cols),
+        occ=round(float(dbg.get("occ", 0.0)), 4), tl=round(float(dbg.get("tl", 0.0)), 4),
+        n=int(dbg.get("n", 0)), source=f"{parent.source}+broad_split",
+        columnizer_result=child_result,
+    )
+
+
+def _confirm_candidate_on_raw_many(frame, candidate, require_vertical, stats=None):
+    """Confirm one proposal, returning a LIST of blocks. Normal -> [block]; reject -> [];
+    an over-wide clean vertical block -> split at gutters into several <=4-col sub-blocks
+    (Patch 1), each re-confirmed on its own raw crop."""
+    x0, y0, x1, y1 = candidate.bbox
+    roi = frame[y0:y1, x0:x1]
+    result = columnize(roi)  # one columnize; reused by the single-confirm fall-through
+
+    cols = result["columns"]
+    if result["status"] == "ok" and result["layout"] == "vertical_rl" and len(cols) > MAX_COLS_PER_BLOCK:
+        dbg = result["mask_dbg"]
+        occ = float(dbg.get("occ", 1.0))
+        tl = float(dbg.get("tl", 0.0))
+        comps = result.get("components")
+        features = _line_noise_features(result.get("mask"), roi.shape, comps=comps)
+        if occ <= CONFIRM_OCC_MAX and tl >= 0.50 and not _is_line_dominated(features, occ):
+            if stats is not None:
+                stats["broad_split_attempts"] = stats.get("broad_split_attempts", 0) + 1
+            children = []
+            for group in _split_broad_columns(cols):
+                child = _build_split_child(candidate, result, group, x0, y0, frame.shape)
+                if child is not None:
+                    children.append(child)
+            if stats is not None:
+                stats["broad_split_children"] = stats.get("broad_split_children", 0) + len(children)
+            return children
+        if stats is not None:  # over-wide but not clean vertical text -> not splittable
+            stats["reject_cols_over_limit"] = stats.get("reject_cols_over_limit", 0) + 1
+        return []
+
+    confirmed = _confirm_candidate_on_raw(frame, candidate, require_vertical, stats, result=result, roi=roi)
+    return [confirmed] if confirmed is not None else []
+
+
+def _accept_candidate(candidate, kept):
+    """Append candidate to kept unless it overlaps one already there. Returns True if added."""
+    box = candidate.bbox
+    if any(
+        _iou(box, k.bbox) > 0.18
+        or _contained_frac(box, k.bbox) > 0.70
+        or _contained_frac(k.bbox, box) > 0.88
+        for k in kept
+    ):
+        return False
+    kept.append(candidate)
+    return True
+
+
 def detect_text_blocks(
     frame,
     max_blocks=18,
@@ -648,20 +763,14 @@ def detect_text_blocks(
         for candidate in ranked:
             if confirm_raw:
                 ts = time.perf_counter()
-                candidate = _confirm_candidate_on_raw(frame, candidate, require_vertical, stats)
+                children = _confirm_candidate_on_raw_many(frame, candidate, require_vertical, stats)
                 _add_ms(stats, "confirm_ms", ts)
-                if candidate is None:
-                    continue
-
-            box = candidate.bbox
-            if any(
-                _iou(box, kept_candidate.bbox) > 0.18
-                or _contained_frac(box, kept_candidate.bbox) > 0.70
-                or _contained_frac(kept_candidate.bbox, box) > 0.88
-                for kept_candidate in kept
-            ):
-                continue
-            kept.append(candidate)
+            else:
+                children = [candidate]
+            for child in children:
+                _accept_candidate(child, kept)
+                if len(kept) >= max_blocks:
+                    break
             if len(kept) >= max_blocks:
                 break
         stats["confirmed_count"] = len(kept)
@@ -733,20 +842,14 @@ def detect_text_blocks(
     for candidate in ranked:
         if confirm_raw:
             ts = time.perf_counter()
-            candidate = _confirm_candidate_on_raw(frame, candidate, require_vertical, stats)
+            children = _confirm_candidate_on_raw_many(frame, candidate, require_vertical, stats)
             _add_ms(stats, "confirm_ms", ts)
-            if candidate is None:
-                continue
-
-        box = candidate.bbox
-        if any(
-            _iou(box, kept_candidate.bbox) > 0.18
-            or _contained_frac(box, kept_candidate.bbox) > 0.70
-            or _contained_frac(kept_candidate.bbox, box) > 0.88
-            for kept_candidate in kept
-        ):
-            continue
-        kept.append(candidate)
+        else:
+            children = [candidate]
+        for child in children:
+            _accept_candidate(child, kept)
+            if len(kept) >= max_blocks:
+                break
         if len(kept) >= max_blocks:
             break
     stats["confirmed_count"] = len(kept)
