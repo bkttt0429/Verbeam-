@@ -20,9 +20,8 @@ from columnizer import columnize
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-TOOL_DIR = Path(__file__).resolve().parent
-DEFAULT_SRC = TOOL_DIR / "inputs" / "source_1080p.mp4"
-DEFAULT_OUT = TOOL_DIR / "outputs" / "preprocess_probe"
+SRC = r"D:\LocalTranslateHub\outputs\youtube_transcripts\0YF8vecQWYs\source_1080p.mp4"
+OUT = Path(r"D:\LocalTranslateHub\.codex-run\manga-ocr-bench\rois\preprocess_probe")
 
 DEFAULT_CASES = [
     "purple-vert(42s)",
@@ -94,8 +93,6 @@ def variants(crop, mask):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cases", nargs="*", default=DEFAULT_CASES, help="case names to probe")
-    ap.add_argument("--src", default=str(DEFAULT_SRC), help="source video path")
-    ap.add_argument("--out", default=str(DEFAULT_OUT), help="output directory")
     ap.add_argument("--save-images", action="store_true", help="write every variant crop to rois/preprocess_probe")
     args = ap.parse_args()
 
@@ -104,13 +101,12 @@ def main():
     if missing:
         raise SystemExit(f"unknown cases: {missing}")
 
-    out_dir = Path(args.out)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
 
     from manga_ocr import MangaOcr
 
     ocr = MangaOcr(force_cpu=True)
-    cap = cv2.VideoCapture(args.src)
+    cap = cv2.VideoCapture(SRC)
     fps = cap.get(cv2.CAP_PROP_FPS) or 24.0
 
     rows = []
@@ -152,11 +148,11 @@ def main():
                     })
                     if args.save_images:
                         tag = f"{safe_tag(name)}_c{col['order']}_{variant_name}.png"
-                        cv2.imwrite(str(out_dir / tag), image)
+                        cv2.imwrite(str(OUT / tag), image)
     finally:
         cap.release()
 
-    out_csv = out_dir / "results.tsv"
+    out_csv = OUT / "results.tsv"
     with out_csv.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,

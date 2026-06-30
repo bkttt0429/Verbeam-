@@ -15,9 +15,8 @@ from realtime_preview import draw_grid, make_contact_sheet, put_label
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-TOOL_DIR = Path(__file__).resolve().parent
-SRC = TOOL_DIR / "inputs" / "source_1080p.mp4"
-OUT = TOOL_DIR / "outputs" / "detector_preview"
+SRC = r"D:\LocalTranslateHub\outputs\youtube_transcripts\0YF8vecQWYs\source_1080p.mp4"
+OUT = Path(r"D:\LocalTranslateHub\.codex-run\manga-ocr-bench\rois\detector_preview")
 
 
 def draw_proposal(frame, index, candidate):
@@ -144,7 +143,7 @@ def proposal_event_row(t, index, candidate):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--src", default=str(SRC))
+    parser.add_argument("--src", default=SRC)
     parser.add_argument("--out", default=str(OUT))
     parser.add_argument("--times", nargs="*", type=float, default=[42.0, 48.0])
     parser.add_argument("--max-blocks", type=int, default=14)
@@ -227,10 +226,16 @@ def main():
                 "window_ms": round(stats.get("window_ms", 0.0), 2),
                 "confirm_ms": round(stats.get("confirm_ms", 0.0), 2),
                 "ocr_ms": ocr_ms,
+                "raw_proposal_count": stats.get("raw_proposal_count", 0),
+                "merged_proposal_count": stats.get("merged_proposal_count", 0),
                 "proposal_count": stats.get("proposal_count", 0),
                 "confirmed_count": stats.get("confirmed_count", len(candidates)),
                 "candidate_count": len(candidates),
                 "ocr_calls": ocr_calls,
+                "reject_breakdown": json.dumps(
+                    {k[len("reject_"):]: v for k, v in sorted(stats.items()) if k.startswith("reject_")},
+                    ensure_ascii=False,
+                ),
             })
             out_frame = frames_dir / f"detector_{int(t)}.png"
             cv2.imwrite(str(out_frame), canvas)
@@ -257,8 +262,9 @@ def main():
         json.dump(rows, f, ensure_ascii=False, indent=2)
     metrics_fields = [
         "time_s", "stage", "scorer", "detector_ms", "mask_ms", "cc_ms",
-        "group_ms", "window_ms", "confirm_ms", "ocr_ms", "proposal_count",
-        "confirmed_count", "candidate_count", "ocr_calls",
+        "group_ms", "window_ms", "confirm_ms", "ocr_ms",
+        "raw_proposal_count", "merged_proposal_count", "proposal_count",
+        "confirmed_count", "candidate_count", "ocr_calls", "reject_breakdown",
     ]
     metrics_tsv = out_dir / "metrics.tsv"
     with metrics_tsv.open("w", newline="", encoding="utf-8") as f:

@@ -22,9 +22,8 @@ from reader_routes import JapaneseMangaOcrReader, route_japanese_roi
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-TOOL_DIR = Path(__file__).resolve().parent
-DEFAULT_SRC = TOOL_DIR / "inputs" / "source_1080p.mp4"
-DEFAULT_OUT = TOOL_DIR / "outputs" / "realtime_preview"
+DEFAULT_SRC = r"D:\LocalTranslateHub\outputs\youtube_transcripts\0YF8vecQWYs\source_1080p.mp4"
+DEFAULT_OUT = Path(r"D:\LocalTranslateHub\.codex-run\manga-ocr-bench\rois\realtime_preview")
 
 COLORS = {
     "vertical_rl": (0, 220, 0),
@@ -159,7 +158,7 @@ def row_for_case(case, result, route):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--src", default=str(DEFAULT_SRC))
+    parser.add_argument("--src", default=DEFAULT_SRC)
     parser.add_argument("--out", default=str(DEFAULT_OUT))
     parser.add_argument("--ocr", action="store_true", help="run Japanese manga-ocr route for vertical_rl cases")
     parser.add_argument("--include-deferred", action="store_true", help="include deferred cases in overlays")

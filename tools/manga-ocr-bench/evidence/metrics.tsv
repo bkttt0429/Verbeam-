@@ -1,0 +1,3 @@
+time_s	stage	scorer	detector_ms	mask_ms	cc_ms	group_ms	window_ms	confirm_ms	ocr_ms	raw_proposal_count	merged_proposal_count	proposal_count	confirmed_count	candidate_count	ocr_calls	reject_breakdown
+42.000	confirm	cc	339.46	74.07	31.05	36.89	0.0	193.46	0	16	6	6	2	2	0	"{""require_vertical"": 1, ""right_edge"": 1, ""status"": 1, ""weak_mask"": 1}"
+48.000	confirm	cc	157.78	49.76	25.11	44.59	0.0	34.57	0	17	6	6	5	5	0	"{""weak_mask"": 1}"

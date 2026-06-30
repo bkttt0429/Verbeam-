@@ -162,6 +162,8 @@ def _new_stats(scorer):
         "group_ms": 0.0,
         "window_ms": 0.0,
         "confirm_ms": 0.0,
+        "raw_proposal_count": 0,
+        "merged_proposal_count": 0,
         "proposal_count": 0,
         "confirmed_count": 0,
     }
@@ -295,6 +297,8 @@ def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None):
         ))
     ranked.sort(key=lambda c: c.rank, reverse=True)
     if stats is not None:
+        stats["raw_proposal_count"] = len(proposals)
+        stats["merged_proposal_count"] = len(merged)
         stats["proposal_count"] = len(ranked)
     return ranked
 
@@ -325,7 +329,7 @@ def _candidate_from_mask_crop(masks, x, y, w, h, frame_w, frame_h):
         box = _columns_bbox(columns, x, y, frame_w, frame_h)
         bw = box[2] - box[0]
         bh = box[3] - box[1]
-        if bw * bh < 1800 or bw > MAX_BLOCK_W or bh > MAX_BLOCK_H:
+        if bw * bh < 1800 or bw > 620 or bh > 620:
             continue
 
         score = dbg["tl"] + 0.08 * min(len(columns), 3) + 0.03 * conf - 0.00000025 * (bw * bh)
@@ -367,7 +371,7 @@ def _candidate_from_window_exact(frame, x, y, w, h):
     box = _columns_bbox(result["columns"], x, y, frame_w, frame_h)
     bw = box[2] - box[0]
     bh = box[3] - box[1]
-    if bw * bh < 1800 or bw > MAX_BLOCK_W or bh > MAX_BLOCK_H:
+    if bw * bh < 1800 or bw > 620 or bh > 620:
         return None
 
     score = tl + 0.08 * min(cols, 3) + 0.03 * result["split_confidence"] - 0.00000025 * (bw * bh)
@@ -427,20 +431,25 @@ def _is_line_dominated(features, occ):
     )
 
 
-def _confirm_candidate_on_raw(frame, candidate, require_vertical):
+def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None):
+    def reject(reason):
+        if stats is not None:
+            stats[f"reject_{reason}"] = stats.get(f"reject_{reason}", 0) + 1
+        return None
+
     x0, y0, x1, y1 = candidate.bbox
     frame_h, frame_w = frame.shape[:2]
     if x1 >= frame_w - 2 and x0 > frame_w * 0.85:
-        return None
+        return reject("right_edge")
 
     roi = frame[y0:y1, x0:x1]
     result = columnize(roi)
     if result["status"] == "reject":
-        return None
+        return reject("status")
     if require_vertical and result["layout"] != "vertical_rl":
-        return None
+        return reject("require_vertical")
     if result["layout"] == "unknown":
-        return None
+        return reject("unknown")
 
     cols = len(result["columns"])
     dbg = result["mask_dbg"]
@@ -448,23 +457,23 @@ def _confirm_candidate_on_raw(frame, candidate, require_vertical):
     tl = float(dbg.get("tl", 0.0))
     n = int(dbg.get("n", 0))
     if not (1 <= cols <= 4 and occ <= 0.45 and tl >= 0.50 and n >= 2):
-        return None
+        return reject("weak_mask")
 
     max_col_w = max((col["bbox"][2] - col["bbox"][0]) for col in result["columns"])
     if max_col_w > 120 and tl < 0.85:
-        return None
+        return reject("wide_col_low_tl")
 
     comps = result.get("components")
-    layout_name, hs, vs, margin = layout_gate_scored(comps, roi.shape) if comps else (result["layout"], 0.0, 0.0, 0.0)
+    _, _hs, _vs, margin = layout_gate_scored(comps, roi.shape) if comps else ("", 0.0, 0.0, 0.0)
     features = _line_noise_features(result.get("mask"), roi.shape, comps=comps)
     if _is_line_dominated(features, occ):
-        return None
+        return reject("line_dominated")
 
     refined_bbox = _columns_bbox(result["columns"], x0, y0, frame_w, frame_h)
     bw = refined_bbox[2] - refined_bbox[0]
     bh = refined_bbox[3] - refined_bbox[1]
-    if bw * bh < 1800 or bw > MAX_BLOCK_W or bh > MAX_BLOCK_H:
-        return None
+    if bw * bh < 1800 or bw > 620 or bh > 620:
+        return reject("size")
 
     adjusted_rank = (
         candidate.rank
@@ -509,7 +518,7 @@ def detect_text_blocks(
         for candidate in ranked:
             if confirm_raw:
                 ts = time.perf_counter()
-                candidate = _confirm_candidate_on_raw(frame, candidate, require_vertical)
+                candidate = _confirm_candidate_on_raw(frame, candidate, require_vertical, stats)
                 _add_ms(stats, "confirm_ms", ts)
                 if candidate is None:
                     continue
@@ -594,7 +603,7 @@ def detect_text_blocks(
     for candidate in ranked:
         if confirm_raw:
             ts = time.perf_counter()
-            candidate = _confirm_candidate_on_raw(frame, candidate, require_vertical)
+            candidate = _confirm_candidate_on_raw(frame, candidate, require_vertical, stats)
             _add_ms(stats, "confirm_ms", ts)
             if candidate is None:
                 continue

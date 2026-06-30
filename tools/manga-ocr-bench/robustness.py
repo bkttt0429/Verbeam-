@@ -8,10 +8,8 @@ implemented Japanese reader route:
 Other layouts are intentionally skipped by the reader route until their readers
 exist. This keeps OCR out of routing decisions.
 """
-import argparse
 import sys
 from collections import defaultdict
-from pathlib import Path
 
 import cv2
 
@@ -21,20 +19,13 @@ from reader_routes import JapaneseMangaOcrReader, route_japanese_roi
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-TOOL_DIR = Path(__file__).resolve().parent
-DEFAULT_SRC = TOOL_DIR / "inputs" / "source_1080p.mp4"
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--src", default=str(DEFAULT_SRC), help="source video path")
-parser.add_argument("--no-ocr", action="store_true", help="run geometry only")
-args = parser.parse_args()
-
-NO_OCR = args.no_ocr
+NO_OCR = "--no-ocr" in sys.argv
+SRC = r"D:\LocalTranslateHub\outputs\youtube_transcripts\0YF8vecQWYs\source_1080p.mp4"
 
 if not NO_OCR:
     _ja_reader = JapaneseMangaOcrReader(force_cpu=True)
 
-cap = cv2.VideoCapture(args.src)
+cap = cv2.VideoCapture(SRC)
 fps = cap.get(cv2.CAP_PROP_FPS) or 24.0
 
 

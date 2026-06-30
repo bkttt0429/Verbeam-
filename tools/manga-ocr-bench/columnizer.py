@@ -254,15 +254,7 @@ def _axis_score(comps, axis):
 def layout_gate(comps, roi_shape):
     """no_text / horizontal / vertical / unknown. (multi_block reject is step 5, out of scope —
     this round never emits it; ambiguous blocks fall to 'unknown')."""
-    if len(comps) < 2:
-        return "no_text"
-    hs, _ = _axis_score(comps, "h")
-    vs, _ = _axis_score(comps, "v")
-    if hs > vs * GATE_MARGIN:
-        return "horizontal"
-    if vs > hs * GATE_MARGIN:
-        return "vertical"
-    return "unknown"
+    return layout_gate_scored(comps, roi_shape)[0]
 
 
 def layout_gate_scored(comps, roi_shape):
@@ -332,21 +324,13 @@ def columnize(roi):
 
 # ---------- validation harness (only runs when executed directly) ----------
 if __name__ == "__main__":
-    import argparse
     import time
-    from pathlib import Path
     from PIL import Image
     from manga_ocr import MangaOcr
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--src",
-        default=str(Path(__file__).resolve().parent / "inputs" / "source_1080p.mp4"),
-        help="source video path",
-    )
-    args = parser.parse_args()
     ocr = MangaOcr(force_cpu=True)
-    cap = cv2.VideoCapture(args.src); fps = cap.get(cv2.CAP_PROP_FPS) or 24.0
+    SRC = r"D:\LocalTranslateHub\outputs\youtube_transcripts\0YF8vecQWYs\source_1080p.mp4"
+    cap = cv2.VideoCapture(SRC); fps = cap.get(cv2.CAP_PROP_FPS) or 24.0
 
     def grab(t):
         cap.set(cv2.CAP_PROP_POS_FRAMES, int(t * fps)); _ok, fr = cap.read(); return fr

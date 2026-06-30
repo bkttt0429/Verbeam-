@@ -1,8 +1,5 @@
-$here = Split-Path -Parent $MyInvocation.MyCommand.Path
-$py = Join-Path $here "venv\Scripts\python.exe"
-$bench = Join-Path $here "bench_mangaocr.py"
-$outDir = Join-Path $here "outputs\bench"
-New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+$py = "D:\LocalTranslateHub\.codex-run\manga-ocr-bench\venv\Scripts\python.exe"
+$bench = "D:\LocalTranslateHub\.codex-run\manga-ocr-bench\bench_mangaocr.py"
 $cfgs = @(
   @{ep="cpu"; dev=0; label="CPU"},
   @{ep="dml"; dev=0; label="DML device0 (iGPU Iris Xe)"},
@@ -11,7 +8,7 @@ $cfgs = @(
 foreach($c in $cfgs){
   Write-Host "`n========== $($c.label) =========="
   $base = [int]((nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits) -split "`n")[0]
-  $outf = Join-Path $outDir "out_$($c.ep)$($c.dev).txt"
+  $outf = "D:\LocalTranslateHub\.codex-run\manga-ocr-bench\out_$($c.ep)$($c.dev).txt"
   $p = Start-Process -FilePath $py -ArgumentList $bench,"--ep",$c.ep,"--device",$c.dev,"--hold","5" -PassThru -RedirectStandardOutput $outf -RedirectStandardError "$outf.err" -WindowStyle Hidden
   $peakGpu = $base
   while(-not $p.HasExited){
