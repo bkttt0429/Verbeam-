@@ -208,6 +208,33 @@ New tunable: `SEED_TRUST_MIN_ASPECT`.
 
 ---
 
+## UPDATE 6 — 2026-06-30 — #2 SHIPPED: fragment-recall source. これ recovered. 48s acceptance A–E all pass.
+
+Added a fragment-recall proposal source so faint glyphs that fragment below `component_filter_global`'s
+`min_area=80` can still form a seed. これ now confirms; no new art false-positives; core gate unchanged.
+
+- **Recall source** (`blackhat_close_full` in `_frame_masks`): a vertical morph-close
+  (`RECALL_CLOSE_KERNEL=(5,19)`) merges sub-threshold collinear glyph fragments. 48s こ was blackhat areas
+  21/10/8, 12px apart → closed into ONE area-153 comp that clears `min_area=80` (no threshold lowering, so
+  no extra noise — still 56 comps frame-wide). The kernel bridges intra-glyph gaps (~12px) but NOT the 35px
+  こ-れ gap, so stacked glyphs stay separate comps. Feeds `column_seed` ONLY (never block_merged), at score
+  −`RECALL_SEED_SCORE_PENALTY`(0.5) so a normal-mask parent/seed always wins NMS.
+- **Aspect guard relaxed 2.5 → 2.25.** これ is a 2-glyph column = h/w 2.3; the 2.5 trust gate (UPDATE 5) cut
+  it together with art. Measured: 42s art trust-seeds are h/w ≤ 2.2 and 48s art 1.5/1.6, so 2.25 admits これ
+  (2.3) and re-admits NO art on either frame. **FRAGILE 0.1 margin** — exactly the cheap-CV text/art limit
+  (UPDATE 1); robust separation is the learned-detector/VLM path, not this knob.
+
+**Measured 48s confirm:** これ `[756,161,797,256]` (NEW) · 語っといて · 他に何がある/以上 · 何がそんな/不満なんだ ·
+teal 3-col · 散々ワガママ · 視感/char (broad_split, deferred). **42s unchanged** (既視感 withheld, no new art).
+Core gate `raw 16/20 | core 15/15`.
+
+**48s acceptance: A これ ✅ · B ✅ · C ✅ · D 散々ワガママ + 語っといて ✅ · E teal 3-col ✅ · F 視感 deferred.**
+All column-level targets met. **Next = #3 temporal cache** (NEW→STABLE→OCR_DONE→HOLD→EXPIRE; OCR only on
+blocks stable 2–3 frames; skip `hard_mixed_art_text`). Cost note: the recall source adds 1 CC pass/frame —
+gate it in #3. New tunables: `RECALL_CLOSE_KERNEL`, `RECALL_SEED_SCORE_PENALTY`, `SEED_TRUST_MIN_ASPECT`(2.25).
+
+---
+
 ## 1. Current pipeline (what already works)
 
 ```

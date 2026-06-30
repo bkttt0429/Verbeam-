@@ -74,8 +74,19 @@ SEED_ALIGN_FRAC = 0.8     # |cx delta| < this * median glyph width = same column
 SEED_STACK_GAP = 2.5      # vertical gap < this * median glyph height = stacked glyphs
 SEED_MIN_H = 45           # a real column spans at least this many px tall
 SEED_MAX_W = 110          # wider than this is not a single column
-SEED_TRUST_MIN_ASPECT = 2.5  # a seed columnize can't verify is trust-confirmed only if clearly
-                             # column-shaped (h/w); squat 2-blob art pairs (h/w~1.5) are rejected
+SEED_TRUST_MIN_ASPECT = 2.25  # a seed columnize can't verify is trust-confirmed only if clearly
+                              # column-shaped (h/w). FRAGILE: 2-glyph これ = 2.3 vs 42s art pairs ≤ 2.2 —
+                              # a 0.1 margin, the cheap-CV text/art limit (UPDATE 1). Robust separation
+                              # is the learned-detector/VLM path, not this knob.
+
+# Fragment recall (#2): a vertical morph-close merges sub-threshold collinear glyph fragments that
+# component_filter_global's min_area=80 drops (e.g. the faint こ at 48s = blackhat areas 21/10/8). The
+# kernel is tall enough to bridge intra-glyph gaps (~12px) but NOT inter-glyph gaps (~35px), so it does
+# not fuse stacked glyphs into one blob. Its comps feed column_seed ONLY, at lower rank (normal parents
+# win NMS) — never block_merged. ponytail: one extra CC pass per frame; #3 (temporal) can gate it.
+RECALL_CLOSE_KERNEL = (5, 19)   # measured: merges 48s こ (areas 21+28, 12px gap) into one area-153
+                                # comp that clears min_area=80; still short of the 35px こ-れ gap.
+RECALL_SEED_SCORE_PENALTY = 0.5
 
 
 @dataclass
@@ -209,9 +220,15 @@ def _new_stats(scorer):
 def _frame_masks(frame, stats=None):
     ts = time.perf_counter()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    blackhat = _branch_mask(gray, cv2.MORPH_BLACKHAT)
+    tophat = _branch_mask(gray, cv2.MORPH_TOPHAT)
+    k = cv2.getStructuringElement(cv2.MORPH_RECT, RECALL_CLOSE_KERNEL)
     masks = [
-        ("blackhat_full", _branch_mask(gray, cv2.MORPH_BLACKHAT)),
-        ("tophat_full", _branch_mask(gray, cv2.MORPH_TOPHAT)),
+        ("blackhat_full", blackhat),
+        ("tophat_full", tophat),
+        # fragment-recall source: seed-only, low rank (see RECALL_CLOSE_KERNEL). Closes blackhat,
+        # where the faint こ at 48s lives as sub-threshold fragments.
+        ("blackhat_close_full", cv2.morphologyEx(blackhat, cv2.MORPH_CLOSE, k)),
     ]
     _add_ms(stats, "mask_ms", ts)
     return masks
@@ -499,16 +516,20 @@ def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None, group="g
     )
     proposals = []
     for source, comps, _mask in full_frame_components(frame, stats):
-        for block in grouper(comps, frame.shape, mode=mode, stats=stats):
-            proposals.append({
-                **block,
-                "kind": "block_merged",
-                "source": source,
-                "sources": [source],
-                "layout": f"{mode}_candidate",
-            })
+        is_recall = source.endswith("_close_full")
+        if not is_recall:  # recall source feeds column_seed only, never block_merged grouping
+            for block in grouper(comps, frame.shape, mode=mode, stats=stats):
+                proposals.append({
+                    **block,
+                    "kind": "block_merged",
+                    "source": source,
+                    "sources": [source],
+                    "layout": f"{mode}_candidate",
+                })
         if emit_seeds:
             for seed in _column_seeds(comps, frame.shape, stats):
+                if is_recall:  # rank below real-mask seeds so a normal parent/seed wins NMS
+                    seed = {**seed, "score": seed["score"] - RECALL_SEED_SCORE_PENALTY}
                 proposals.append({
                     **seed,
                     "source": source,
