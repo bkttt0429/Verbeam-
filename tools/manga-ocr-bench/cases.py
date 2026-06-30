@@ -1,0 +1,81 @@
+"""Test ROIs for the Columnizer bench. Add cases here; robustness.py runs them.
+
+Each case is a dict. Required: name, t, roi (l,t,r,b). Optional expectations (asserted only when
+present): layout (vertical|horizontal|no_text), polarity (dark-on-light|light-on-dark|none),
+cols (int, checked when status ok), status (ok|bypass_columnizer|reject), reason (reject reason).
+Bookkeeping: deferred (bool, excluded from core score), deferred_reason, category, notes.
+
+Categories: dark-vert / white-vert / dark-horiz / white-horiz / color-vert / furigana /
+            multiblock / negative   (used for the per-category summary breakdown)
+"""
+CASES = [
+    dict(name="light-vert-2col(5s)", t=5.0, roi=(1330, 120, 1760, 820),
+         layout="vertical", polarity="dark-on-light", cols=2, status="ok",
+         category="dark-vert", notes="未熟/無ジョウ"),
+    dict(name="whitebox-1col(127s)", t=127.0, roi=(845, 140, 1090, 945),
+         layout="vertical", polarity="dark-on-light", cols=1, status="ok",
+         category="dark-vert", notes="そのほうが魅力的でしょ (single col; handoff '2-col' was a misdiagnosis)"),
+    dict(name="horiz-whiteondark(69s)", t=69.0, roi=(690, 400, 1230, 690),
+         layout="horizontal", polarity="light-on-dark", status="bypass_columnizer",
+         category="white-horiz", notes="重い"),
+    dict(name="teal-3col(48s)", t=48.0, roi=(30, 300, 590, 850),
+         layout="vertical", polarity="dark-on-light", cols=3, status="ok",
+         category="color-vert", notes="そんなところも/割と/嫌いじゃ無い"),
+    dict(name="whitebox-2col(48s)", t=48.0, roi=(1175, 90, 1335, 470),
+         layout="vertical", polarity="dark-on-light", cols=2, status="ok",
+         deferred=True, deferred_reason="ROI 切短 — upstream localizer (read truncated 何がそ)",
+         category="dark-vert", notes="何がそんな/不満なんだ"),
+    dict(name="light-on-color(48s視感)", t=48.0, roi=(1520, 360, 1810, 770),
+         layout="vertical", polarity="light-on-dark",
+         deferred=True, deferred_reason="furigana ruby (step 4) + Otsu mis-polarizes light-on-color",
+         category="furigana", notes="視感(+furigana)"),
+    dict(name="rain-no-text(69s)", t=69.0, roi=(100, 100, 460, 460),
+         layout="no_text", polarity="none", status="reject", reason="no_text",
+         category="negative", notes="background rain"),
+
+    # --- batch 2 (2026-06-29): more polarity/layout/negative coverage ---
+    dict(name="white-horiz-rain(137s)", t=137.0, roi=(280, 440, 1760, 660),
+         layout="horizontal", polarity="light-on-dark", status="bypass_columnizer",
+         category="white-horiz", notes="させられるような — white-on-dark horizontal, heavy rain (OCC stress)"),
+    dict(name="storm-clouds(100s)", t=100.0, roi=(300, 150, 1100, 700),
+         layout="no_text", polarity="none", status="reject", reason="no_text",
+         category="negative", notes="dark storm clouds, textured but no text"),
+    dict(name="clouds-no-text(164s)", t=164.0, roi=(1300, 500, 1850, 1000),
+         layout="no_text", polarity="none", status="reject", reason="no_text",
+         category="negative", notes="cloud region, no text"),
+    dict(name="multiblock-whole(48s)", t=48.0, roi=(0, 80, 1850, 870),
+         status="reject", reason="multi_block_roi",
+         deferred=True, deferred_reason="multi-block reject = step 5 (gate doesn't emit multi_block yet)",
+         category="multiblock", notes="whole 48s frame = teal + whitebox + 視感; must NOT cross-split"),
+
+    # --- batch 3 (2026-06-29): ROIs read off gridframe.py (eyeballed coords were unreliable) ---
+    dict(name="whitebox-2col(37s)", t=37.0, roi=(1300, 230, 1630, 620),
+         layout="vertical", polarity="dark-on-light", cols=2, status="ok",
+         deferred=True, deferred_reason="GAP-C mixed glyph sizes (飽きた big + もう自己顕示 small) -> layout=unknown + oversplit to 3",
+         category="dark-vert", notes="もう自己顕示/飽きた (white box)"),
+    dict(name="scratch-vert-1col(21s)", t=21.0, roi=(910, 210, 1010, 930),
+         layout="vertical", polarity="dark-on-light", cols=1, status="ok",
+         category="dark-vert", notes="カワキヲアメク — gridframe-corrected ROI; old box only covered rain left of the text"),
+    dict(name="gray-2col(42s)", t=42.0, roi=(760, 95, 970, 300),
+         layout="vertical", polarity="dark-on-light", cols=2, status="ok",
+         category="dark-vert", notes="何がそんな不満なんだ (gray diamond)"),
+    dict(name="green-1col(132s)", t=132.0, roi=(560, 530, 660, 1020),
+         layout="vertical", polarity="light-on-dark", cols=1, status="ok",
+         category="color-vert", notes="ほっといてくれ (green diamond; gridframe-corrected ROI)"),
+    dict(name="purple-vert(42s)", t=42.0, roi=(500, 460, 700, 850),
+         layout="vertical", cols=2, status="ok", mask_source_in=["gray_otsu", "lab_delta"],
+         category="color-vert", notes="散々ワガママ/語っといて (purple diamond; gridframe-corrected ROI)"),
+    dict(name="red-1col(42s既視感)", t=42.0, roi=(1300, 175, 1420, 340),
+         layout="vertical", status="ok",
+         category="color-vert", notes="既視感 (light text on red diamond; polarity unasserted)"),
+    dict(name="blue-vert(153s)", t=153.0, roi=(520, 80, 660, 500),
+         layout="vertical", cols=1, status="ok", mask_source_in=["gray_otsu", "lab_delta"],
+         category="color-vert", notes="巻き戻せなかった (blue diamond; gridframe-corrected ROI)"),
+    dict(name="pink-vert(201s)", t=201.0, roi=(300, 90, 440, 480),
+         layout="vertical", cols=1, status="ok", mask_source_in=["gray_otsu", "lab_delta"],
+         category="color-vert", notes="終わりにして (faint pink diamond; gridframe-corrected ROI)"),
+    dict(name="multiblock-whole(42s)", t=42.0, roi=(0, 0, 1920, 1080),
+         status="reject", reason="multi_block_roi",
+         deferred=True, deferred_reason="multi-block reject = step 5",
+         category="multiblock", notes="whole 42s frame = 4 separate text diamonds"),
+]
