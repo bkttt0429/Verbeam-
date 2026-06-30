@@ -33,10 +33,13 @@ def draw_proposal(frame, index, candidate):
 
 def draw_detection(frame, index, candidate, result, route):
     x0, y0, x1, y1 = candidate.bbox
-    color = (0, 255, 255) if result["layout"] == "vertical_rl" else (255, 180, 0)
+    if candidate.kind == "column_seed":
+        color = (255, 255, 0)  # cyan = a column_seed that survived into confirmed/kept
+    else:
+        color = (0, 255, 255) if result["layout"] == "vertical_rl" else (255, 180, 0)
     cv2.rectangle(frame, (x0, y0), (x1, y1), color, 3)
     label = (
-        f"auto#{index} vote={candidate.vote} rank={candidate.rank:.2f} "
+        f"auto#{index} {candidate.kind} vote={candidate.vote} rank={candidate.rank:.2f} "
         f"{result['layout']} {result['status']} cols={len(result['columns'])} "
         f"reader={route['reader'] or '-'} calls={route['ocr_calls']}"
     )
@@ -69,6 +72,9 @@ def event_rows(t, index, candidate, result, route):
         "det_line_frac": candidate.line_frac,
         "det_edge_frac": candidate.edge_frac,
         "det_max_dom": candidate.max_dom,
+        "proposal_kind": candidate.kind,
+        "parent_id": candidate.parent_id,
+        "component_count": len(candidate.component_ids),
         "layout": result["layout"],
         "status": result["status"],
         "mask_source": result["mask_dbg"].get("source"),
@@ -124,6 +130,7 @@ def proposal_event_row(t, index, candidate):
         "det_edge_frac": candidate.edge_frac,
         "det_max_dom": candidate.max_dom,
         "proposal_kind": candidate.kind,
+        "parent_id": candidate.parent_id,
         "component_count": len(candidate.component_ids),
         "layout": "",
         "status": "proposal",
@@ -187,7 +194,7 @@ def main():
                 scorer=args.scorer,
                 min_vote=args.min_vote,
                 group=args.group,
-                emit_seeds=args.stage == "proposal",
+                emit_seeds=True,
                 confirm_raw=args.stage in ("confirm", "ocr"),
                 return_stats=True,
             )
@@ -257,7 +264,7 @@ def main():
     fieldnames = [
         "time_s", "det_index", "det_bbox", "det_vote", "det_rank", "det_layout_hint",
         "det_cols_hint", "det_occ", "det_tl", "det_n", "det_line_frac",
-        "det_edge_frac", "det_max_dom", "proposal_kind", "component_count", "layout", "status",
+        "det_edge_frac", "det_max_dom", "proposal_kind", "parent_id", "component_count", "layout", "status",
         "mask_source", "mask_occ", "mask_tl", "mask_n", "reader", "reader_status",
         "route_reason", "ocr_calls", "joined", "column_order", "column_bbox_abs",
         "ocr_text", "ocr_ms", "ocr_jp_ratio",

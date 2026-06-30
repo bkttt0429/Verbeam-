@@ -74,6 +74,8 @@ SEED_ALIGN_FRAC = 0.8     # |cx delta| < this * median glyph width = same column
 SEED_STACK_GAP = 2.5      # vertical gap < this * median glyph height = stacked glyphs
 SEED_MIN_H = 45           # a real column spans at least this many px tall
 SEED_MAX_W = 110          # wider than this is not a single column
+SEED_TRUST_MIN_ASPECT = 2.5  # a seed columnize can't verify is trust-confirmed only if clearly
+                             # column-shaped (h/w); squat 2-blob art pairs (h/w~1.5) are rejected
 
 
 @dataclass
@@ -93,8 +95,10 @@ class BlockCandidate:
     max_dom: float = 0.0
     columnizer_result: dict | None = None
     kind: str = "block_merged"          # "column_seed" | "block_merged" | "broad_split"
-    parent_id: int | None = None        # for a column_seed: the block_merged it sits inside
+    parent_id: int | None = None        # for a column_seed: proposal_id of the block it sits inside
+    proposal_id: int | None = None      # rank-order id, for parent/child NMS + debug
     component_ids: tuple = ()            # source-local comp indices in this proposal
+    column_boxes_abs: tuple = ()         # confirmed columns in absolute frame coords (for child NMS)
 
 
 def _inter(a, b):
@@ -461,12 +465,16 @@ def _merge_proposal(items):
         for existing in merged:
             if existing.get("kind") != item.get("kind"):
                 continue  # column_seed and block_merged never absorb each other (UPDATE 3 step 3)
-            if (
+            same = (
                 _iou(item["bbox"], existing["bbox"]) > 0.50
                 or _contained_frac(item["bbox"], existing["bbox"]) > 0.82
                 or _contained_frac(existing["bbox"], item["bbox"]) > 0.82
-                or _nearby_block(item["bbox"], existing["bbox"])
-            ):
+            )
+            # a column_seed must stay ONE column — only dedup near-identical seeds, never nearby-merge
+            # (else two adjacent seeds glue into a multi-col box no parent column can represent -> dupes)
+            if item.get("kind") != "column_seed":
+                same = same or _nearby_block(item["bbox"], existing["bbox"])
+            if same:
                 found = existing
                 break
         if found is None:
@@ -713,6 +721,12 @@ def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None, re
     if bw * bh < 1800 or bw > 620 or bh > 620:
         return reject("size")
 
+    # columns are in roi coords (roi origin = candidate proposal bbox x0,y0) -> absolute
+    column_boxes_abs = tuple(
+        (x0 + c["bbox"][0], y0 + c["bbox"][1], x0 + c["bbox"][2], y0 + c["bbox"][3])
+        for c in result["columns"]
+    )
+
     adjusted_rank = (
         candidate.rank
         + 0.08
@@ -735,6 +749,10 @@ def _confirm_candidate_on_raw(frame, candidate, require_vertical, stats=None, re
         edge_frac=features["edge_frac"],
         max_dom=features["max_dom"],
         columnizer_result=result,
+        kind=candidate.kind,
+        proposal_id=candidate.proposal_id,
+        component_ids=candidate.component_ids,
+        column_boxes_abs=column_boxes_abs,
     )
 
 
@@ -783,12 +801,17 @@ def _build_split_child(parent, parent_result, group_cols, off_x, off_y, frame_sh
     ]
     dbg = parent_result["mask_dbg"]
     child_result = {**parent_result, "layout": "vertical_rl", "status": "ok", "columns": child_cols}
+    column_boxes_abs = tuple(
+        (cb[0] + c["bbox"][0], cb[1] + c["bbox"][1], cb[0] + c["bbox"][2], cb[1] + c["bbox"][3])
+        for c in child_cols
+    )
     return BlockCandidate(
         bbox=cb, score=parent.score, rank=parent.rank, vote=parent.vote,
         layout="vertical_rl", columns=len(child_cols),
         occ=round(float(dbg.get("occ", 0.0)), 4), tl=round(float(dbg.get("tl", 0.0)), 4),
         n=int(dbg.get("n", 0)), source=f"{parent.source}+broad_split",
         columnizer_result=child_result,
+        kind="broad_split", proposal_id=parent.proposal_id, column_boxes_abs=column_boxes_abs,
     )
 
 
@@ -826,6 +849,38 @@ def _confirm_candidate_on_raw_many(frame, candidate, require_vertical, stats=Non
     return [confirmed] if confirmed is not None else []
 
 
+def _confirm_seed(frame, seed, stats=None):
+    """Confirm a column_seed. Try the normal raw columnize first (tight column when it reads). If the
+    crop re-columnizes as no_text (a faint vertical column columnize's local mask loses — e.g. the
+    purple-on-purple 語っといて, which component_filter_global DID see at frame scale), trust the seed
+    geometry as one vertical_rl column instead of dropping it. Art guard: reject if dense (occ) or
+    line-dominated, per UPDATE 3 — the same trust trick UPDATE 2 uses for broad-split children."""
+    normal = _confirm_candidate_on_raw(frame, seed, require_vertical=True, stats=stats)
+    if normal is not None:
+        return [normal]
+    x0, y0, x1, y1 = seed.bbox
+    roi = frame[y0:y1, x0:x1]
+    result = columnize(roi)
+    occ = float(result["mask_dbg"].get("occ", 1.0))
+    features = _line_noise_features(result.get("mask"), roi.shape, comps=result.get("components"))
+    aspect = (y1 - y0) / float(max(1, x1 - x0))
+    if occ > CONFIRM_OCC_MAX or _is_line_dominated(features, occ) or aspect < SEED_TRUST_MIN_ASPECT:
+        if stats is not None:
+            stats["reject_seed_guard"] = stats.get("reject_seed_guard", 0) + 1
+        return []
+    if stats is not None:
+        stats["seed_trust_confirm"] = stats.get("seed_trust_confirm", 0) + 1
+    synth = {**result, "status": "ok", "layout": "vertical_rl",
+             "columns": [{"order": 0, "bbox": [0, 0, x1 - x0, y1 - y0]}]}
+    return [BlockCandidate(
+        bbox=seed.bbox, score=seed.score, rank=seed.rank, vote=seed.vote,
+        layout="vertical_rl", columns=1, occ=round(occ, 4),
+        tl=round(float(result["mask_dbg"].get("tl", 0.0)), 4), n=int(result["mask_dbg"].get("n", 0)),
+        source=f"{seed.source}+seed_trust", kind="column_seed", proposal_id=seed.proposal_id,
+        component_ids=seed.component_ids, column_boxes_abs=(seed.bbox,), columnizer_result=synth,
+    )]
+
+
 def _accept_candidate(candidate, kept):
     """Append candidate to kept unless it overlaps one already there. Returns True if added."""
     box = candidate.bbox
@@ -838,6 +893,52 @@ def _accept_candidate(candidate, kept):
         return False
     kept.append(candidate)
     return True
+
+
+def _representing_parent(child, parents):
+    """Return the parent that already has a confirmed column AT the child seed's position (so the
+    seed just duplicates it), else None. In a vertical_rl block columns are separated by x, so we
+    match on strong x-overlap AND non-trivial y-overlap (same column, same vertical run). Overlap is
+    normalised by the narrower box because a seed's comp-derived bbox is wider/taller than the
+    parent's columnize column. None => the seed is a column no parent represents (e.g. 語っといて) -> keep."""
+    cx0, cy0, cx1, cy1 = child.bbox
+    cw, ch = cx1 - cx0, cy1 - cy0
+    for p in parents:
+        for col in p.column_boxes_abs:
+            xov = _overlap_1d(cx0, cx1, col[0], col[2]) / max(1, min(cw, col[2] - col[0]))
+            yov = _overlap_1d(cy0, cy1, col[1], col[3]) / max(1, min(ch, col[3] - col[1]))
+            if xov > 0.60 and yov > 0.50:
+                return p
+    return None
+
+
+def _suppress_confirmed(confirmed, max_blocks):
+    """Parent/child-aware NMS (UPDATE 3 step 4). Accept block_merged/broad_split parents first
+    (normal NMS), then column_seed children: a seed is dropped only if some confirmed parent already
+    has a column at its position; a seed no parent column represents (a missed column, e.g. the
+    standalone 語っといて) is KEPT. Seeds dedup against other kept seeds too."""
+    parents = [c for c in confirmed if c.kind != "column_seed"]
+    seeds = [c for c in confirmed if c.kind == "column_seed"]
+    kept = []
+    for c in sorted(parents, key=lambda c: c.rank, reverse=True):
+        if len(kept) >= max_blocks:
+            return kept
+        _accept_candidate(c, kept)
+    kept_parents = [k for k in kept if k.kind != "column_seed"]
+    for s in sorted(seeds, key=lambda c: c.rank, reverse=True):
+        if len(kept) >= max_blocks:
+            break
+        rep = _representing_parent(s, kept_parents)
+        if rep is not None:
+            s.parent_id = rep.proposal_id  # debug: which parent already covers this column
+            continue
+        if not any(
+            k.kind == "column_seed"
+            and (_iou(s.bbox, k.bbox) > 0.30 or _contained_frac(s.bbox, k.bbox) > 0.70)
+            for k in kept
+        ):
+            kept.append(s)
+    return kept
 
 
 def detect_text_blocks(
@@ -856,20 +957,24 @@ def detect_text_blocks(
     stats = _new_stats(scorer)
     if scorer == "cc":
         ranked = propose_blocks_from_frame_masks(frame, mode=mode, stats=stats, group=group, emit_seeds=emit_seeds)
-        kept = []
-        for candidate in ranked:
-            if confirm_raw:
-                ts = time.perf_counter()
-                children = _confirm_candidate_on_raw_many(frame, candidate, require_vertical, stats)
-                _add_ms(stats, "confirm_ms", ts)
-            else:
-                children = [candidate]
-            for child in children:
-                _accept_candidate(child, kept)
+        for i, candidate in enumerate(ranked):
+            candidate.proposal_id = i
+        if confirm_raw:
+            confirmed = []
+            ts = time.perf_counter()
+            for candidate in ranked:
+                if candidate.kind == "column_seed":
+                    confirmed.extend(_confirm_seed(frame, candidate, stats))
+                else:
+                    confirmed.extend(_confirm_candidate_on_raw_many(frame, candidate, require_vertical, stats))
+            _add_ms(stats, "confirm_ms", ts)
+            kept = _suppress_confirmed(confirmed, max_blocks)
+        else:
+            kept = []
+            for candidate in ranked:
+                _accept_candidate(candidate, kept)
                 if len(kept) >= max_blocks:
                     break
-            if len(kept) >= max_blocks:
-                break
         stats["confirmed_count"] = len(kept)
         return (kept, stats) if return_stats else kept
 

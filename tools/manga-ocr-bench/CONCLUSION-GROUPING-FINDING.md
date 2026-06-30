@@ -173,6 +173,41 @@ today; (2) これ component recall; (3) 視感 stays `hard_mixed_art_text`. Broa
 
 ---
 
+## UPDATE 5 — 2026-06-30 — Patch #1 SHIPPED: column_seed → confirm + parent/child NMS. 語っといて recovered.
+
+Wired column_seed proposals into the real confirm/kept path (UPDATE 3 step 4). 語っといて now confirms; これ
+still absent (needs #2); art false-positives bounded by a trust-path guard. Core gate unchanged.
+
+- **Seeds → confirm.** `detect_text_blocks` now confirms ALL proposals (seeds + blocks) then suppresses,
+  instead of early-breaking. Seeds route through `_confirm_seed`, blocks through `_confirm_candidate_on_raw_many`.
+- **Seeds never nearby-merge.** `_merge_proposal` applies `_nearby_block` only to block_merged; a column_seed
+  dedups by IoU/containment only — else two adjacent seeds glue into a multi-col box no parent column can
+  represent → duplicate boxes. (Removed the bogus `cols=2` "seeds".)
+- **Parent/child NMS** (`_suppress_confirmed` + `_representing_parent`): parents accepted first (normal NMS),
+  then a seed is dropped only if a confirmed parent already has a column AT the seed's position — strong
+  x-overlap AND y-overlap, each normalised by the *narrower* box (the seed's comp-derived bbox is wider/taller
+  than the columnize column, so a full-IoU test wrongly missed the match). A seed no parent column represents
+  (standalone 語っといて) is KEPT. Collapsed 4 duplicate 48s boxes.
+- **Trust-confirm for faint columns** (`_confirm_seed`). A seed whose raw crop re-columnizes as `no_text`
+  (faint purple-on-purple 語っといて: columnize's local mask sees n=0 though `component_filter_global` saw 4
+  comps at frame scale) is trusted as one `vertical_rl` column from its validated seed geometry — the same
+  trust trick UPDATE 2 uses for broad-split children. Art guard: reject if `occ > 0.48`, line-dominated, OR
+  `h/w < SEED_TRUST_MIN_ASPECT` (2.5) — squat 2-blob art pairs (h/w ~1.5) are rejected. Cut 4 of 5 art
+  trust-seeds. Seeds that columnize cleanly still go through the normal text gate (not trusted blindly).
+
+**Measured 48s confirm = 8 blocks:** 他に何がある/以上 · 何がそんな/不満なんだ · teal 3-col · 散々ワガママ ·
+**語っといて `[843,545,888,744]` (NEW — was missing)** · 視感/char region (broad_split, deferred). **これ
+STILL no box** (1 surviving comp; needs #2 morph-close). **42s:** 既視感 still withheld; one thin-line
+straggler `[1894]` in the deferred far-right art region (h/w 6.6 slips the aspect guard — not chased, per
+the art-region deferral). Core gate `raw 16/20 | core 15/15` throughout.
+
+**Acceptance 48s:** B 他に何がある ✅ · C 何がそんな/不満 ✅ · D 散々ワガママ + 語っといて ✅ (語っといて
+recovered) · E teal 3-col ✅ · A これ ❌ (pending #2) · F 視感 deferred. **Next = #2:** これ component recall
+(morph-close before `component_filter_global`, proposal-source only, low rank), then temporal cache (#3).
+New tunable: `SEED_TRUST_MIN_ASPECT`.
+
+---
+
 ## 1. Current pipeline (what already works)
 
 ```
