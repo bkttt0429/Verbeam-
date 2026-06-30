@@ -148,6 +148,7 @@ def main():
     parser.add_argument("--times", nargs="*", type=float, default=[42.0, 48.0])
     parser.add_argument("--max-blocks", type=int, default=14)
     parser.add_argument("--scorer", choices=["cc", "window", "fast", "exact"], default="cc")
+    parser.add_argument("--group", choices=["graph", "dilate"], default="graph")
     parser.add_argument("--stage", choices=["proposal", "confirm", "ocr"], default="confirm")
     parser.add_argument("--min-vote", type=int, default=5)
     parser.add_argument("--ocr", action="store_true")
@@ -182,6 +183,7 @@ def main():
                 max_blocks=args.max_blocks,
                 scorer=args.scorer,
                 min_vote=args.min_vote,
+                group=args.group,
                 confirm_raw=args.stage in ("confirm", "ocr"),
                 return_stats=True,
             )
@@ -189,7 +191,8 @@ def main():
             put_label(
                 canvas,
                 f"t={t:.1f}s experimental auto block detector scorer={args.scorer} "
-                f"stage={args.stage} min_vote={args.min_vote} candidates={len(candidates)}",
+                f"group={args.group} stage={args.stage} min_vote={args.min_vote} "
+                f"candidates={len(candidates)}",
                 10,
                 55,
                 scale=0.75,
@@ -219,6 +222,7 @@ def main():
                 "time_s": f"{t:.3f}",
                 "stage": args.stage,
                 "scorer": args.scorer,
+                "group": args.group,
                 "detector_ms": round(detector_ms, 2),
                 "mask_ms": round(stats.get("mask_ms", 0.0), 2),
                 "cc_ms": round(stats.get("cc_ms", 0.0), 2),
@@ -261,7 +265,7 @@ def main():
     with json_path.open("w", encoding="utf-8") as f:
         json.dump(rows, f, ensure_ascii=False, indent=2)
     metrics_fields = [
-        "time_s", "stage", "scorer", "detector_ms", "mask_ms", "cc_ms",
+        "time_s", "stage", "scorer", "group", "detector_ms", "mask_ms", "cc_ms",
         "group_ms", "window_ms", "confirm_ms", "ocr_ms",
         "raw_proposal_count", "merged_proposal_count", "proposal_count",
         "confirmed_count", "candidate_count", "ocr_calls", "reject_breakdown",

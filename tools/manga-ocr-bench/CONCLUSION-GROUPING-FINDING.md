@@ -29,6 +29,40 @@ block and never drops a vote-2 column that is collinear with neighbours → fixe
 
 ---
 
+## UPDATE 2026-06-30 — component-graph grouping IMPLEMENTED + A/B'd. Result: HALF the fix.
+
+The §5 grouper is now built (`group_components_into_blocks_graph` in `block_detector.py`, selectable
+via `detector_preview.py --group graph|dilate`, default `graph`). Measured A/B on 42s + 48s. **The
+"one root cause, graph fixes both" thesis is HALF RIGHT — and the over-merge half is DISPROVEN here:**
+
+- ✅ **48s 「これ」 (under-detect) — FIXED.** これ is now its own clean column
+  `col1 abs_x[559:590] y[164:253]` inside the multi-column block `[547,43,715,447]` — exactly the §5
+  acceptance. (Required `STACK_GAP ≈ 2.5·glyph_h`, not 1.3 — これ's line gap is 1.8·glyph_h; a tight
+  gap drops it.) 48s recall tuned back to **4/5** vs dilate's 5 (graph also adds the これ column
+  dilate never produced); needed `GRAPH_BLOCK_PAD=18` (graph boxes hug comps → occ trips the
+  confirm `occ≤0.45` gate) and `ADJ_OVERLAP=0.5`.
+- ❌ **42s 「既視感」 (over-merge) — NOT FIXED, and the premise above is wrong for this frame.** §TL;DR
+  assumed "40px glyph won't bond to a 200px art blob." **Measured: there is no 200px blob and no size
+  gap.** The filtered comps in the 既視感 region are a *continuous size ladder 13→127px* (blackhat
+  13.5…80.5, tophat 11.5…127.5); the large red title glyphs (~60–90px square, fill 0.43–0.60) and the
+  umbrella/character art genuinely **overlap in size**. Single-linkage size-similarity (ratio<2
+  pairwise) therefore **chains straight through** the intermediate sizes. Even when a box lands on the
+  region it columnizes `no_text` at **occ=0.61** — text+art are co-located at high ink density, not a
+  carve-out-able clean column.
+- **Cost:** graph also loses recall elsewhere (before tuning 48s was 3/5) and is slightly slower
+  end-to-end (group_ms itself is faster: 6–9ms vs 23–25ms) — the adjacency edge over-chains
+  horizontally too (48s `[1508,…]` grew to 7 columns → killed by the confirm `cols≤4` gate). Same
+  chaining disease as 既視感, sideways.
+
+**Corrected takeaway:** content-aware grouping fixes the *recall* side (これ) but **cannot** fix the
+*over-merge* side (既視感) — when text and art share color, size, position, and density, cheap-CV
+size/alignment grouping has no separating signal. 既視感 needs a **different** signal (stroke-width,
+connected-structure area, or actual recognition / VLM on `occ>0.55` mixed blocks), NOT a smarter
+grouper. Grouping work on 既視感 is shelved. Current direction: keep graph (it earns これ), tune edge
+rules to hold dilate's recall, then move to temporal cache (§7). See `mangaocr-vertical-bench` memo.
+
+---
+
 ## 1. Current pipeline (what already works)
 
 ```

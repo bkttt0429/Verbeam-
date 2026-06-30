@@ -47,6 +47,15 @@ MIN_BLOCK_AREA = 1800
 MAX_BLOCK_W = 720
 MAX_BLOCK_H = 720
 
+# Component-graph grouping (content-aware; replaces uniform dilation). Starting values from
+# CONCLUSION-GROUPING-FINDING.md §5 — these are the calibration knobs, tune on real frames.
+GRAPH_SIZE_RATIO = 2.0       # |size_a/size_b| must stay within this band, else refuse edge (text<->art)
+GRAPH_ALIGN_FRAC = 0.8       # cross-axis center delta < this * avg cross-axis extent = same column/row
+GRAPH_STACK_GAP = 2.5        # along-axis edge gap < this * avg along-axis extent = stacked/inline glyphs
+GRAPH_ADJ_OVERLAP = 0.50     # along-axis band overlap fraction to treat two comps as one block
+GRAPH_ADJ_GAP = 1.2          # adjacent column/row cross-axis gap < this * avg cross-axis extent
+GRAPH_BLOCK_PAD = 18         # graph boxes hug the comps; extra pad lowers occ at the confirm gate
+
 
 @dataclass
 class BlockCandidate:
@@ -241,6 +250,122 @@ def group_components_into_blocks(comps, frame_shape, mode="vertical", stats=None
     return blocks
 
 
+def _comp_size(c):
+    return 0.5 * (c.w + c.h)
+
+
+def _size_similar(a, b):
+    sa, sb = _comp_size(a), _comp_size(b)
+    if sa <= 0 or sb <= 0:
+        return False
+    r = sa / sb
+    return (1.0 / GRAPH_SIZE_RATIO) <= r <= GRAPH_SIZE_RATIO
+
+
+def _graph_edge(a, b, mode):
+    """Content-aware edge: bond two comps iff size-similar AND (same column/row OR adjacent
+    column/row of one block). Size gate refuses text<->art; geometry gate bonds collinear text."""
+    if not _size_similar(a, b):
+        return False
+    # vertical text stacks along Y inside a column (columns vary in X); horizontal runs along X.
+    if mode == "horizontal":
+        a_lo0, a_lo1, a_loc = a.x, a.x + a.w, a.cx        # along-axis = X
+        a_cr0, a_cr1, a_crc = a.y, a.y + a.h, a.cy        # cross-axis = Y
+        b_lo0, b_lo1, b_loc = b.x, b.x + b.w, b.cx
+        b_cr0, b_cr1, b_crc = b.y, b.y + b.h, b.cy
+        along_ext = 0.5 * (a.w + b.w)
+        cross_ext = 0.5 * (a.h + b.h)
+    else:
+        a_lo0, a_lo1, a_loc = a.y, a.y + a.h, a.cy        # along-axis = Y
+        a_cr0, a_cr1, a_crc = a.x, a.x + a.w, a.cx        # cross-axis = X
+        b_lo0, b_lo1, b_loc = b.y, b.y + b.h, b.cy
+        b_cr0, b_cr1, b_crc = b.x, b.x + b.w, b.cx
+        along_ext = 0.5 * (a.h + b.h)
+        cross_ext = 0.5 * (a.w + b.w)
+
+    # same column/row: shared cross-axis center, small along-axis gap (stacked glyphs)
+    cross_center_delta = abs(a_crc - b_crc)
+    along_gap = max(0, max(a_lo0, b_lo0) - min(a_lo1, b_lo1))
+    if (cross_center_delta < GRAPH_ALIGN_FRAC * cross_ext
+            and along_gap < GRAPH_STACK_GAP * along_ext):
+        return True
+
+    # adjacent column/row of the same block: high along-axis overlap, small cross-axis gap
+    along_overlap = _overlap_1d(a_lo0, a_lo1, b_lo0, b_lo1)
+    along_min = max(1, min(a_lo1 - a_lo0, b_lo1 - b_lo0))
+    cross_gap = max(0, max(a_cr0, b_cr0) - min(a_cr1, b_cr1))
+    if (along_overlap / float(along_min) > GRAPH_ADJ_OVERLAP
+            and cross_gap < GRAPH_ADJ_GAP * cross_ext):
+        return True
+    return False
+
+
+def _graph_groups(comps, mode):
+    """Union-find over component edges -> list of comp-groups (each = one block proposal)."""
+    n = len(comps)
+    parent = list(range(n))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    # ponytail: O(N^2) pair scan. N is the filtered frame-scale comp count (tens-low hundreds);
+    # add a grid spatial index only if a frame's comp count makes this measurably slow.
+    for i in range(n):
+        for j in range(i + 1, n):
+            if _graph_edge(comps[i], comps[j], mode):
+                ri, rj = find(i), find(j)
+                if ri != rj:
+                    parent[ri] = rj
+
+    groups = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(comps[i])
+    return list(groups.values())
+
+
+def group_components_into_blocks_graph(comps, frame_shape, mode="vertical", stats=None):
+    """Content-aware grouping: connect components by size-similarity + alignment/proximity, then
+    take graph connected-components as block proposals. A vote-2 column that is collinear with a
+    neighbour stays its own group (never dropped); art blobs are size-dissimilar so they never
+    bond to glyphs. See CONCLUSION-GROUPING-FINDING.md §4-5."""
+    ts = time.perf_counter()
+    frame_h, frame_w = frame_shape[:2]
+    if not comps:
+        _add_ms(stats, "group_ms", ts)
+        return []
+
+    blocks = []
+    for group in _graph_groups(comps, mode):
+        if len(group) < 2:
+            continue
+        x0 = min(c.x for c in group)
+        y0 = min(c.y for c in group)
+        x1 = max(c.x + c.w for c in group)
+        y1 = max(c.y + c.h for c in group)
+        bbox = (
+            max(0, x0 - GRAPH_BLOCK_PAD),
+            max(0, y0 - GRAPH_BLOCK_PAD),
+            min(frame_w, x1 + GRAPH_BLOCK_PAD),
+            min(frame_h, y1 + GRAPH_BLOCK_PAD),
+        )
+        bw = bbox[2] - bbox[0]
+        bh = bbox[3] - bbox[1]
+        if bw < 24 or bh < 24 or bw > MAX_BLOCK_W or bh > MAX_BLOCK_H:
+            continue
+        box_area = max(1, bw * bh)
+        if box_area < MIN_BLOCK_AREA:
+            continue
+        comp_count = len(group)
+        score = 1.0 + 0.035 * min(comp_count, 24) - 0.00000008 * box_area
+        blocks.append({"bbox": bbox, "score": score, "vote": comp_count})
+
+    _add_ms(stats, "group_ms", ts)
+    return blocks
+
+
 def _merge_proposal(items):
     merged = []
     for item in sorted(items, key=lambda p: p["score"], reverse=True):
@@ -269,10 +394,14 @@ def _merge_proposal(items):
     return merged
 
 
-def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None):
+def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None, group="graph"):
+    grouper = (
+        group_components_into_blocks_graph if group == "graph"
+        else group_components_into_blocks
+    )
     proposals = []
     for source, comps, _mask in full_frame_components(frame, stats):
-        for block in group_components_into_blocks(comps, frame.shape, mode=mode, stats=stats):
+        for block in grouper(comps, frame.shape, mode=mode, stats=stats):
             proposals.append({
                 **block,
                 "source": source,
@@ -509,11 +638,12 @@ def detect_text_blocks(
     confirm_raw=True,
     require_vertical=True,
     min_vote=MIN_CLUSTER_VOTE,
+    group="graph",
     return_stats=False,
 ):
     stats = _new_stats(scorer)
     if scorer == "cc":
-        ranked = propose_blocks_from_frame_masks(frame, mode=mode, stats=stats)
+        ranked = propose_blocks_from_frame_masks(frame, mode=mode, stats=stats, group=group)
         kept = []
         for candidate in ranked:
             if confirm_raw:
