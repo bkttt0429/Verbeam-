@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+rois/
+*.mp4
+contact.png
