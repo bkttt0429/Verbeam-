@@ -16,6 +16,9 @@ public sealed class OcrProviderRegistry
     public IReadOnlyCollection<OcrProviderDescriptor> List()
         => _providers.Values.Select(provider => provider.Descriptor).OrderBy(provider => provider.Name).ToArray();
 
+    public bool Contains(string name)
+        => _providers.ContainsKey(name);
+
     public IOcrProvider GetRequired(string name)
     {
         if (_providers.TryGetValue(name, out var provider))

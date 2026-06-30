@@ -1,10 +1,17 @@
 param(
-    [ValidateSet("status", "easyocr", "paddleocr", "pix2text", "pp-structure-v3", "paddleocr-vl", "dots-ocr", "all")]
+    [ValidateSet("status", "rapidocr-ppocrv5", "easyocr", "paddleocr", "pix2text", "pp-structure-v3", "paddleocr-vl", "dots-ocr", "all")]
     [string]$Engine = "status",
 
     [switch]$Install,
 
-    [switch]$InstallTesseract
+    [switch]$InstallTesseract,
+
+    # Provision per-language rapidocr-net rec models into ocr-models\ (the Api csproj globs them into
+    # the build/dist, so end users get them too). Auto-runs when installing rapidocr-ppocrv5/all;
+    # -DownloadRecModels forces it standalone. -RecModels: none | recommended | all | comma keys (ko,th).
+    [switch]$DownloadRecModels,
+
+    [string]$RecModels = "recommended"
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,6 +22,7 @@ $VenvPython = Join-Path $Venv "Scripts\python.exe"
 $Wrapper = Join-Path $Root "scripts\local_ocr_json.py"
 $Tessdata = Join-Path $Root ".ocr-set\tessdata"
 $Requirements = @{
+    "rapidocr-ppocrv5" = Join-Path $Root "ocr-set\requirements-rapidocr.txt"
     easyocr = Join-Path $Root "ocr-set\requirements-easyocr.txt"
     paddleocr = Join-Path $Root "ocr-set\requirements-paddleocr.txt"
     "pp-structure-v3" = Join-Path $Root "ocr-set\requirements-paddleocr.txt"
@@ -137,16 +145,39 @@ function Install-TesseractLanguages {
     }
 }
 
+function Install-RapidOcrNetRecModels {
+    param([string]$Set = "recommended")
+
+    if ($Set -eq "none") {
+        return
+    }
+
+    $python = Resolve-Python
+    $fetch = Join-Path $Root "scripts\fetch_ocr_rec_model.py"
+    $outDir = Join-Path $Root "src\Verbeam.Api\ocr-models"
+    if (-not (Test-Path -LiteralPath $fetch)) {
+        Write-Host "Skipping rapidocr-net rec models: fetch script not found ($fetch)."
+        return
+    }
+
+    Write-Host "Provisioning rapidocr-net per-language rec models ($Set) -> $outDir"
+    switch ($Set) {
+        "recommended" { & $python $fetch --recommended --out $outDir }
+        "all" { & $python $fetch --all --out $outDir }
+        default { & $python $fetch --lang $Set --out $outDir }
+    }
+}
+
 if ($InstallTesseract) {
     Install-Tesseract
 }
 
 if ($Install) {
     if ($Engine -eq "status") {
-        throw "Use -Engine easyocr|paddleocr|pix2text|pp-structure-v3|paddleocr-vl|dots-ocr|all with -Install."
+        throw "Use -Engine rapidocr-ppocrv5|easyocr|paddleocr|pix2text|pp-structure-v3|paddleocr-vl|dots-ocr|all with -Install."
     }
 
-    $targets = if ($Engine -eq "all") { @("easyocr", "paddleocr", "pp-structure-v3", "paddleocr-vl", "pix2text", "dots-ocr") } else { @($Engine) }
+    $targets = if ($Engine -eq "all") { @("rapidocr-ppocrv5", "easyocr", "paddleocr", "pp-structure-v3", "paddleocr-vl", "pix2text", "dots-ocr") } else { @($Engine) }
     $installedRequirementFiles = @{}
     foreach ($target in $targets) {
         $req = $Requirements[$target]
@@ -162,9 +193,16 @@ if ($Install) {
     }
 }
 
+# Auto-provision the rapidocr-net per-language rec models when setting up rapidocr/all (rapidocr-net
+# is the cross-OS realtime engine), or on demand via -DownloadRecModels. Skip with -RecModels none.
+$installingRapid = $Install -and ($Engine -eq "rapidocr-ppocrv5" -or $Engine -eq "all")
+if ($DownloadRecModels -or $installingRapid) {
+    Install-RapidOcrNetRecModels $RecModels
+}
+
 Write-Host "OCR SET status:"
 Test-Tesseract
-foreach ($target in @("easyocr", "paddleocr", "pp-structure-v3", "paddleocr-vl", "pix2text", "dots-ocr")) {
+foreach ($target in @("rapidocr-ppocrv5", "easyocr", "paddleocr", "pp-structure-v3", "paddleocr-vl", "pix2text", "dots-ocr")) {
     Test-Engine $target
 }
 

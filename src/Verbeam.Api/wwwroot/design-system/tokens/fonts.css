@@ -1,0 +1,8 @@
+/* Verbeam — Webfonts
+   ----------------------------------------------------------------
+   Two families, both served from Google Fonts (no substitutions):
+     sans  → "Outfit"          — geometric humanist sans, the UI face
+     mono  → "JetBrains Mono"   — labels, chrome, status, code, meta
+   These match the shipping app/viewer/projector exactly. */
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");

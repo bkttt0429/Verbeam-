@@ -1,0 +1,140 @@
+<!-- @dsCard group="Viewer" viewport="900x520" name="Broadcast viewer" subtitle="The /viewer read-only translation display" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verbeam · Viewer</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { height: 100%; }
+  main {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 44px minmax(0, 1fr) auto;
+    background: var(--vb-bg);
+  }
+  header {
+    min-height: 44px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--vb-line);
+    background: var(--vb-rail);
+    color: var(--vb-muted);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .brand { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+  .status {
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid var(--vb-line);
+    border-radius: 99px;
+    background: var(--vb-hover-soft);
+    color: var(--vb-muted);
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 999px; background: var(--vb-amber); }
+  .status.live .dot { background: var(--vb-green); }
+  .translation {
+    place-self: center;
+    width: min(90vw, 1200px);
+    margin: 40px auto;
+    min-height: 22rem;
+    border: 1px solid var(--vb-line);
+    border-radius: 12px;
+    background: var(--vb-rail);
+    color: var(--vb-text);
+    font-size: clamp(1.8rem, 5vw, 3.4rem);
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+    padding: 40px 30px;
+    text-align: center;
+    white-space: pre-wrap;
+    word-break: break-word;
+    transition: all 0.3s ease;
+  }
+  footer {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+    border-top: 1px solid var(--vb-line);
+    background: var(--vb-rail);
+  }
+  .source {
+    flex: 1;
+    min-height: 4.5rem;
+    border: 1px solid var(--vb-line);
+    border-left: 4px solid var(--vb-blue);
+    border-radius: 6px;
+    background: var(--vb-layer-2);
+    color: var(--vb-slate);
+    font-size: 14px;
+    padding: 12px 16px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #meta {
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    min-width: 180px;
+    border: 1px solid var(--vb-line);
+    border-radius: 6px;
+    background: var(--vb-layer-2);
+    color: var(--vb-slate);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="brand">Verbeam Viewer</div>
+    <div id="status" class="status"><span class="dot"></span><span id="statusText">Connecting</span></div>
+  </header>
+  <section id="translation" class="translation">Waiting for translation</section>
+  <footer>
+    <div id="source" class="source">OCR text will appear here.</div>
+    <div id="meta"></div>
+  </footer>
+</main>
+
+<script>
+  // Demo-only loop standing in for the live /broadcast WebSocket.
+  const SAMPLES = [
+    { src: "こんにちは、勇者さん。", tr: "你好，勇者大人。", s: "ja", t: "zh-TW" },
+    { src: "魔王を倒すための旅に出よう。", tr: "踏上討伐魔王的旅程吧。", s: "ja", t: "zh-TW" },
+    { src: "セーブしますか？", tr: "要存檔嗎？", s: "ja", t: "zh-TW" },
+  ];
+  const status = document.getElementById("status");
+  const statusText = document.getElementById("statusText");
+  const translation = document.getElementById("translation");
+  const source = document.getElementById("source");
+  const meta = document.getElementById("meta");
+  let i = 0;
+  function show() {
+    const m = SAMPLES[i % SAMPLES.length];
+    translation.textContent = m.tr;
+    source.textContent = m.src;
+    meta.textContent = `${m.s} to ${m.t}`;
+    i += 1;
+  }
+  setTimeout(() => { status.classList.add("live"); statusText.textContent = "Live"; show(); }, 600);
+  setInterval(show, 3200);
+</script>
+</body>
+</html>

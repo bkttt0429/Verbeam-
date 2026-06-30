@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Microsoft.Data.Sqlite;
 using Verbeam.Core.Models;
 using Verbeam.Core.Services;
+using Verbeam.Core.Storage;
 
 namespace Verbeam.Tests;
 
@@ -62,6 +64,55 @@ public sealed class StoreTests : IDisposable
         Assert.Equal("Brave One", glossary.Terms["Hero"]);
     }
 
+    [Theory]
+    [InlineData("（Compile)", "compile")]
+    [InlineData("(compile)", "compile")]
+    [InlineData(" Compile ", "compile")]
+    [InlineData("ＣＯＭＰＩＬＥ", "compile")]
+    [InlineData("「Source  Program」", "source program")]
+    [InlineData("Source　Program", "source program")]
+    [InlineData("（）", "")]
+    [InlineData("", "")]
+    public void GlossaryStore_NormalizeTerm_StripsWrappersAndWidthAndCase(string input, string expected)
+    {
+        Assert.Equal(expected, GlossaryStore.NormalizeTerm(input));
+    }
+
+    [Theory]
+    [InlineData("Executab le", "executable")]
+    [InlineData("Source  Program", "sourceprogram")]
+    public void GlossaryStore_NormalizeTermCompact_RemovesOcrSplitSpaces(string input, string expected)
+    {
+        Assert.Equal(expected, GlossaryStore.NormalizeTermCompact(input));
+    }
+
+    [Fact]
+    public async Task GlossaryStore_BuildsNormalizedTermLookup()
+    {
+        var glossaryDirectory = Path.Combine(_tempDirectory, "glossaries-normalized");
+        Directory.CreateDirectory(glossaryDirectory);
+
+        await File.WriteAllTextAsync(
+            Path.Combine(glossaryDirectory, "terms.json"),
+            """
+            {
+              "Compile": "編譯",
+              "Source Program": "原程式"
+            }
+            """);
+
+        var store = new GlossaryStore(glossaryDirectory);
+        var glossary = await store.GetOptionalAsync("terms");
+
+        Assert.Equal("編譯", glossary.NormalizedTerms[GlossaryStore.NormalizeTerm("（Compile)")]);
+        Assert.Equal("原程式", glossary.NormalizedTerms[GlossaryStore.NormalizeTerm("source  program")]);
+        // Mixed blocks that already carry the translated prefix must NOT match.
+        Assert.False(glossary.NormalizedTerms.ContainsKey(GlossaryStore.NormalizeTerm("編譯 (Compile)")));
+
+        var empty = await store.GetOptionalAsync(null);
+        Assert.Empty(empty.NormalizedTerms);
+    }
+
     [Fact]
     public void TimedTextService_ParsesVttSegments()
     {
@@ -117,8 +168,83 @@ public sealed class StoreTests : IDisposable
         Assert.Equal("to double check that, Victor?", segments[2].Text);
     }
 
+    [Fact]
+    public async Task SqliteDocumentJobStore_RoundTripsJobRequestAndEvents()
+    {
+        var databasePath = Path.Combine(_tempDirectory, "document-jobs.sqlite");
+        var store = new SqliteDocumentJobStore(databasePath);
+        await store.InitializeAsync();
+
+        var createdAt = DateTimeOffset.UtcNow;
+        var request = new DocumentJobRequest
+        {
+            InputPath = Path.Combine(_tempDirectory, "input.txt"),
+            OriginalFileName = "input.txt",
+            ContentType = "text/plain",
+            SourceKind = "text",
+            Source = "ja",
+            Target = "zh-TW",
+            TranslationProvider = "ollama",
+            Profile = "default",
+            SessionId = "session-1",
+            AllowSharedMemory = true
+        };
+        var artifact = new DocumentJobArtifact(
+            "artifact-1",
+            "translated",
+            "translated.txt",
+            "text/plain",
+            Path.Combine(_tempDirectory, "translated.txt"),
+            12,
+            createdAt);
+        var warning = new DocumentJobWarning("sample_warning", "sample warning", "unit:1");
+        var job = new DocumentJobStatus(
+            "job-1",
+            "queued",
+            "default",
+            "session-1",
+            "text",
+            "input.txt",
+            "text/plain",
+            "abc123",
+            DocumentJobStages.Queued,
+            TotalUnits: null,
+            CompletedUnits: 0,
+            Progress: 0,
+            ArtifactCount: 1,
+            WarningCount: 1,
+            ErrorCode: string.Empty,
+            ErrorMessage: string.Empty,
+            createdAt,
+            StartedAt: null,
+            CompletedAt: null,
+            createdAt)
+        {
+            Artifacts = [artifact],
+            Warnings = [warning]
+        };
+
+        await store.AddJobAsync(job, request);
+        await store.AddEventAsync(job.Id, "job_queued", new { job.Id });
+
+        var loaded = await store.GetJobAsync(job.Id);
+        var loadedRequest = await store.GetRequestAsync(job.Id);
+        var events = await store.ListEventsAsync(job.Id, afterSequence: 0, limit: 10);
+
+        Assert.NotNull(loaded);
+        Assert.Equal("text", loaded.SourceKind);
+        Assert.Single(loaded.Artifacts);
+        Assert.Single(loaded.Warnings);
+        Assert.NotNull(loadedRequest);
+        Assert.Equal("zh-TW", loadedRequest.Target);
+        Assert.True(loadedRequest.AllowSharedMemory);
+        Assert.Single(events);
+        Assert.Equal("job_queued", events[0].Type);
+    }
+
     public void Dispose()
     {
+        SqliteConnection.ClearAllPools();
         if (Directory.Exists(_tempDirectory))
         {
             Directory.Delete(_tempDirectory, recursive: true);

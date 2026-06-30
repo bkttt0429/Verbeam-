@@ -1,0 +1,2562 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ic="using:FluentIcons.Avalonia"
+        xmlns:local="using:Verbeam.Desktop.Avalonia"
+        mc:Ignorable="d"
+        d:DesignWidth="1200"
+        d:DesignHeight="760"
+        x:Class="Verbeam.Desktop.Avalonia.MainWindow"
+        Title="Verbeam"
+        Width="1200"
+        Height="760"
+        MinWidth="720"
+        MinHeight="600"
+        Background="#080A0D">
+  <Window.Styles>
+    <Style Selector="TextBlock">
+      <Setter Property="Foreground" Value="#E8EEF8" />
+      <Setter Property="FontFamily" Value="Inter, Segoe UI" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="#8A98AA" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="TextBlock.faint">
+      <Setter Property="Foreground" Value="#607086" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="Foreground" Value="#9AA8BA" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.value">
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="ToolTip">
+      <Setter Property="Background" Value="#0B1320" />
+      <Setter Property="Foreground" Value="#EAF2FF" />
+      <Setter Property="BorderBrush" Value="#2F4665" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="FontFamily" Value="Inter, Segoe UI" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="TextBlock.panelTitle">
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style Selector="Border.panelTitleIcon">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+      <Setter Property="MinWidth" Value="22" />
+      <Setter Property="Background" Value="#102542" />
+      <Setter Property="BorderBrush" Value="#245EA8" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="StackPanel.panelHeaderActions">
+      <Setter Property="Orientation" Value="Horizontal" />
+      <Setter Property="Spacing" Value="6" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Viewbox.panelTitleIconViewbox">
+      <Setter Property="Width" Value="15" />
+      <Setter Property="Height" Value="15" />
+      <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+    <Style Selector="Path.panelTitleIconStroke">
+      <Setter Property="Stroke" Value="#93C5FD" />
+      <Setter Property="StrokeThickness" Value="2" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+    </Style>
+    <Style Selector="Path.panelTitleIconFill">
+      <Setter Property="Fill" Value="#93C5FD" />
+    </Style>
+    <Style Selector="Border.shellLine">
+      <Setter Property="BorderBrush" Value="#1D2633" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="#111418" />
+      <Setter Property="BorderBrush" Value="#242D3A" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Border.moduleHeader">
+      <Setter Property="Padding" Value="14,12" />
+      <Setter Property="MinHeight" Value="70" />
+    </Style>
+    <Style Selector="Border.moduleHeaderIcon">
+      <Setter Property="Width" Value="42" />
+      <Setter Property="Height" Value="42" />
+      <Setter Property="MinWidth" Value="42" />
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#273244" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.moduleHeaderIconText">
+      <Setter Property="Foreground" Value="#93C5FD" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.moduleHeaderTitle">
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="FontSize" Value="17" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style Selector="TextBlock.moduleHeaderSubtitle">
+      <Setter Property="Foreground" Value="#8A98AA" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="Border.pill">
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#26303D" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="8,4" />
+    </Style>
+    <Style Selector="Border.tokenRing">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="24" />
+      <Setter Property="MinWidth" Value="24" />
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#2F7DF6" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Border.tokenRing.empty">
+      <Setter Property="BorderBrush" Value="#26303D" />
+      <Setter Property="Background" Value="#15191F" />
+    </Style>
+    <Style Selector="Border.tokenRing.warning">
+      <Setter Property="BorderBrush" Value="#D6B86A" />
+      <Setter Property="Background" Value="#211B0E" />
+    </Style>
+    <Style Selector="Border.tokenRing.danger">
+      <Setter Property="BorderBrush" Value="#F87171" />
+      <Setter Property="Background" Value="#241012" />
+    </Style>
+    <Style Selector="TextBlock.tokenRingText">
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="7.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.metric">
+      <Setter Property="Background" Value="#15191F" />
+      <Setter Property="BorderBrush" Value="#242D3A" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Padding" Value="9,7" />
+    </Style>
+    <Style Selector="Border.metric.active">
+      <Setter Property="Background" Value="#102542" />
+      <Setter Property="BorderBrush" Value="#245EA8" />
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="Background" Value="#151B24" />
+      <Setter Property="BorderBrush" Value="#2B3544" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#E8EEF8" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Padding" Value="12,7" />
+      <Setter Property="MinHeight" Value="32" />
+      <Setter Property="FontFamily" Value="Inter, Segoe UI" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="#2F7DF6" />
+      <Setter Property="BorderBrush" Value="#3B82F6" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+    <Style Selector="Button.ghost">
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#283241" />
+    </Style>
+    <Style Selector="Button.nav">
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="#232B38" />
+      <Setter Property="Foreground" Value="#B8C7DA" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="MinHeight" Value="34" />
+    </Style>
+    <Style Selector="Button.nav.active">
+      <Setter Property="Background" Value="#102542" />
+      <Setter Property="BorderBrush" Value="#245EA8" />
+      <Setter Property="Foreground" Value="#5EA0FF" />
+    </Style>
+    <Style Selector="Button.settingsNav">
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="#B8C7DA" />
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="CornerRadius" Value="7" />
+    </Style>
+    <Style Selector="Button.settingsNav.active">
+      <Setter Property="Background" Value="#102542" />
+      <Setter Property="BorderBrush" Value="#245EA8" />
+      <Setter Property="Foreground" Value="#5EA0FF" />
+    </Style>
+    <Style Selector="Button.rail">
+      <Setter Property="Width" Value="32" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="MinHeight" Value="32" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="#273244" />
+      <Setter Property="Foreground" Value="#A9B8CC" />
+      <Setter Property="CornerRadius" Value="7" />
+    </Style>
+    <Style Selector="Button.iconButton">
+      <Setter Property="Width" Value="30" />
+      <Setter Property="Height" Value="30" />
+      <Setter Property="MinWidth" Value="30" />
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.tab">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="#8A98AA" />
+      <Setter Property="CornerRadius" Value="8,8,0,0" />
+      <Setter Property="Padding" Value="18,0" />
+      <Setter Property="MinHeight" Value="38" />
+    </Style>
+    <Style Selector="Button.tab.active">
+      <Setter Property="Background" Value="#111418" />
+      <Setter Property="BorderBrush" Value="#245EA8" />
+      <Setter Property="Foreground" Value="#7DB2FF" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#283241" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontFamily" Value="Inter, Segoe UI" />
+      <Setter Property="MinWidth" Value="0" />
+    </Style>
+    <Style Selector="TextBox.editor">
+      <Setter Property="Background" Value="#070A0D" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Padding" Value="17" />
+    </Style>
+    <Style Selector="TextBox.editor:focus">
+      <Setter Property="Background" Value="#070A0D" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="#F8FBFF" />
+    </Style>
+    <Style Selector="TextBox.editor:pointerover">
+      <Setter Property="Background" Value="#070A0D" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="#F8FBFF" />
+    </Style>
+    <Style Selector="TextBox.editor:focus-within">
+      <Setter Property="Background" Value="#070A0D" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="#F8FBFF" />
+    </Style>
+    <Style Selector="TextBox.editor /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="#070A0D" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#283241" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="ComboBoxItem">
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="CheckBox">
+      <Setter Property="Foreground" Value="#E8EEF8" />
+      <Setter Property="FontFamily" Value="Inter, Segoe UI" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="Slider">
+      <Setter Property="MinHeight" Value="28" />
+    </Style>
+    <Style Selector="Border.translatePanel">
+      <Setter Property="Background" Value="#0A0D11" />
+      <Setter Property="BorderBrush" Value="#252F3D" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+    </Style>
+    <Style Selector="Border.panelHeader">
+      <Setter Property="Background" Value="#111418" />
+      <Setter Property="BorderBrush" Value="#252F3D" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="Padding" Value="12,0" />
+      <Setter Property="MinHeight" Value="44" />
+    </Style>
+    <Style Selector="Border.actionBar">
+      <Setter Property="Background" Value="#111418" />
+      <Setter Property="BorderBrush" Value="#252F3D" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="10" />
+    </Style>
+    <Style Selector="Border.inlineStatus">
+      <Setter Property="Background" Value="#0A0D11" />
+      <Setter Property="BorderBrush" Value="#252F3D" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="10,7" />
+    </Style>
+    <Style Selector="GridSplitter.translateSplitter">
+      <Setter Property="Background" Value="#111820" />
+      <Setter Property="Opacity" Value="0.58" />
+      <Setter Property="Width" Value="10" />
+      <Setter Property="MinWidth" Value="10" />
+      <Setter Property="ShowsPreview" Value="False" />
+      <Setter Property="DragIncrement" Value="8" />
+      <Setter Property="KeyboardIncrement" Value="16" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.12" />
+          <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="GridSplitter.translateSplitter:pointerover">
+      <Setter Property="Background" Value="#17304A" />
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
+    <Style Selector="GridSplitter.translateSplitter:pressed">
+      <Setter Property="Background" Value="#1E5B88" />
+      <Setter Property="Opacity" Value="0.95" />
+    </Style>
+    <Style Selector="Border.workspacePanel">
+      <Setter Property="Background" Value="#111418" />
+      <Setter Property="BorderBrush" Value="#242D3A" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="14" />
+    </Style>
+    <Style Selector="Border.settingsRow">
+      <Setter Property="BorderBrush" Value="#242D3A" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="Padding" Value="0,14" />
+    </Style>
+    <Style Selector="Border.settingsRow.last">
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Border.settingsStatusCard">
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#273244" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Border.memoryHero">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Border.memoryShell">
+      <Setter Property="Background" Value="#0B1118" />
+      <Setter Property="BorderBrush" Value="#20384F" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="16" />
+      <Setter Property="Padding" Value="14" />
+    </Style>
+    <Style Selector="Border.memoryScopeCard">
+      <Setter Property="Background" Value="#0A1622" />
+      <Setter Property="BorderBrush" Value="#24435E" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Border.memoryScopePill">
+      <Setter Property="Background" Value="#0B1724" />
+      <Setter Property="BorderBrush" Value="#28465E" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="12,7" />
+    </Style>
+    <Style Selector="Border.memorySearchBar">
+      <Setter Property="Background" Value="#0A1622" />
+      <Setter Property="BorderBrush" Value="#2A5573" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="Padding" Value="14" />
+    </Style>
+    <Style Selector="Border.memoryAttentionCard">
+      <Setter Property="Background" Value="#0D1B29" />
+      <Setter Property="BorderBrush" Value="#25465F" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="14" />
+      <Setter Property="Padding" Value="16" />
+    </Style>
+    <Style Selector="Border.memoryAttentionCard.warning">
+      <Setter Property="BorderBrush" Value="#B89125" />
+    </Style>
+    <Style Selector="Border.memoryAttentionCard.danger">
+      <Setter Property="BorderBrush" Value="#9F3340" />
+    </Style>
+    <Style Selector="Border.memoryToolbar">
+      <Setter Property="Background" Value="#0B1724" />
+      <Setter Property="BorderBrush" Value="#20384F" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="16" />
+      <Setter Property="Padding" Value="14" />
+    </Style>
+    <Style Selector="Border.memoryPane">
+      <Setter Property="Background" Value="#0D1B29" />
+      <Setter Property="BorderBrush" Value="#20384F" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="16" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Border.memoryInspector">
+      <Setter Property="Background" Value="#0A1622" />
+      <Setter Property="BorderBrush" Value="#20384F" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="14" />
+    </Style>
+    <Style Selector="Border.memoryItem">
+      <Setter Property="Background" Value="#0D1219" />
+      <Setter Property="BorderBrush" Value="#1D2836" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="11" />
+    </Style>
+    <Style Selector="Border.memoryItem.selected">
+      <Setter Property="Background" Value="#10233A" />
+      <Setter Property="BorderBrush" Value="#2F7DF6" />
+    </Style>
+    <Style Selector="Border.memoryItem.warning">
+      <Setter Property="Background" Value="#1A1114" />
+      <Setter Property="BorderBrush" Value="#7F1D1D" />
+    </Style>
+    <Style Selector="Border.memoryBadge">
+      <Setter Property="Background" Value="#122033" />
+      <Setter Property="BorderBrush" Value="#2A3D56" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="7,3" />
+    </Style>
+    <Style Selector="Border.memoryBadge.good">
+      <Setter Property="Background" Value="#0E2A20" />
+      <Setter Property="BorderBrush" Value="#145C42" />
+    </Style>
+    <Style Selector="Border.memoryBadge.warning">
+      <Setter Property="Background" Value="#2A1D0E" />
+      <Setter Property="BorderBrush" Value="#8A5B16" />
+    </Style>
+    <Style Selector="TextBlock.memoryHeroTitle">
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="FontSize" Value="30" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.memoryMetric">
+      <Setter Property="Foreground" Value="#F0C86C" />
+      <Setter Property="FontSize" Value="25" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.memoryBadgeText">
+      <Setter Property="Foreground" Value="#DCEBFF" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.providerLane">
+      <Setter Property="Background" Value="#0E141C" />
+      <Setter Property="BorderBrush" Value="#263349" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Border.providerHero">
+      <Setter Property="Background" Value="#0F151E" />
+      <Setter Property="BorderBrush" Value="#263349" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Border.providerStatusPill">
+      <Setter Property="Background" Value="#0B111A" />
+      <Setter Property="BorderBrush" Value="#273244" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="Padding" Value="9,5" />
+    </Style>
+    <Style Selector="TextBlock.providerStatusText">
+      <Setter Property="Foreground" Value="#DCEBFF" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.providerSection">
+      <Setter Property="Background" Value="#0B1017" />
+      <Setter Property="BorderBrush" Value="#253247" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Border.providerSection.highlight">
+      <Setter Property="Background" Value="#0D1723" />
+      <Setter Property="BorderBrush" Value="#2A4770" />
+    </Style>
+    <Style Selector="Border.providerSupplierCard">
+      <Setter Property="Background" Value="#101820" />
+      <Setter Property="BorderBrush" Value="#2A3A52" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="12" />
+    </Style>
+    <Style Selector="Border.providerCatalogHint">
+      <Setter Property="Background" Value="#0B1826" />
+      <Setter Property="BorderBrush" Value="#244864" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="10,7" />
+    </Style>
+    <Style Selector="Border.providerUsageCard">
+      <Setter Property="Background" Value="#0A1320" />
+      <Setter Property="BorderBrush" Value="#21344B" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="Border.providerUsageDot">
+      <Setter Property="Width" Value="28" />
+      <Setter Property="Height" Value="28" />
+      <Setter Property="MinWidth" Value="28" />
+      <Setter Property="Background" Value="#0C1825" />
+      <Setter Property="BorderBrush" Value="#2F7DF6" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="CornerRadius" Value="999" />
+    </Style>
+    <Style Selector="Border.providerUsageDot.good">
+      <Setter Property="BorderBrush" Value="#34D399" />
+      <Setter Property="Background" Value="#0D241F" />
+    </Style>
+    <Style Selector="Border.providerUsageDot.warning">
+      <Setter Property="BorderBrush" Value="#F59E0B" />
+      <Setter Property="Background" Value="#21170A" />
+    </Style>
+    <Style Selector="Button.providerCard">
+      <Setter Property="Background" Value="#111923" />
+      <Setter Property="BorderBrush" Value="#2A374B" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="12,10" />
+      <Setter Property="MinHeight" Value="58" />
+    </Style>
+    <Style Selector="Border.providerAvatar">
+      <Setter Property="Width" Value="32" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="MinWidth" Value="32" />
+      <Setter Property="Background" Value="#172033" />
+      <Setter Property="BorderBrush" Value="#273244" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="5" />
+    </Style>
+    <Style Selector="Border.providerAvatar.small">
+      <Setter Property="Width" Value="26" />
+      <Setter Property="Height" Value="26" />
+      <Setter Property="MinWidth" Value="26" />
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="Padding" Value="4" />
+    </Style>
+    <Style Selector="TextBlock.providerAvatarText">
+      <Setter Property="Foreground" Value="#E8EEF8" />
+      <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, Consolas" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.providerCard.active">
+      <Setter Property="Background" Value="#10294A" />
+      <Setter Property="BorderBrush" Value="#3B82F6" />
+    </Style>
+    <Style Selector="Button.providerCard.warning">
+      <Setter Property="Background" Value="#221A09" />
+      <Setter Property="BorderBrush" Value="#B88A2A" />
+    </Style>
+    <Style Selector="Button.providerModelChip">
+      <Setter Property="Background" Value="#101820" />
+      <Setter Property="BorderBrush" Value="#273244" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="MinHeight" Value="54" />
+    </Style>
+    <Style Selector="Button.providerModelChip.active">
+      <Setter Property="Background" Value="#102542" />
+      <Setter Property="BorderBrush" Value="#2F7DF6" />
+    </Style>
+    <Style Selector="Button.providerModelChip.warning">
+      <Setter Property="Background" Value="#221A09" />
+      <Setter Property="BorderBrush" Value="#B88A2A" />
+    </Style>
+    <Style Selector="Button.providerFilter">
+      <Setter Property="Background" Value="#0B111A" />
+      <Setter Property="BorderBrush" Value="#263349" />
+      <Setter Property="Padding" Value="6,5" />
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="CornerRadius" Value="999" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.providerFilter.active">
+      <Setter Property="Background" Value="#082A3B" />
+      <Setter Property="BorderBrush" Value="#0EA5E9" />
+      <Setter Property="Foreground" Value="#E7FAFF" />
+    </Style>
+    <Style Selector="Button.compact">
+      <Setter Property="Padding" Value="9,6" />
+      <Setter Property="MinHeight" Value="28" />
+    </Style>
+    <Style Selector="Button.providerAddSupplierButton">
+      <Setter Property="Width" Value="30" />
+      <Setter Property="Height" Value="28" />
+      <Setter Property="MinWidth" Value="30" />
+      <Setter Property="MinHeight" Value="28" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Background" Value="#1E5CE8" />
+      <Setter Property="BorderBrush" Value="#2F7DF6" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.danger">
+      <Setter Property="Background" Value="#351316" />
+      <Setter Property="BorderBrush" Value="#D94A57" />
+      <Setter Property="Foreground" Value="#FFE8EA" />
+    </Style>
+    <Style Selector="Border.dropSurface">
+      <Setter Property="Background" Value="#0A0D11" />
+      <Setter Property="BorderBrush" Value="#2B3544" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="18" />
+      <Setter Property="MinHeight" Value="180" />
+    </Style>
+    <Style Selector="Border.segment">
+      <Setter Property="Background" Value="#0B0F14" />
+      <Setter Property="BorderBrush" Value="#273244" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="10,7" />
+    </Style>
+    <Style Selector="Border.segment.active">
+      <Setter Property="Background" Value="#102542" />
+      <Setter Property="BorderBrush" Value="#2F7DF6" />
+    </Style>
+    <Style Selector="TextBlock.sectionTitle">
+      <Setter Property="Foreground" Value="#F8FBFF" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+  </Window.Styles>
+
+  <Grid x:Name="ShellRoot" RowDefinitions="48,*,24" ClipToBounds="True">
+    <Border Grid.Row="0"
+            Background="#0B0F14"
+            BorderBrush="#1D2633"
+            BorderThickness="0,0,0,1">
+      <Grid x:Name="TopBarGrid" ColumnDefinitions="50,190,Auto,*,Auto" ColumnSpacing="0">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+          <Button Classes="rail" ToolTip.Tip="Back">
+            <ic:FluentIcon Icon="ArrowLeft"
+                           IconVariant="Regular"
+                           IconSize="Size20"
+                           Foreground="#A8B7CB" />
+          </Button>
+        </StackPanel>
+
+        <StackPanel x:Name="BrandBlock" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+          <Border Width="24" Height="24" CornerRadius="5" Background="#02101F" BorderBrush="#1D6CF2" BorderThickness="1">
+            <Image Source="avares://Verbeam.Desktop.Avalonia/Assets/verbeam-mark.png"
+                   Width="22"
+                   Height="22"
+                   Stretch="Uniform" />
+          </Border>
+          <TextBlock Text="Verbeam" FontWeight="Bold" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <Border x:Name="RuntimePill" Grid.Column="2" Classes="pill" VerticalAlignment="Center" Padding="8,4">
+          <TextBlock x:Name="RuntimeText" Text="llama-cpp" Classes="value" MaxWidth="150" TextTrimming="CharacterEllipsis" />
+        </Border>
+
+        <StackPanel x:Name="TopTabsPanel" Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Spacing="2">
+          <Button x:Name="TopTranslateButton" Classes="tab active" Tag="translate" Click="WorkspaceButton_OnClick">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ic:FluentIcon Icon="Translate" IconVariant="Regular" IconSize="Size16" Foreground="#93C5FD" />
+              <TextBlock Text="Translate" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="TopOcrButton" Classes="tab" Tag="ocr" Click="WorkspaceButton_OnClick">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ic:FluentIcon Icon="Scan" IconVariant="Regular" IconSize="Size16" Foreground="#8A98AA" />
+              <TextBlock Text="OCR" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="TopDocumentButton" Classes="tab" Tag="document" Click="WorkspaceButton_OnClick">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ic:FluentIcon Icon="Document" IconVariant="Regular" IconSize="Size16" Foreground="#8A98AA" />
+              <TextBlock Text="Document" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="TopAudioButton" Classes="tab" Tag="audio" Click="WorkspaceButton_OnClick">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ic:FluentIcon Icon="SoundWaveCircle" IconVariant="Regular" IconSize="Size16" Foreground="#8A98AA" />
+              <TextBlock Text="Audio" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="TopRegionButton" Classes="tab" Tag="region" Click="WorkspaceButton_OnClick">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ic:FluentIcon Icon="Target" IconVariant="Regular" IconSize="Size16" Foreground="#8A98AA" />
+              <TextBlock Text="Region" />
+            </StackPanel>
+          </Button>
+          <Button x:Name="TopSettingsButton" Classes="tab" Tag="settings" Click="WorkspaceButton_OnClick">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ic:FluentIcon Icon="Settings" IconVariant="Regular" IconSize="Size16" Foreground="#8A98AA" />
+              <TextBlock Text="Settings" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+
+        <StackPanel x:Name="TopApiPanel" Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0" Spacing="8" IsVisible="False">
+          <TextBox x:Name="ApiUrlBox" Width="210" Text="http://127.0.0.1:5768" />
+          <Button x:Name="RefreshButton" Classes="ghost" Click="RefreshButton_OnClick">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <ic:FluentIcon Icon="ArrowSync" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+              <TextBlock Text="Refresh" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid x:Name="MainBodyGrid" Grid.Row="1" ColumnDefinitions="50,190,*">
+      <Border Grid.Column="0"
+              Background="#0B0F14"
+              BorderBrush="#1D2633"
+              BorderThickness="0,0,1,0">
+        <Grid RowDefinitions="Auto,*,Auto" Margin="0,10">
+          <StackPanel Spacing="10" HorizontalAlignment="Center">
+            <Button Classes="rail" Content="LTH" FontSize="10" />
+            <Button Classes="rail" Content="Go" FontSize="10" />
+            <Button Classes="rail" Content="Live" FontSize="9" />
+            <Button Classes="rail" Content="Box" FontSize="9" />
+          </StackPanel>
+          <TextBlock Grid.Row="2" Text="ready" Classes="faint" HorizontalAlignment="Center" />
+        </Grid>
+      </Border>
+
+      <Border x:Name="SideWorkspacePanel"
+              Grid.Column="1"
+              Background="#111418"
+              BorderBrush="#252F3D"
+              BorderThickness="0,0,1,0">
+        <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="12">
+          <TextBlock x:Name="SideWorkspaceTitle" Text="WORKSPACE" Classes="label" Margin="0,0,0,10" />
+          <StackPanel Grid.Row="1" Spacing="6">
+            <Button x:Name="SideTranslateButton" Classes="nav active" Tag="translate" Click="WorkspaceButton_OnClick">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ic:FluentIcon Icon="Translate" IconVariant="Regular" IconSize="Size20" Foreground="#93C5FD" />
+                <TextBlock Text="Translate" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="SideOcrButton" Classes="nav" Tag="ocr" Click="WorkspaceButton_OnClick">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ic:FluentIcon Icon="Scan" IconVariant="Regular" IconSize="Size20" Foreground="#8A98AA" />
+                <TextBlock Text="OCR + Translate" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="SideDocumentButton" Classes="nav" Tag="document" Click="WorkspaceButton_OnClick">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ic:FluentIcon Icon="Document" IconVariant="Regular" IconSize="Size20" Foreground="#8A98AA" />
+                <TextBlock Text="Document" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="SideAudioButton" Classes="nav" Tag="audio" Click="WorkspaceButton_OnClick">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ic:FluentIcon Icon="SoundWaveCircle" IconVariant="Regular" IconSize="Size20" Foreground="#8A98AA" />
+                <TextBlock Text="Audio" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="SideRegionButton" Classes="nav" Tag="region" Click="WorkspaceButton_OnClick">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ic:FluentIcon Icon="Target" IconVariant="Regular" IconSize="Size20" Foreground="#8A98AA" />
+                <TextBlock Text="Region" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="SideSettingsButton" Classes="nav" Tag="settings" Click="WorkspaceButton_OnClick">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <ic:FluentIcon Icon="Settings" IconVariant="Regular" IconSize="Size20" Foreground="#8A98AA" />
+                <TextBlock Text="Settings" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+          <StackPanel x:Name="SideMetricsPanel" Grid.Row="3" Spacing="8">
+            <Border Classes="metric active">
+              <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8">
+                <TextBlock Text="runtime" Classes="label" />
+                <TextBlock x:Name="TranslateRouteText" Grid.Column="1" Text="auto -> zh-TW" Classes="value" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Row="1" Text="provider" Classes="label" />
+                <TextBlock x:Name="RuntimeDetailText" Grid.Row="1" Grid.Column="1" Text="model" Classes="value" TextTrimming="CharacterEllipsis" />
+              </Grid>
+            </Border>
+            <Border Classes="metric">
+              <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" RowSpacing="6" ColumnSpacing="8">
+                <TextBlock Text="API" Classes="label" />
+                <TextBlock x:Name="ApiStatusText" Grid.Column="1" Text="checking" Classes="value" />
+                <TextBlock Grid.Row="1" Text="UI" Classes="label" />
+                <TextBlock x:Name="AppRamText" Grid.Row="1" Grid.Column="1" Text="-" Classes="value" />
+                <TextBlock Grid.Row="2" Text="Backend" Classes="label" />
+                <TextBlock x:Name="BackendRamText" Grid.Row="2" Grid.Column="1" Text="-" Classes="value" />
+                <TextBlock Grid.Row="3" Text="WebView" Classes="label" />
+                <TextBlock x:Name="WebViewRamText" Grid.Row="3" Grid.Column="1" Text="-" Classes="value" />
+                <TextBlock Grid.Row="4" Text="Model" Classes="label" />
+                <TextBlock x:Name="ModelRamText" Grid.Row="4" Grid.Column="1" Text="-" Classes="value" />
+                <TextBlock Grid.Row="5" Text="Token" Classes="label" />
+                <TextBlock x:Name="TranslationTokenText" Grid.Row="5" Grid.Column="1" Text="tokens --" Classes="value" />
+              </Grid>
+            </Border>
+            <TextBlock Text="local workspace" Classes="faint" TextWrapping="Wrap" />
+            <TextBlock x:Name="GpuText" Text="-" Classes="faint" />
+            <TextBlock x:Name="GpuDetailText" Text="VRAM" Classes="faint" TextWrapping="Wrap" />
+            <Button x:Name="OpenWebWorkbenchButton" Classes="ghost" Click="OpenWebWorkbenchButton_OnClick">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <ic:FluentIcon Icon="GlobeDesktop" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                <TextBlock Text="WebView" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Column="2" RowDefinitions="*,Auto" Background="#080A0D" Margin="16,16,16,10" ClipToBounds="True">
+        <Grid x:Name="TranslateView" RowDefinitions="Auto,Auto,Auto" RowSpacing="12" ClipToBounds="True">
+          <Border Classes="card" Padding="12">
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <Border Classes="pill" VerticalAlignment="Center">
+                  <TextBlock Text="TEXT" Classes="label" />
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="2">
+                  <TextBlock Text="Translate" FontSize="16" FontWeight="Bold" />
+                  <TextBlock x:Name="ApiDetailText" Text="Waiting for /health" Classes="muted" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Border Grid.Column="2" Classes="pill" VerticalAlignment="Center">
+                  <TextBlock x:Name="LastUpdatedText" Text="Not refreshed yet." Classes="faint" />
+                </Border>
+              </Grid>
+
+              <Grid x:Name="TranslateOptionsGrid" Grid.Row="1" ColumnDefinitions="1.1*,Auto,1.1*,1.15*,1.45*,180" ColumnSpacing="8" ClipToBounds="True">
+                <StackPanel x:Name="SourceLanguageField" Spacing="4">
+                  <TextBlock Text="SOURCE" Classes="label" />
+                  <ComboBox x:Name="SourceLanguageSelect" />
+                </StackPanel>
+                <Button x:Name="SwapLanguagesButton"
+                        Grid.Column="1"
+                        Classes="ghost"
+                        VerticalAlignment="Bottom"
+                        Click="SwapLanguagesButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="ArrowSwap"
+                                   IconVariant="Regular"
+                                   IconSize="Size16"
+                                   Foreground="#E8EEF8" />
+                    <TextBlock Text="Swap" />
+                  </StackPanel>
+                </Button>
+                <StackPanel x:Name="TargetLanguageField" Grid.Column="2" Spacing="4">
+                  <TextBlock Text="TARGET" Classes="label" />
+                  <ComboBox x:Name="TargetLanguageSelect" />
+                </StackPanel>
+                <StackPanel x:Name="ProviderField" Grid.Column="3" Spacing="4">
+                  <TextBlock Text="PROVIDER" Classes="label" />
+                  <ComboBox x:Name="ProviderSelect" SelectionChanged="ProviderSelect_OnSelectionChanged" />
+                </StackPanel>
+                <StackPanel x:Name="ModelField" Grid.Column="4" Spacing="4">
+                  <TextBlock Text="MODEL" Classes="label" />
+                  <ComboBox x:Name="ModelSelect" />
+                </StackPanel>
+                <StackPanel x:Name="PresetField" Grid.Column="5" Spacing="4">
+                  <TextBlock Text="PRESET" Classes="label" />
+                  <TextBox x:Name="PresetBox" Text="game_dialogue" />
+                </StackPanel>
+              </Grid>
+            </Grid>
+          </Border>
+
+          <Grid x:Name="TranslateSplitGrid" Grid.Row="1" ColumnDefinitions="*,10,*" MinHeight="300" VerticalAlignment="Top" ClipToBounds="True" Loaded="SplitGrid_OnLoaded" SizeChanged="SplitGrid_OnSizeChanged">
+            <Border x:Name="SourceTranslatePanel"
+                    Classes="translatePanel"
+                    MinWidth="0"
+                    SizeChanged="SourceTranslatePanel_OnSizeChanged">
+              <Grid RowDefinitions="Auto,*">
+                <Border Classes="panelHeader">
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Border Classes="panelTitleIcon">
+                        <ic:FluentIcon Icon="Translate"
+                                       IconVariant="Regular"
+                                       IconSize="Size20"
+                                       Foreground="#93C5FD" />
+                      </Border>
+                      <TextBlock x:Name="SourcePanelTitleText" Text="SOURCE" Classes="panelTitle" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                      <Border x:Name="SourceLanguagePill" Classes="pill"><TextBlock x:Name="SourceLanguageSummaryText" Text="auto detect" Classes="faint" MaxWidth="150" TextTrimming="CharacterEllipsis" /></Border>
+                      <Border x:Name="SourceStatsPill" Classes="pill"><TextBlock x:Name="SourceStatsText" Text="0 chars / 0 lines" Classes="faint" MaxWidth="120" TextTrimming="CharacterEllipsis" /></Border>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+                <TextBox x:Name="TranslateSourceBox"
+                         Grid.Row="1"
+                         Classes="editor"
+                         Background="#070A0D"
+                         Foreground="#F8FBFF"
+                         BorderBrush="Transparent"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         PlaceholderText="Type text to translate..."
+                         TextChanged="TranslateSourceBox_OnTextChanged" />
+              </Grid>
+            </Border>
+
+            <GridSplitter x:Name="TranslateGridSplitter"
+                          Grid.Column="1"
+                          Classes="translateSplitter"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"
+                          ShowsPreview="False"
+                          PointerReleased="Splitter_OnPointerReleased"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch" />
+
+            <Border x:Name="ResultTranslatePanel"
+                    Grid.Column="2"
+                    Classes="translatePanel"
+                    MinWidth="0"
+                    SizeChanged="ResultTranslatePanel_OnSizeChanged">
+              <Grid RowDefinitions="Auto,*">
+                <Border Classes="panelHeader">
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Border Classes="panelTitleIcon">
+                        <ic:FluentIcon Icon="Wand"
+                                       IconVariant="Regular"
+                                       IconSize="Size20"
+                                       Foreground="#93C5FD" />
+                      </Border>
+                      <TextBlock x:Name="ResultPanelTitleText" Text="RESULT" Classes="panelTitle" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                      <Border x:Name="ResultModelPill" Classes="pill"><TextBlock x:Name="ModelSummaryText" Text="provider / model" Classes="faint" MaxWidth="210" TextTrimming="CharacterEllipsis" /></Border>
+                      <Border x:Name="ResultTokenPill" Classes="tokenRing empty"><TextBlock x:Name="PanelTokenText" Text="--" Classes="tokenRingText" /></Border>
+                      <Border x:Name="ResultStatsPill" Classes="pill"><TextBlock x:Name="ResultStatsText" Text="0 chars / 0 lines" Classes="faint" MaxWidth="120" TextTrimming="CharacterEllipsis" /></Border>
+                      <Button x:Name="ResultHeaderCopyButton"
+                              Classes="ghost iconButton"
+                              ToolTip.Tip="Copy result"
+                              Click="CopyButton_OnClick">
+                        <ic:FluentIcon Icon="Copy"
+                                       IconVariant="Regular"
+                                       IconSize="Size20"
+                                       Foreground="#A8B7CB" />
+                      </Button>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+                <TextBox x:Name="TranslateResultBox"
+                         Grid.Row="1"
+                         Classes="editor"
+                         Background="#070A0D"
+                         Foreground="#F8FBFF"
+                         BorderBrush="Transparent"
+                         AcceptsReturn="True"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         TextChanged="TranslateResultBox_OnTextChanged" />
+              </Grid>
+            </Border>
+          </Grid>
+
+          <Border x:Name="TranslateActionBar" Grid.Row="2" Classes="actionBar">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="8">
+              <Button x:Name="TranslateButton" Classes="primary" Click="TranslateButton_OnClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <ic:FluentIcon Icon="PlayCircle" IconVariant="Regular" IconSize="Size16" Foreground="#FFFFFF" />
+                  <TextBlock Text="Run" />
+                </StackPanel>
+              </Button>
+              <Button x:Name="ClearButton" Grid.Column="1" Classes="ghost" Click="ClearButton_OnClick">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                  <TextBlock Text="Clear" />
+                </StackPanel>
+              </Button>
+              <TextBlock x:Name="TranslationStatusText" Grid.Column="2" Text="Ready." Classes="muted" VerticalAlignment="Center" />
+              <Button x:Name="CopyButton"
+                      Grid.Column="3"
+                      Classes="ghost iconButton"
+                      ToolTip.Tip="Copy result"
+                      Click="CopyButton_OnClick">
+                <ic:FluentIcon Icon="Copy"
+                               IconVariant="Regular"
+                               IconSize="Size20"
+                               Foreground="#A8B7CB" />
+              </Button>
+              <Border x:Name="TranslateModePill" Grid.Column="4" Classes="pill" VerticalAlignment="Center">
+                <TextBlock Text="text" Classes="faint" />
+              </Border>
+            </Grid>
+          </Border>
+        </Grid>
+
+        <ScrollViewer x:Name="OcrView" Grid.Row="0" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ClipToBounds="True" SizeChanged="WorkspaceScrollViewer_OnSizeChanged">
+          <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12" ClipToBounds="True" Width="{Binding Bounds.Width, ElementName=OcrView}">
+            <Border Classes="card moduleHeader">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" MinHeight="46">
+                <Border Classes="moduleHeaderIcon" VerticalAlignment="Center">
+                  <ic:FluentIcon Icon="Scan"
+                                 IconVariant="Regular"
+                                 IconSize="Size24"
+                                 Foreground="#93C5FD"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" />
+                </Border>
+                <Grid Grid.Column="1" ColumnDefinitions="*,240" ColumnSpacing="12" MinWidth="0">
+                  <StackPanel Spacing="2" VerticalAlignment="Center" MinWidth="0">
+                    <TextBlock Text="OCR + Translate" Classes="moduleHeaderTitle" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="Image recognition and translation workspace." Classes="moduleHeaderSubtitle" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Text="ENGINE" Classes="label" />
+                    <ComboBox x:Name="OcrProviderSelect" />
+                  </StackPanel>
+                </Grid>
+                <StackPanel x:Name="OcrHeaderActions" Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <Button x:Name="OcrPasteButton" Classes="ghost" Click="OcrPasteButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ic:FluentIcon Icon="ClipboardText" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                      <TextBlock Text="Paste" />
+                    </StackPanel>
+                  </Button>
+                  <Button x:Name="OcrChooseImageButton" Classes="ghost" Click="OcrChooseImageButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ic:FluentIcon Icon="ImageAdd" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                      <TextBlock Text="Choose image" />
+                    </StackPanel>
+                  </Button>
+                  <Button x:Name="OcrRunButtonTop" Classes="primary" Click="OcrRunButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ic:FluentIcon Icon="PlayCircle" IconVariant="Regular" IconSize="Size16" Foreground="#FFFFFF" />
+                      <TextBlock Text="Run" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </Border>
+
+            <Grid x:Name="OcrSplitGrid" Grid.Row="1" ColumnDefinitions="1.05*,10,0.95*" MinHeight="420" ClipToBounds="True" Loaded="SplitGrid_OnLoaded" SizeChanged="SplitGrid_OnSizeChanged">
+              <Border x:Name="OcrInputPanel" Classes="workspacePanel">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Border Classes="panelTitleIcon">
+                        <ic:FluentIcon Icon="Screenshot"
+                                       IconVariant="Regular"
+                                       IconSize="Size16"
+                                       Foreground="#93C5FD"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                      </Border>
+                      <TextBlock Text="IMAGE INPUT" Classes="panelTitle" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="pill">
+                      <TextBlock x:Name="OcrImageMetaText" Text="drop / paste / file" Classes="faint" />
+                    </Border>
+                  </Grid>
+                  <Border Grid.Row="1" Classes="dropSurface">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                      <TextBlock Text="Drop, paste, or choose an image" FontWeight="Bold" />
+                      <TextBlock Text="The native shell keeps this as a lightweight intake surface; heavy overlay editing opens from the full workbench when needed." Classes="muted" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="460" />
+                      <Button Classes="ghost" Click="OcrChooseImageButton_OnClick">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <ic:FluentIcon Icon="OpenFolder" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                          <TextBlock Text="Choose file" />
+                        </StackPanel>
+                      </Button>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+              </Border>
+              <GridSplitter x:Name="OcrOuterSplitter" Grid.Column="1" Classes="translateSplitter" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" PointerReleased="Splitter_OnPointerReleased" />
+              <Grid x:Name="OcrOutputStackGrid" Grid.Column="2" RowDefinitions="*,10,*" ClipToBounds="True" Loaded="SplitGrid_OnLoaded" SizeChanged="SplitGrid_OnSizeChanged">
+                <Border Classes="translatePanel">
+                  <Grid RowDefinitions="Auto,*">
+                    <Border Classes="panelHeader">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <Border Classes="panelTitleIcon">
+                            <ic:FluentIcon Icon="Scan"
+                                           IconVariant="Regular"
+                                           IconSize="Size16"
+                                           Foreground="#93C5FD"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                          </Border>
+                          <TextBlock Text="RECOGNIZED TEXT" Classes="panelTitle" VerticalAlignment="Center" />
+                          <Button Classes="ghost iconButton"
+                                  ToolTip.Tip="Copy recognized text"
+                                  Click="OcrCopyTextButton_OnClick">
+                            <ic:FluentIcon Icon="Copy"
+                                           IconVariant="Regular"
+                                           IconSize="Size20"
+                                           Foreground="#A8B7CB" />
+                          </Button>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Classes="panelHeaderActions">
+                          <Border Classes="pill">
+                            <TextBlock Text="ocr" Classes="faint" />
+                          </Border>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <TextBox x:Name="OcrTextBox" Grid.Row="1" Classes="editor" Background="#070A0D" BorderBrush="Transparent" AcceptsReturn="True" TextWrapping="Wrap" />
+                  </Grid>
+                </Border>
+                <GridSplitter Grid.Row="1" Classes="translateSplitter" Height="10" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" PointerReleased="Splitter_OnPointerReleased" />
+                <Border Grid.Row="2" Classes="translatePanel">
+                  <Grid RowDefinitions="Auto,*">
+                    <Border Classes="panelHeader">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <Border Classes="panelTitleIcon">
+                            <ic:FluentIcon Icon="Translate"
+                                           IconVariant="Regular"
+                                           IconSize="Size16"
+                                           Foreground="#93C5FD"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                          </Border>
+                          <TextBlock Text="TRANSLATION" Classes="panelTitle" VerticalAlignment="Center" />
+                          <Button Classes="ghost iconButton"
+                                  ToolTip.Tip="Copy OCR translation"
+                                  Click="OcrCopyTranslationButton_OnClick">
+                            <ic:FluentIcon Icon="Copy"
+                                           IconVariant="Regular"
+                                           IconSize="Size20"
+                                           Foreground="#A8B7CB" />
+                          </Button>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Classes="panelHeaderActions">
+                          <Border Classes="pill">
+                            <TextBlock Text="result" Classes="faint" />
+                          </Border>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <TextBox x:Name="OcrTranslationBox" Grid.Row="1" Classes="editor" Background="#070A0D" BorderBrush="Transparent" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" />
+                  </Grid>
+                </Border>
+              </Grid>
+            </Grid>
+
+            <Border Grid.Row="2" Classes="actionBar">
+              <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+                <Button x:Name="OcrRunButton" Classes="primary" Click="OcrRunButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="PlayCircle" IconVariant="Regular" IconSize="Size16" Foreground="#FFFFFF" />
+                    <TextBlock Text="Run" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="OcrClearButton" Grid.Column="1" Classes="ghost" Click="OcrClearButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                    <TextBlock Text="Clear" />
+                  </StackPanel>
+                </Button>
+                <TextBlock x:Name="OcrStatusText" Grid.Column="2" Text="Ready." Classes="muted" VerticalAlignment="Center" />
+                <Border Grid.Column="3" Classes="pill"><TextBlock x:Name="OcrEngineText" Text="ocr" Classes="faint" /></Border>
+              </Grid>
+            </Border>
+          </Grid>
+        </ScrollViewer>
+
+        <ScrollViewer x:Name="DocumentView" Grid.Row="0" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ClipToBounds="True" SizeChanged="WorkspaceScrollViewer_OnSizeChanged">
+          <Grid RowDefinitions="Auto,*" RowSpacing="12" ClipToBounds="True" Width="{Binding Bounds.Width, ElementName=DocumentView}">
+            <Border Classes="card moduleHeader">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" MinHeight="46">
+                <Border Classes="moduleHeaderIcon" VerticalAlignment="Center">
+                  <ic:FluentIcon Icon="Document"
+                                 IconVariant="Regular"
+                                 IconSize="Size24"
+                                 Foreground="#93C5FD"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" />
+                </Border>
+                <Grid Grid.Column="1" RowDefinitions="Auto,Auto" RowSpacing="2" VerticalAlignment="Center" MinWidth="0">
+                  <TextBlock Text="Document"
+                             Classes="moduleHeaderTitle"
+                             TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Row="1"
+                             Text="PDF, Office, image, HTML, Markdown, and text translation jobs."
+                             Classes="moduleHeaderSubtitle"
+                             TextWrapping="NoWrap"
+                             TextTrimming="CharacterEllipsis" />
+                </Grid>
+                <StackPanel x:Name="DocumentHeaderActions" Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <Button x:Name="DocumentJobsButton" Classes="ghost" Click="DocumentRefreshButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ic:FluentIcon Icon="DocumentSearch" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                      <TextBlock Text="Jobs" />
+                    </StackPanel>
+                  </Button>
+                  <Button x:Name="DocumentRefreshButtonTop" Classes="ghost" Click="DocumentRefreshButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <ic:FluentIcon Icon="ArrowSync" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                      <TextBlock Text="Refresh" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Grid x:Name="DocumentSplitGrid" Grid.Row="1" ColumnDefinitions="0.95*,10,1.05*" MinHeight="480" ClipToBounds="True" Loaded="SplitGrid_OnLoaded" SizeChanged="SplitGrid_OnSizeChanged">
+              <Border Classes="workspacePanel">
+                <Grid RowDefinitions="Auto,170,Auto,*" RowSpacing="12">
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Border Classes="panelTitleIcon">
+                        <ic:FluentIcon Icon="Document"
+                                       IconVariant="Regular"
+                                       IconSize="Size16"
+                                       Foreground="#93C5FD"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                      </Border>
+                      <TextBlock Text="DOCUMENT INTAKE" Classes="panelTitle" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="pill">
+                      <TextBlock Text="file" Classes="faint" />
+                    </Border>
+                  </Grid>
+                  <Border Grid.Row="1" Classes="dropSurface">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                      <TextBlock Text="Drop or choose a document" FontWeight="Bold" />
+                      <TextBlock Text="Large files are processed as resumable jobs." Classes="muted" TextAlignment="Center" />
+                      <Button x:Name="DocumentChooseButton" Classes="ghost" Click="DocumentChooseButton_OnClick">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <ic:FluentIcon Icon="OpenFolder" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                          <TextBlock Text="Choose document" />
+                        </StackPanel>
+                      </Button>
+                    </StackPanel>
+                  </Border>
+                  <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+                    <Button x:Name="DocumentStartButton" Classes="primary" Click="DocumentStartButton_OnClick">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ic:FluentIcon Icon="PlayCircle" IconVariant="Regular" IconSize="Size16" Foreground="#FFFFFF" />
+                        <TextBlock Text="Run" />
+                      </StackPanel>
+                    </Button>
+                    <Button x:Name="DocumentCancelButton" Classes="ghost" Click="DocumentCancelButton_OnClick">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ic:FluentIcon Icon="DismissCircle" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                        <TextBlock Text="Cancel" />
+                      </StackPanel>
+                    </Button>
+                    <Button x:Name="DocumentRefreshButton" Classes="ghost" Click="DocumentRefreshButton_OnClick">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ic:FluentIcon Icon="ArrowSync" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                        <TextBlock Text="Refresh" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                  <Border Grid.Row="3" Classes="segment">
+                    <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="RECENT JOBS" Classes="label" />
+                        <TextBlock x:Name="DocumentJobsSummaryText" Grid.Column="1" Text="not loaded" Classes="faint" />
+                      </Grid>
+                      <ListBox x:Name="DocumentJobList"
+                               Grid.Row="1"
+                               MinHeight="150"
+                               SelectionChanged="DocumentJobList_OnSelectionChanged" />
+                    </Grid>
+                  </Border>
+                </Grid>
+              </Border>
+              <GridSplitter Grid.Column="1" Classes="translateSplitter" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" PointerReleased="Splitter_OnPointerReleased" />
+              <Border Grid.Column="2" Classes="workspacePanel">
+                <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Border Classes="panelTitleIcon">
+                        <ic:FluentIcon Icon="DocumentSearch"
+                                       IconVariant="Regular"
+                                       IconSize="Size16"
+                                       Foreground="#93C5FD"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                      </Border>
+                      <TextBlock Text="ACTIVE JOB" Classes="panelTitle" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="pill"><TextBlock x:Name="DocumentFileMetaText" Text="no file" Classes="faint" /></Border>
+                  </Grid>
+                  <Grid Grid.Row="1" RowDefinitions="Auto,Auto" RowSpacing="6">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <ProgressBar x:Name="DocumentProgressBar" Minimum="0" Maximum="100" Value="0" Height="6" VerticalAlignment="Center" />
+                      <TextBlock x:Name="DocumentProgressText" Grid.Column="1" Text="0%" Classes="faint" Margin="10,0,0,0" />
+                    </Grid>
+                    <TextBlock x:Name="DocumentJobText" Grid.Row="1" Text="job  -  waiting" Classes="muted" TextWrapping="Wrap" />
+                  </Grid>
+                  <Border Grid.Row="2" Classes="dropSurface">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Spacing="8" Margin="0,12">
+                      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Border Classes="panelTitleIcon">
+                          <ic:FluentIcon Icon="Document"
+                                         IconVariant="Regular"
+                                         IconSize="Size16"
+                                         Foreground="#93C5FD"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="DOCUMENT PREVIEW" Classes="panelTitle" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <TextBlock x:Name="DocumentPreviewText" Text="Translated pages and generated artifacts appear here." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                    </ScrollViewer>
+                  </Border>
+                  <Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                    <ComboBox x:Name="DocumentArtifactsSelect" />
+                    <Button x:Name="DocumentOpenEditorButton" Grid.Column="1" Classes="ghost" Click="DocumentOpenEditorButton_OnClick">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ic:FluentIcon Icon="DocumentEdit" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                        <TextBlock Text="Open editor" />
+                      </StackPanel>
+                    </Button>
+                    <Button x:Name="DocumentOpenArtifactButton" Grid.Column="2" Classes="ghost" Click="DocumentOpenArtifactButton_OnClick">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ic:FluentIcon Icon="Open" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                        <TextBlock Text="Open artifact" />
+                      </StackPanel>
+                    </Button>
+                    <Button x:Name="DocumentRefreshSelectedButton" Grid.Column="3" Classes="ghost" Click="DocumentRefreshSelectedButton_OnClick">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ic:FluentIcon Icon="ArrowSync" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                        <TextBlock Text="Refresh job" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Border>
+            </Grid>
+          </Grid>
+        </ScrollViewer>
+
+        <ScrollViewer x:Name="AudioView" Grid.Row="0" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ClipToBounds="True" SizeChanged="WorkspaceScrollViewer_OnSizeChanged">
+          <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12" ClipToBounds="True" Width="{Binding Bounds.Width, ElementName=AudioView}">
+            <Border Classes="card moduleHeader">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" MinHeight="46">
+                <Border Classes="moduleHeaderIcon" VerticalAlignment="Center">
+                  <ic:FluentIcon Icon="SoundWaveCircle"
+                                 IconVariant="Regular"
+                                 IconSize="Size24"
+                                 Foreground="#93C5FD"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" />
+                </Border>
+                <Grid Grid.Column="1" ColumnDefinitions="*,240" ColumnSpacing="12" MinWidth="0">
+                  <StackPanel Spacing="2" VerticalAlignment="Center" MinWidth="0">
+                    <TextBlock Text="Audio" Classes="moduleHeaderTitle" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="Audio transcription and translation are merged into one workspace." Classes="moduleHeaderSubtitle" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Text="ASR ENGINE" Classes="label" />
+                    <ComboBox x:Name="AudioProviderSelect" />
+                  </StackPanel>
+                </Grid>
+                <StackPanel x:Name="AudioModePanel" Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <Border Classes="segment active"><TextBlock Text="Transcribe" Classes="value" /></Border>
+                  <Border Classes="segment"><TextBlock Text="Translate" Classes="muted" /></Border>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Grid x:Name="AudioSplitGrid" Grid.Row="1" ColumnDefinitions="1.05*,10,0.95*" MinHeight="430" ClipToBounds="True" Loaded="SplitGrid_OnLoaded" SizeChanged="SplitGrid_OnSizeChanged">
+              <Border x:Name="AudioSourcePanel" Classes="workspacePanel">
+                <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Border Classes="panelTitleIcon">
+                        <ic:FluentIcon Icon="SoundWaveCircle"
+                                       IconVariant="Regular"
+                                       IconSize="Size16"
+                                       Foreground="#93C5FD"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                      </Border>
+                      <TextBlock Text="AUDIO SOURCE" Classes="panelTitle" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="pill">
+                      <TextBlock Text="url / file" Classes="faint" />
+                    </Border>
+                  </Grid>
+                  <TextBox x:Name="AudioUrlBox" Grid.Row="1" Text="" PlaceholderText="Audio URL" />
+                  <Border Grid.Row="2" Classes="dropSurface" MinHeight="120">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                      <TextBlock Text="Choose audio file" FontWeight="Bold" />
+                      <TextBlock Text="System app audio sources and live sessions stay grouped here." Classes="muted" TextAlignment="Center" TextWrapping="Wrap" />
+                      <Button x:Name="AudioChooseButton" Classes="ghost" Click="AudioChooseButton_OnClick">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <ic:FluentIcon Icon="HeadphonesSoundWave" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                          <TextBlock Text="Choose audio" />
+                        </StackPanel>
+                      </Button>
+                    </StackPanel>
+                  </Border>
+                  <StackPanel Grid.Row="3" Spacing="8">
+                    <Border Classes="segment active"><TextBlock x:Name="AudioSourceMetaText" Text="audio source  -  url or file" Classes="muted" TextWrapping="Wrap" /></Border>
+                    <Border Classes="segment"><TextBlock x:Name="AudioSessionsText" Text="sessions  -  not loaded" Classes="muted" /></Border>
+                  </StackPanel>
+                </Grid>
+              </Border>
+              <GridSplitter x:Name="AudioOuterSplitter" Grid.Column="1" Classes="translateSplitter" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" PointerReleased="Splitter_OnPointerReleased" />
+              <Grid x:Name="AudioOutputStackGrid" Grid.Column="2" RowDefinitions="*,10,*" ClipToBounds="True" Loaded="SplitGrid_OnLoaded" SizeChanged="SplitGrid_OnSizeChanged">
+                <Border Classes="translatePanel">
+                  <Grid RowDefinitions="Auto,*">
+                    <Border Classes="panelHeader">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <Border Classes="panelTitleIcon">
+                            <ic:FluentIcon Icon="MicSparkle"
+                                           IconVariant="Regular"
+                                           IconSize="Size16"
+                                           Foreground="#93C5FD"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                          </Border>
+                          <TextBlock Text="TRANSCRIPT" Classes="panelTitle" VerticalAlignment="Center" />
+                          <Button Classes="ghost iconButton"
+                                  ToolTip.Tip="Copy transcript"
+                                  Click="AudioCopyTranscriptButton_OnClick">
+                            <ic:FluentIcon Icon="Copy"
+                                           IconVariant="Regular"
+                                           IconSize="Size20"
+                                           Foreground="#A8B7CB" />
+                          </Button>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Classes="panelHeaderActions">
+                          <Border Classes="pill">
+                            <TextBlock Text="asr" Classes="faint" />
+                          </Border>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <TextBox x:Name="AudioTranscriptBox" Grid.Row="1" Classes="editor" Background="#070A0D" BorderBrush="Transparent" AcceptsReturn="True" TextWrapping="Wrap" />
+                  </Grid>
+                </Border>
+                <GridSplitter Grid.Row="1" Classes="translateSplitter" Height="10" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" PointerReleased="Splitter_OnPointerReleased" />
+                <Border Grid.Row="2" Classes="translatePanel">
+                  <Grid RowDefinitions="Auto,*">
+                    <Border Classes="panelHeader">
+                      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <Border Classes="panelTitleIcon">
+                            <ic:FluentIcon Icon="Translate"
+                                           IconVariant="Regular"
+                                           IconSize="Size16"
+                                           Foreground="#93C5FD"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                          </Border>
+                          <TextBlock Text="TRANSLATION" Classes="panelTitle" VerticalAlignment="Center" />
+                          <Button Classes="ghost iconButton"
+                                  ToolTip.Tip="Copy audio translation"
+                                  Click="AudioCopyTranslationButton_OnClick">
+                            <ic:FluentIcon Icon="Copy"
+                                           IconVariant="Regular"
+                                           IconSize="Size20"
+                                           Foreground="#A8B7CB" />
+                          </Button>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Classes="panelHeaderActions">
+                          <Border Classes="pill">
+                            <TextBlock Text="result" Classes="faint" />
+                          </Border>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <TextBox x:Name="AudioTranslationBox" Grid.Row="1" Classes="editor" Background="#070A0D" BorderBrush="Transparent" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" />
+                  </Grid>
+                </Border>
+              </Grid>
+            </Grid>
+            <Border Grid.Row="2" Classes="actionBar">
+              <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="8">
+                <Button x:Name="AudioTranscribeButton" Classes="primary" Click="AudioTranscribeButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="MicSparkle" IconVariant="Regular" IconSize="Size16" Foreground="#FFFFFF" />
+                    <TextBlock Text="Run" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="AudioTranslateButton" Grid.Column="1" Classes="ghost" Click="AudioTranslateButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="Translate" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                    <TextBlock Text="Translate" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="AudioClearButton" Grid.Column="2" Classes="ghost" Click="AudioClearButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                    <TextBlock Text="Clear" />
+                  </StackPanel>
+                </Button>
+                <TextBlock x:Name="AudioStatusText" Grid.Column="3" Text="Ready." Classes="muted" VerticalAlignment="Center" />
+                <Border Grid.Column="4" Classes="pill"><TextBlock Text="audio" Classes="faint" /></Border>
+              </Grid>
+            </Border>
+          </Grid>
+        </ScrollViewer>
+
+        <ScrollViewer x:Name="RegionView" Grid.Row="0" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" ClipToBounds="True" SizeChanged="WorkspaceScrollViewer_OnSizeChanged">
+          <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12" ClipToBounds="True" Width="{Binding Bounds.Width, ElementName=RegionView}">
+            <Border Classes="card moduleHeader">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" MinHeight="46">
+                <Border Classes="moduleHeaderIcon" VerticalAlignment="Center">
+                  <ic:FluentIcon Icon="Target"
+                                 IconVariant="Regular"
+                                 IconSize="Size24"
+                                 Foreground="#93C5FD"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" />
+                </Border>
+                <Grid Grid.Column="1" RowDefinitions="Auto,Auto" RowSpacing="2" VerticalAlignment="Center" MinWidth="0">
+                  <TextBlock Text="Region" Classes="moduleHeaderTitle" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Row="1" Text="Screen-region OCR and overlay translation controls." Classes="moduleHeaderSubtitle" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                </Grid>
+                <StackPanel x:Name="RegionModePanel" Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <Border Classes="segment active"><TextBlock Text="Native" Classes="value" /></Border>
+                  <Border Classes="segment"><TextBlock Text="Browser" Classes="muted" /></Border>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Border Grid.Row="1" Classes="actionBar">
+              <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" ColumnSpacing="8">
+                <Button x:Name="RegionSelectButton" Classes="primary" Click="RegionSelectButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="Target" IconVariant="Regular" IconSize="Size16" Foreground="#FFFFFF" />
+                    <TextBlock Text="Select" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="RegionStartButton" Grid.Column="1" Classes="ghost" Click="RegionStartButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="PlayCircle" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                    <TextBlock Text="Run" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="RegionSnapshotButton" Grid.Column="2" Classes="primary" Click="RegionSnapshotButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="Screenshot" IconVariant="Regular" IconSize="Size16" Foreground="#FFFFFF" />
+                    <TextBlock Text="Snapshot" />
+                  </StackPanel>
+                </Button>
+                <Button x:Name="RegionStopButton" Grid.Column="3" Classes="ghost" Click="RegionStopButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="Stop" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                    <TextBlock Text="Stop" />
+                  </StackPanel>
+                </Button>
+                <Border Grid.Column="4" Classes="segment"><TextBlock x:Name="RegionLoopText" Text="Loop off" Classes="muted" /></Border>
+                <TextBox x:Name="RegionGapBox" Grid.Column="5" Width="90" Text="300" />
+                <TextBlock Grid.Column="6" Text="Filters and overlay settings stay compact until expanded." Classes="muted" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <Button x:Name="RegionClearButton" Grid.Column="7" Classes="ghost" Click="RegionClearButton_OnClick">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ic:FluentIcon Icon="Dismiss" IconVariant="Regular" IconSize="Size16" Foreground="#A8B7CB" />
+                    <TextBlock Text="Clear" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+            </Border>
+            <Grid Grid.Row="2" RowDefinitions="Auto,*" MinHeight="460">
+              <Border Classes="inlineStatus">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="+ realtime filters" Classes="value" />
+                  <TextBlock x:Name="RegionStatusPillText" Grid.Column="1" Text="off" Classes="faint" />
+                </Grid>
+              </Border>
+              <Grid x:Name="RegionSplitGrid" Grid.Row="1" ColumnDefinitions="1.2*,10,0.8*" Margin="0,12,0,0" ClipToBounds="True" Loaded="SplitGrid_OnLoaded" SizeChanged="SplitGrid_OnSizeChanged">
+                <Border x:Name="RegionCapturePanel" Classes="workspacePanel" MinHeight="380">
+                  <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Border Classes="panelTitleIcon">
+                          <ic:FluentIcon Icon="Screenshot"
+                                         IconVariant="Regular"
+                                         IconSize="Size16"
+                                         Foreground="#93C5FD"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="CAPTURE AREA" Classes="panelTitle" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <Border Grid.Column="1" Classes="pill">
+                        <TextBlock Text="native" Classes="faint" />
+                      </Border>
+                    </Grid>
+                    <Border Grid.Row="1" Classes="dropSurface">
+                      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                        <TextBlock Text="Capture a screen or window" FontWeight="Bold" />
+                        <TextBlock x:Name="RegionStageText" Text="Drag a box over dialogue text. The native overlay keeps its own lock/move behavior." Classes="muted" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="520" />
+                      </StackPanel>
+                    </Border>
+                  </Grid>
+                </Border>
+                <GridSplitter x:Name="RegionOuterSplitter" Grid.Column="1" Classes="translateSplitter" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" PointerReleased="Splitter_OnPointerReleased" />
+                <Border x:Name="RegionResultPanel" Grid.Column="2" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,*">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Border Classes="panelTitleIcon">
+                          <ic:FluentIcon Icon="Translate"
+                                         IconVariant="Regular"
+                                         IconSize="Size16"
+                                         Foreground="#93C5FD"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center" />
+                        </Border>
+                        <TextBlock Text="REGION TRANSLATION" Classes="panelTitle" VerticalAlignment="Center" />
+                        <Button Classes="ghost iconButton"
+                                ToolTip.Tip="Copy region translation"
+                                Click="RegionCopyResultButton_OnClick">
+                          <ic:FluentIcon Icon="Copy"
+                                         IconVariant="Regular"
+                                         IconSize="Size20"
+                                         Foreground="#A8B7CB" />
+                        </Button>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Classes="panelHeaderActions">
+                        <Border Classes="pill">
+                          <TextBlock Text="result" Classes="faint" />
+                        </Border>
+                      </StackPanel>
+                    </Grid>
+                    <TextBox x:Name="RegionResultBox" Grid.Row="1" Classes="editor" Background="#070A0D" BorderBrush="Transparent" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" Text="no selection" />
+                  </Grid>
+                </Border>
+              </Grid>
+            </Grid>
+          </Grid>
+        </ScrollViewer>
+
+        <ScrollViewer x:Name="SettingsView" Grid.Row="0" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="WorkspaceScrollViewer_OnSizeChanged">
+          <Grid x:Name="SettingsLayoutGrid" ColumnDefinitions="200,*" MinHeight="560" Width="{Binding Bounds.Width, ElementName=SettingsView}">
+            <Border Classes="workspacePanel" CornerRadius="10,0,0,10">
+              <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="0,16,0,0">
+                  <TextBlock Text="Verbeam" Classes="faint" />
+                  <TextBlock Text="Local workspace" Classes="faint" />
+                </StackPanel>
+                <StackPanel Spacing="8">
+                  <TextBlock Text="DESKTOP" Classes="label" />
+                  <Button x:Name="SettingsGeneralNavButton" Classes="settingsNav active" Tag="general" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Settings" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="General" /></StackPanel>
+                  </Button>
+                  <Button x:Name="SettingsAppearanceNavButton" Classes="settingsNav" Tag="appearance" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Color" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="System &amp; Appearance" /></StackPanel>
+                  </Button>
+                  <Button x:Name="SettingsPerformanceNavButton" Classes="settingsNav" Tag="performance" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Gauge" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="Performance" /></StackPanel>
+                  </Button>
+                  <Button x:Name="SettingsProvidersNavButton" Classes="settingsNav" Tag="providers" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Server" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="Providers" /></StackPanel>
+                  </Button>
+                  <Button x:Name="SettingsSoundNavButton" Classes="settingsNav" Tag="sound" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Speaker2" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="Sound" /></StackPanel>
+                  </Button>
+                  <Button x:Name="SettingsShortcutsNavButton" Classes="settingsNav" Tag="shortcuts" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Keyboard" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="Shortcuts" /></StackPanel>
+                  </Button>
+
+                  <TextBlock Text="PIPELINES" Classes="label" Margin="0,14,0,0" />
+                  <Button x:Name="SettingsOcrShortcutButton" Classes="settingsNav" Tag="ocr" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Scan" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="OCR" /></StackPanel>
+                  </Button>
+                  <Button x:Name="SettingsAudioShortcutButton" Classes="settingsNav" Tag="audio" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Mic" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="Audio" /></StackPanel>
+                  </Button>
+                  <Button x:Name="SettingsRegionShortcutButton" Classes="settingsNav" Tag="region" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Crop" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="Region" /></StackPanel>
+                  </Button>
+
+                  <TextBlock Text="RUNTIME" Classes="label" Margin="0,14,0,0" />
+                  <Button x:Name="SettingsMemoryNavButton" Classes="settingsNav" Tag="memory" Click="SettingsSectionButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="10"><ic:FluentIcon Icon="Database" IconSize="Size20" Foreground="#8A98AA" /><TextBlock Text="Memory" /></StackPanel>
+                  </Button>
+                </StackPanel>
+              </DockPanel>
+            </Border>
+
+            <Grid Grid.Column="1" Margin="12,0,0,0">
+              <Grid x:Name="SettingsGeneralPanel" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="General" Classes="moduleHeaderTitle" />
+                  <TextBlock Text="Defaults used by text, OCR translate, audio, and region translation." Classes="moduleHeaderSubtitle" />
+                </StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="0">
+                    <TextBlock Text="TRANSLATION DEFAULTS" Classes="sectionTitle" />
+                    <Border Grid.Row="1" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel>
+                          <TextBlock Text="Language pair" FontWeight="SemiBold" />
+                          <TextBlock Text="Default source and target for every translation surface." Classes="muted" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Grid Grid.Column="1" RowDefinitions="Auto,Auto" RowSpacing="8">
+                          <StackPanel Spacing="4"><TextBlock Text="SOURCE" Classes="label" /><ComboBox x:Name="SettingsSourceLanguageSelect" /></StackPanel>
+                          <StackPanel Grid.Row="1" Spacing="4"><TextBlock Text="TARGET" Classes="label" /><ComboBox x:Name="SettingsTargetLanguageSelect" /></StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="2" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel>
+                          <TextBlock Text="Prompt mode" FontWeight="SemiBold" />
+                          <TextBlock Text="Preset used when a request does not override translation mode." Classes="muted" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                          <TextBlock Text="MODE" Classes="label" />
+                          <ComboBox x:Name="SettingsPresetSelect">
+                            <ComboBoxItem Content="game_dialogue" IsSelected="True" />
+                            <ComboBoxItem Content="faithful" />
+                            <ComboBoxItem Content="natural" />
+                            <ComboBoxItem Content="literal" />
+                          </ComboBox>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="3" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel>
+                          <TextBlock Text="Glossary" FontWeight="SemiBold" />
+                          <TextBlock Text="Optional local terminology file for translation requests." Classes="muted" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                          <TextBlock Text="GLOSSARY" Classes="label" />
+                          <ComboBox x:Name="SettingsGlossarySelect">
+                            <ComboBoxItem Content="none" IsSelected="True" />
+                            <ComboBoxItem Content="game-terms.csv" />
+                            <ComboBoxItem Content="honorifics.csv" />
+                          </ComboBox>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="4" Classes="settingsRow last">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel>
+                          <TextBlock Text="Current route" FontWeight="SemiBold" />
+                          <TextBlock Text="Mirrors the active Translate controls so changes are visible immediately." Classes="muted" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Border Grid.Column="1" Classes="settingsStatusCard">
+                          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                            <TextBlock Text="route" Classes="label" />
+                            <TextBlock Grid.Column="1" Text="{Binding #TranslateRouteText.Text}" Classes="value" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Row="1" Text="runtime" Classes="label" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding #ModelSummaryText.Text}" Classes="value" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Row="2" Text="token" Classes="label" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding #TranslationTokenText.Text}" Classes="value" TextTrimming="CharacterEllipsis" />
+                          </Grid>
+                        </Border>
+                      </Grid>
+                    </Border>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsAppearancePanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="System &amp; Appearance" Classes="moduleHeaderTitle" />
+                  <TextBlock Text="Interface language, theme, density, accent, and typography." Classes="moduleHeaderSubtitle" />
+                </StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="0">
+                    <TextBlock Text="DISPLAY AND PERSONALIZATION" Classes="sectionTitle" />
+                    <Border Grid.Row="1" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Language" FontWeight="SemiBold" /><TextBlock Text="Choose interface language. Text updates as native sections are migrated." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4">
+                          <TextBlock Text="DISPLAY LANGUAGE" Classes="label" />
+                          <ComboBox x:Name="SettingsDisplayLanguageSelect"><ComboBoxItem Content="Auto" IsSelected="True" /><ComboBoxItem Content="繁體中文（台灣）" /><ComboBoxItem Content="English" /></ComboBox>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="2" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Theme and layout" FontWeight="SemiBold" /><TextBlock Text="Common presets from the WebView version, without a duplicated preview canvas." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                          <StackPanel Spacing="4"><TextBlock Text="THEME" Classes="label" /><ComboBox x:Name="SettingsThemeSelect"><ComboBoxItem Content="Follow system" IsSelected="True" /><ComboBoxItem Content="Light" /><ComboBoxItem Content="Dark" /><ComboBoxItem Content="Custom" /></ComboBox></StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="PRESET" Classes="label" /><ComboBox x:Name="SettingsThemePresetSelect"><ComboBoxItem Content="Verbeam dark" IsSelected="True" /><ComboBoxItem Content="Paper light" /><ComboBoxItem Content="Graphite" /><ComboBoxItem Content="Midnight" /><ComboBoxItem Content="Deep ocean" /><ComboBoxItem Content="Forest glass" /><ComboBoxItem Content="Catppuccin Mocha" /><ComboBoxItem Content="Nord" /><ComboBoxItem Content="Dracula" /></ComboBox></StackPanel>
+                          <StackPanel Grid.Row="1" Spacing="4"><TextBlock Text="DENSITY" Classes="label" /><ComboBox x:Name="SettingsDensitySelect"><ComboBoxItem Content="compact" IsSelected="True" /><ComboBoxItem Content="cozy" /><ComboBoxItem Content="comfortable" /></ComboBox></StackPanel>
+                          <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4"><TextBlock Text="ACCENT" Classes="label" /><ComboBox x:Name="SettingsAccentSelect"><ComboBoxItem Content="blue" IsSelected="True" /><ComboBoxItem Content="cyan" /><ComboBoxItem Content="violet" /><ComboBoxItem Content="green" /><ComboBoxItem Content="amber" /><ComboBoxItem Content="rose" /></ComboBox></StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="3" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Typography" FontWeight="SemiBold" /><TextBlock Text="UI and monospace font families used by controls, editors, logs, and counters." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                          <StackPanel Spacing="4"><TextBlock Text="UI FONT" Classes="label" /><ComboBox x:Name="SettingsUiFontSelect"><ComboBoxItem Content="Outfit" IsSelected="True" /><ComboBoxItem Content="System UI" /><ComboBoxItem Content="Segoe UI" /><ComboBoxItem Content="Noto Sans TC / JhengHei" /><ComboBoxItem Content="Arial" /></ComboBox></StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="MONO FONT" Classes="label" /><ComboBox x:Name="SettingsMonoFontSelect"><ComboBoxItem Content="JetBrains Mono" IsSelected="True" /><ComboBoxItem Content="Cascadia Code" /><ComboBoxItem Content="SF Mono / ui-monospace" /><ComboBoxItem Content="Consolas" /></ComboBox></StackPanel>
+                          <StackPanel Grid.Row="1" Spacing="4"><TextBlock Text="INTERFACE SIZE" Classes="label" /><Slider x:Name="SettingsUiSizeSlider" Minimum="12" Maximum="16" Value="13" TickFrequency="1" IsSnapToTickEnabled="True" /></StackPanel>
+                          <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4"><TextBlock Text="CODE SIZE" Classes="label" /><Slider x:Name="SettingsCodeSizeSlider" Minimum="11" Maximum="16" Value="13" TickFrequency="1" IsSnapToTickEnabled="True" /></StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="4" Classes="settingsRow last">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Saved appearances" FontWeight="SemiBold" /><TextBlock Text="Reserved slots for custom theme snapshots." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,*,*" ColumnSpacing="8"><Button Classes="ghost">Custom 1</Button><Button Grid.Column="1" Classes="ghost">Custom 2</Button><Button Grid.Column="2" Classes="ghost">Custom 3</Button></Grid>
+                      </Grid>
+                    </Border>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsPerformancePanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4"><TextBlock Text="Performance" Classes="moduleHeaderTitle" /><TextBlock Text="WebView2 GPU mode and Browser Region preview quality. These settings are saved by the API." Classes="moduleHeaderSubtitle" /></StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="0">
+                    <TextBlock Text="WEBVIEW2 RENDERING" Classes="sectionTitle" />
+                    <Border Grid.Row="1" Classes="settingsRow"><Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20"><StackPanel><TextBlock Text="Hardware acceleration" FontWeight="SemiBold" /><TextBlock Text="Controls Chromium/WebView2 GPU usage. Restart the app window to apply." Classes="muted" TextWrapping="Wrap" /></StackPanel><StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="MODE" Classes="label" /><ComboBox x:Name="SettingsGpuModeSelect" /></StackPanel></Grid></Border>
+                    <Border Grid.Row="2" Classes="settingsRow"><Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20"><StackPanel><TextBlock Text="Browser Region preview" FontWeight="SemiBold" /><TextBlock Text="Caps preview resolution and FPS before OCR preview allocates buffers." Classes="muted" TextWrapping="Wrap" /></StackPanel><StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="QUALITY" Classes="label" /><ComboBox x:Name="SettingsRegionQualitySelect" /></StackPanel></Grid></Border>
+                    <Border Grid.Row="3" Classes="settingsRow"><Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20"><StackPanel><TextBlock Text="Custom Chromium flags" FontWeight="SemiBold" /><TextBlock Text="Advanced flags appended to the selected mode. Leave empty unless testing." Classes="muted" TextWrapping="Wrap" /></StackPanel><TextBox x:Name="SettingsChromiumArgsBox" Grid.Column="1" PlaceholderText="--flag=value --another-flag" /></Grid></Border>
+                    <Border Grid.Row="4" Classes="settingsRow last"><Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8"><TextBlock x:Name="SettingsShellStatusText" Text="Loading performance settings..." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" /><Button Grid.Column="1" Classes="ghost" Click="SettingsShellResetButton_OnClick">Reset performance</Button><Button Grid.Column="2" Classes="primary" Click="SettingsShellSaveButton_OnClick">Save performance</Button></Grid></Border>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsProvidersPanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="10">
+                <Border Classes="providerHero">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalAlignment="Center">
+                    <Border Classes="providerAvatar">
+                      <TextBlock Text="▤" Classes="providerAvatarText" FontSize="15" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Spacing="2" MinWidth="0" VerticalAlignment="Center">
+                      <TextBlock Text="Providers" Classes="moduleHeaderTitle" />
+                      <TextBlock Text="Manage providers, models, and runtime usage in one compact view." Classes="moduleHeaderSubtitle" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                      <Border Classes="providerStatusPill">
+                        <TextBlock Text="{Binding #TranslateRouteText.Text}" Classes="providerStatusText" MaxWidth="118" TextTrimming="CharacterEllipsis" />
+                      </Border>
+                      <Border Classes="providerStatusPill">
+                        <TextBlock Text="{Binding #RuntimeText.Text}" Classes="providerStatusText" MaxWidth="92" TextTrimming="CharacterEllipsis" />
+                      </Border>
+                    </StackPanel>
+                    <StackPanel IsVisible="False">
+                      <ComboBox x:Name="SettingsProviderSelect" SelectionChanged="SettingsProviderSelect_OnSelectionChanged" />
+                      <ComboBox x:Name="SettingsModelSelect" SelectionChanged="SettingsModelSelect_OnSelectionChanged" />
+                      <TextBlock x:Name="SettingsProviderSummaryText" Text="No provider loaded." />
+                      <TextBlock x:Name="SettingsRecommendedText" Text="Recommended model follows the active provider list." />
+                      <TextBlock x:Name="SettingsProviderDetailText" Text="Refresh to load provider catalog." />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+                <Border Grid.Row="1" Classes="workspacePanel" Padding="12">
+                  <Grid RowDefinitions="*" RowSpacing="12">
+
+                    <Grid Grid.Row="1" ColumnDefinitions="340,8,*" MinHeight="500" ClipToBounds="True">
+                      <Border Classes="providerLane" Padding="0" MinWidth="240">
+                        <Grid RowDefinitions="Auto,Auto,Auto,*">
+                          <Border Classes="panelHeader">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                              <StackPanel Spacing="2" MinWidth="0">
+                                <TextBlock Text="Provider catalog" Classes="sectionTitle" />
+                                <TextBlock Text="Grouped providers. Select one to inspect details." Classes="muted" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                              </StackPanel>
+                              <Button Grid.Column="1" Classes="ghost compact" Click="SettingsRefreshSuppliersButton_OnClick" IsVisible="False">Sync</Button>
+                            </Grid>
+                          </Border>
+                          <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" Margin="10,8,10,0">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" ClipToBounds="True">
+                              <StackPanel Orientation="Horizontal" Spacing="4" ClipToBounds="True">
+                                <Button x:Name="SettingsProviderFilterAllButton" Classes="providerFilter active" Tag="All" Click="SettingsProviderFilterButton_OnClick">
+                                  <TextBlock Text="All" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </Button>
+                                <Button x:Name="SettingsProviderFilterLocalButton" Classes="providerFilter" Tag="Local" Click="SettingsProviderFilterButton_OnClick">
+                                  <TextBlock Text="Local" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </Button>
+                                <Button x:Name="SettingsProviderFilterOfficialButton" Classes="providerFilter" Tag="Official" Click="SettingsProviderFilterButton_OnClick">
+                                  <TextBlock Text="Official" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </Button>
+                                <Button x:Name="SettingsProviderFilterApiButton" Classes="providerFilter" Tag="Third Party" Click="SettingsProviderFilterButton_OnClick">
+                                  <TextBlock Text="API" TextAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                </Button>
+                              </StackPanel>
+                              <Button Grid.Column="2"
+                                      Classes="providerAddSupplierButton"
+                                      ToolTip.Tip="Add API supplier"
+                                      Click="SettingsAddApiSupplierButton_OnClick">+</Button>
+                            </Grid>
+                            <Border Grid.Row="1" Classes="providerCatalogHint">
+                              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBlock Text="API suppliers" Classes="faint" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="SettingsApiSupplierStatusText" Grid.Column="1" Text="No suppliers" Classes="muted" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="120" />
+                              </Grid>
+                            </Border>
+                            <ComboBox x:Name="SettingsProviderFilterSelect" Grid.Row="2" IsVisible="False" SelectionChanged="SettingsProviderFilterSelect_OnSelectionChanged">
+                              <ComboBoxItem Content="All" IsSelected="True" />
+                              <ComboBoxItem Content="Local" />
+                              <ComboBoxItem Content="Official" />
+                              <ComboBoxItem Content="CN Official" />
+                              <ComboBoxItem Content="Aggregator" />
+                              <ComboBoxItem Content="Third Party" />
+                              <ComboBoxItem Content="Coding Plan" />
+                            </ComboBox>
+                          </Grid>
+                          <Border x:Name="SettingsApiSupplierEditorPanel" Grid.Row="2" Classes="providerSection" Margin="10,10,10,0" IsVisible="False">
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <TextBlock x:Name="SettingsApiSupplierEditorTitle" Text="Add API Supplier" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <Button Grid.Column="1" Classes="ghost compact" HorizontalAlignment="Right" Click="SettingsApiSupplierCancelButton_OnClick">Cancel</Button>
+                              </Grid>
+                              <StackPanel Grid.Row="1" Spacing="4"><TextBlock Text="PRESET" Classes="label" /><ComboBox x:Name="SettingsApiSupplierPresetSelect" SelectionChanged="SettingsApiSupplierPresetSelect_OnSelectionChanged" /></StackPanel>
+                              <StackPanel Grid.Row="2" Spacing="4"><TextBlock Text="NAME" Classes="label" /><TextBox x:Name="SettingsApiSupplierNameBox" /></StackPanel>
+                              <StackPanel Grid.Row="3" Spacing="4"><TextBlock Text="BASE URL" Classes="label" /><TextBox x:Name="SettingsApiSupplierBaseUrlBox" /></StackPanel>
+                              <StackPanel Grid.Row="4" Spacing="4"><TextBlock Text="MODEL / API KEY" Classes="label" /><Grid ColumnDefinitions="*,*" ColumnSpacing="8"><TextBox x:Name="SettingsApiSupplierModelBox" /><TextBox x:Name="SettingsApiSupplierApiKeyBox" Grid.Column="1" PasswordChar="*" /></Grid></StackPanel>
+                              <Button Grid.Row="5" Classes="primary" Click="SettingsApiSupplierSaveButton_OnClick">Save supplier</Button>
+                            </Grid>
+                          </Border>
+                          <StackPanel IsVisible="False">
+                            <StackPanel x:Name="SettingsApiSupplierListPanel" />
+                          </StackPanel>
+                          <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel x:Name="SettingsProviderCatalogPanel" Spacing="7" Margin="10,8,10,10" />
+                          </ScrollViewer>
+                        </Grid>
+                      </Border>
+
+                      <GridSplitter Grid.Column="1"
+                                    Classes="translateSplitter"
+                                    ResizeDirection="Columns"
+                                    ResizeBehavior="PreviousAndNext"
+                                    PointerReleased="Splitter_OnPointerReleased" />
+
+                      <Border Grid.Column="2" Classes="providerLane" Padding="0" MinWidth="300">
+                        <Grid RowDefinitions="Auto,Auto,*" RowSpacing="10">
+                          <Border Classes="panelHeader">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                              <ContentControl x:Name="SettingsProviderDetailAvatarHost" />
+                              <StackPanel Grid.Column="1" Spacing="2" MinWidth="0" VerticalAlignment="Center">
+                                <TextBlock x:Name="SettingsProviderDetailNameText" Text="Selected provider" Classes="sectionTitle" TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="SettingsProviderDetailMetaText" Text="Select a provider to see details." Classes="muted" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                              </StackPanel>
+                              <Button Grid.Column="2" Classes="primary compact" Click="SettingsApplyRecommendedModelButton_OnClick">Use Recommended</Button>
+                              <TextBlock x:Name="SettingsProviderDescriptionText" IsVisible="False" />
+                            </Grid>
+                          </Border>
+                          <Border Grid.Row="1" Margin="12,0,12,0" Classes="providerSection">
+                            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                              <Border Classes="providerUsageCard">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" ClipToBounds="True">
+                                  <local:UsageGauge x:Name="SettingsModelGauge"
+                                                    Width="34"
+                                                    Height="34"
+                                                    Value="0"
+                                                    CenterText="--"
+                                                    Accent="#34D399"
+                                                    Variant="liquid" />
+                                  <StackPanel Grid.Column="1" MinWidth="0">
+                                    <TextBlock Text="{Binding #ModelRamText.Text}" Classes="value" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="Model" Classes="muted" TextTrimming="CharacterEllipsis" />
+                                  </StackPanel>
+                                </Grid>
+                              </Border>
+                              <Border Grid.Column="1" Classes="providerUsageCard">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" ClipToBounds="True">
+                                  <local:UsageGauge x:Name="SettingsVramGauge"
+                                                    Width="34"
+                                                    Height="34"
+                                                    Value="0"
+                                                    CenterText="--"
+                                                    Accent="#F59E0B"
+                                                    Variant="liquid" />
+                                  <StackPanel Grid.Column="1" MinWidth="0">
+                                    <TextBlock Text="{Binding #GpuText.Text}" Classes="value" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="VRAM" Classes="muted" TextTrimming="CharacterEllipsis" />
+                                  </StackPanel>
+                                </Grid>
+                              </Border>
+                              <Border Grid.Column="2" Classes="providerUsageCard">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" ClipToBounds="True">
+                                  <local:UsageGauge x:Name="SettingsTokenGauge"
+                                                    Width="34"
+                                                    Height="34"
+                                                    Value="0"
+                                                    CenterText="--"
+                                                    Accent="#22D3EE"
+                                                    Variant="liquid" />
+                                  <StackPanel Grid.Column="1" MinWidth="0">
+                                    <TextBlock Text="{Binding #TranslationTokenText.Text}" Classes="value" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="Tokens" Classes="muted" TextTrimming="CharacterEllipsis" />
+                                  </StackPanel>
+                                </Grid>
+                              </Border>
+                              <Border Grid.Column="3" Classes="providerUsageCard">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" ClipToBounds="True">
+                                  <local:UsageGauge x:Name="SettingsApiGauge"
+                                                    Width="34"
+                                                    Height="34"
+                                                    Value="0"
+                                                    CenterText="--"
+                                                    Accent="#3B82F6"
+                                                    Variant="ring" />
+                                  <StackPanel Grid.Column="1" MinWidth="0">
+                                    <TextBlock Text="{Binding #ApiStatusText.Text}" Classes="value" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="API" Classes="muted" TextTrimming="CharacterEllipsis" />
+                                  </StackPanel>
+                                </Grid>
+                              </Border>
+                            </Grid>
+                          </Border>
+                          <Border Grid.Row="2" Margin="12,0,12,12" Classes="providerSection">
+                            <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
+                              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto">
+                                <TextBlock Text="Models" Classes="sectionTitle" />
+                                <Button Grid.Column="1" Classes="ghost compact" Click="SettingsApplyRecommendedModelButton_OnClick">Filter</Button>
+                                <TextBlock x:Name="SettingsProviderModelsDescriptionText"
+                                           Grid.Row="1"
+                                           Grid.ColumnSpan="2"
+                                           Text="Available models for the selected provider."
+                                           Classes="muted"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis" />
+                              </Grid>
+                              <ScrollViewer x:Name="SettingsModelScrollViewer"
+                                            Grid.Row="1"
+                                            VerticalScrollBarVisibility="Auto"
+                                            HorizontalScrollBarVisibility="Disabled"
+                                            MaxHeight="340">
+                                <StackPanel x:Name="SettingsModelListPanel"
+                                            Spacing="5"
+                                            Width="{Binding Bounds.Width, ElementName=SettingsModelScrollViewer}" />
+                              </ScrollViewer>
+                            </Grid>
+                          </Border>
+                        </Grid>
+                      </Border>
+                    </Grid>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsSoundPanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4"><TextBlock Text="Sound" Classes="moduleHeaderTitle" /><TextBlock Text="Local UI feedback sounds for clicks, success, errors, and notifications." Classes="moduleHeaderSubtitle" /></StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="0">
+                    <TextBlock Text="SOUND EFFECTS" Classes="sectionTitle" />
+                    <Border Grid.Row="1" Classes="settingsRow"><Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20"><StackPanel><TextBlock Text="Enable sounds" FontWeight="SemiBold" /><TextBlock Text="Keep OCR and Region background events quiet; sounds are for deliberate UI feedback." Classes="muted" TextWrapping="Wrap" /></StackPanel><CheckBox x:Name="SettingsSoundEnabledCheck" Grid.Column="1" Content="Enabled" IsChecked="True" VerticalAlignment="Center" /></Grid></Border>
+                    <Border Grid.Row="2" Classes="settingsRow"><Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20"><StackPanel><TextBlock Text="Sound mapping" FontWeight="SemiBold" /><TextBlock Text="Choose a sound per UI event or keep the balanced preset." Classes="muted" TextWrapping="Wrap" /></StackPanel><Grid Grid.Column="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8"><StackPanel Spacing="4"><TextBlock Text="CLICK" Classes="label" /><ComboBox><ComboBoxItem Content="soft tap" IsSelected="True" /><ComboBoxItem Content="none" /></ComboBox></StackPanel><StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="SUCCESS" Classes="label" /><ComboBox><ComboBoxItem Content="subtle complete" IsSelected="True" /><ComboBoxItem Content="none" /></ComboBox></StackPanel><StackPanel Grid.Row="1" Spacing="4"><TextBlock Text="ERROR" Classes="label" /><ComboBox><ComboBoxItem Content="soft warning" IsSelected="True" /><ComboBoxItem Content="none" /></ComboBox></StackPanel><StackPanel Grid.Row="1" Grid.Column="1" Spacing="4"><TextBlock Text="NOTIFICATION" Classes="label" /><ComboBox><ComboBoxItem Content="quiet ping" IsSelected="True" /><ComboBoxItem Content="none" /></ComboBox></StackPanel></Grid></Grid></Border>
+                    <Border Grid.Row="3" Classes="settingsRow last"><Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8"><TextBlock Text="Preview controls are local-only until bundled audio playback is migrated." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" /><Button Grid.Column="1" Classes="ghost">Click</Button><Button Grid.Column="2" Classes="primary">Success</Button><Button Grid.Column="3" Classes="ghost">Notify</Button></Grid></Border>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsOcrPanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4"><TextBlock Text="OCR" Classes="moduleHeaderTitle" /><TextBlock Text="Recognition defaults used by image OCR, document OCR, and region OCR." Classes="moduleHeaderSubtitle" /></StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="0">
+                    <TextBlock Text="RECOGNITION" Classes="sectionTitle" />
+                    <Border Grid.Row="1" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Engine and language" FontWeight="SemiBold" /><TextBlock Text="Choose the OCR provider and the language sent with OCR requests." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                          <StackPanel Spacing="4"><TextBlock Text="ENGINE" Classes="label" /><ComboBox x:Name="SettingsOcrProviderSelect" SelectionChanged="SettingsOcrProviderSelect_OnSelectionChanged" /></StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="LANGUAGE" Classes="label" /><ComboBox x:Name="SettingsOcrLanguageSelect" /></StackPanel>
+                          <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="4"><TextBlock Text="PROFILE" Classes="label" /><TextBox x:Name="SettingsOcrProfileBox" Text="default" /></StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="2" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Routing" FontWeight="SemiBold" /><TextBlock Text="Controls the OCR route metadata for auto mode, content type, and preprocessing." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                          <StackPanel Spacing="4"><TextBlock Text="CONTENT" Classes="label" /><ComboBox x:Name="SettingsOcrContentTypeSelect"><ComboBoxItem Content="auto" IsSelected="True" /><ComboBoxItem Content="dialogue" /><ComboBoxItem Content="screenshot_text" /><ComboBoxItem Content="table" /><ComboBoxItem Content="formula" /><ComboBoxItem Content="document" /><ComboBoxItem Content="high_accuracy" /></ComboBox></StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="PREFERENCE" Classes="label" /><ComboBox x:Name="SettingsOcrPreferenceSelect"><ComboBoxItem Content="auto" IsSelected="True" /><ComboBoxItem Content="speed" /><ComboBoxItem Content="balanced" /><ComboBoxItem Content="accuracy" /></ComboBox></StackPanel>
+                          <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="4"><TextBlock Text="PREPROCESS" Classes="label" /><ComboBox x:Name="SettingsOcrPreprocessSelect"><ComboBoxItem Content="none" IsSelected="True" /><ComboBoxItem Content="subtitle" /><ComboBoxItem Content="text-line" /><ComboBoxItem Content="screenshot" /><ComboBoxItem Content="document" /><ComboBoxItem Content="table" /><ComboBoxItem Content="formula" /><ComboBoxItem Content="upscale" /><ComboBoxItem Content="contrast" /><ComboBoxItem Content="threshold" /><ComboBoxItem Content="denoise" /></ComboBox></StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="3" Classes="settingsRow last"><Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBlock x:Name="SettingsOcrStatusText" Text="OCR settings mirror the native OCR workspace and are applied on the next OCR run." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" /><Button Grid.Column="1" Classes="ghost" Tag="ocr" Click="WorkspaceButton_OnClick">Open OCR</Button></Grid></Border>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsAudioPanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4"><TextBlock Text="Audio" Classes="moduleHeaderTitle" /><TextBlock Text="Speech recognition defaults for audio transcription and audio translation." Classes="moduleHeaderSubtitle" /></StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="0">
+                    <TextBlock Text="SPEECH RECOGNITION" Classes="sectionTitle" />
+                    <Border Grid.Row="1" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Engine and language" FontWeight="SemiBold" /><TextBlock Text="Provider, recognition language, and profile used by uploaded audio or URLs." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                          <StackPanel Spacing="4"><TextBlock Text="ENGINE" Classes="label" /><ComboBox x:Name="SettingsAudioProviderSelect" SelectionChanged="SettingsAudioProviderSelect_OnSelectionChanged" /></StackPanel>
+                          <StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="LANGUAGE" Classes="label" /><ComboBox x:Name="SettingsAudioLanguageSelect" /></StackPanel>
+                          <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="4"><TextBlock Text="PROFILE" Classes="label" /><TextBox x:Name="SettingsAudioProfileBox" Text="default" /></StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="2" Classes="settingsRow last"><Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBlock x:Name="SettingsAudioStatusText" Text="Audio settings are applied on the next transcribe or translate run." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" /><Button Grid.Column="1" Classes="ghost" Tag="audio" Click="WorkspaceButton_OnClick">Open Audio</Button></Grid></Border>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsRegionPanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4"><TextBlock Text="Region" Classes="moduleHeaderTitle" /><TextBlock Text="Native screen region controls and current capture status." Classes="moduleHeaderSubtitle" /></StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="0">
+                    <TextBlock Text="SCREEN CAPTURE" Classes="sectionTitle" />
+                    <Border Grid.Row="1" Classes="settingsRow">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Capture controls" FontWeight="SemiBold" /><TextBlock Text="Use the same native region actions without leaving Settings." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Grid Grid.Column="1" ColumnDefinitions="*,*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                          <Button Classes="primary" Click="RegionSelectButton_OnClick">Select</Button>
+                          <Button Grid.Column="1" Classes="ghost" Click="RegionStartButton_OnClick">Start</Button>
+                          <Button Grid.Column="2" Classes="ghost" Click="RegionSnapshotButton_OnClick">Snapshot</Button>
+                          <Button Grid.Column="3" Classes="ghost" Click="RegionStopButton_OnClick">Stop</Button>
+                          <StackPanel Grid.Row="1" Grid.ColumnSpan="4" Spacing="4"><TextBlock Text="MIN OCR GAP MS" Classes="label" /><TextBox x:Name="SettingsRegionGapBox" Text="300" TextChanged="SettingsRegionGapBox_OnTextChanged" /></StackPanel>
+                        </Grid>
+                      </Grid>
+                    </Border>
+                    <Border Grid.Row="2" Classes="settingsRow last">
+                      <Grid ColumnDefinitions="1.05*,1.35*" ColumnSpacing="20">
+                        <StackPanel><TextBlock Text="Capture status" FontWeight="SemiBold" /><TextBlock Text="Backend native status from /region/native/status." Classes="muted" TextWrapping="Wrap" /></StackPanel>
+                        <Border Grid.Column="1" Classes="settingsStatusCard">
+                          <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                            <TextBlock x:Name="SettingsRegionStatusText" Text="capture: off" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock x:Name="SettingsRegionLoopStatusText" Grid.Row="1" Text="loop: off" Classes="muted" TextWrapping="Wrap" />
+                            <TextBlock x:Name="SettingsRegionSelectionStatusText" Grid.Row="2" Text="selection: -" Classes="faint" TextWrapping="Wrap" />
+                          </Grid>
+                        </Border>
+                      </Grid>
+                    </Border>
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsShortcutsPanel" IsVisible="False" RowDefinitions="Auto,Auto" RowSpacing="12">
+                <StackPanel Spacing="4"><TextBlock Text="Shortcuts" Classes="moduleHeaderTitle" /><TextBlock Text="Global tray shortcuts for native region actions." Classes="moduleHeaderSubtitle" /></StackPanel>
+                <Border Grid.Row="1" Classes="workspacePanel">
+                  <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8"><TextBlock x:Name="SettingsHotkeyStatusText" Text="Loading shortcuts..." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" /><Button Grid.Column="1" Classes="ghost" Click="SettingsHotkeyRefreshButton_OnClick">Refresh</Button><Button Grid.Column="2" Classes="ghost" Click="SettingsHotkeyResetButton_OnClick">Reset defaults</Button></Grid>
+                    <StackPanel x:Name="SettingsHotkeyListPanel" Grid.Row="1" Spacing="8" />
+                    <TextBlock Grid.Row="2" Text="Recording custom key combinations will be migrated after the list and trigger path are stable." Classes="faint" TextWrapping="Wrap" />
+                  </Grid>
+                </Border>
+              </Grid>
+
+              <Grid x:Name="SettingsMemoryPanel" IsVisible="False" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="14">
+                <Border Classes="memoryHero">
+                  <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="16" RowSpacing="4">
+                    <TextBlock Text="記憶" Classes="memoryHeroTitle" />
+                    <Border Grid.Column="1" Classes="memoryScopePill" VerticalAlignment="Center">
+                      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Ellipse Width="8" Height="8" Fill="#31D07A" VerticalAlignment="Center" />
+                        <TextBox x:Name="SettingsMemoryProfileBox" Text="default" Width="126" Background="Transparent" BorderThickness="0" Padding="0" MinHeight="24" />
+                        <TextBlock Text="·" Classes="muted" VerticalAlignment="Center" />
+                        <TextBlock x:Name="SettingsMemoryCountText" Text="0" Classes="muted" VerticalAlignment="Center" />
+                        <TextBlock Text="memories" Classes="muted" VerticalAlignment="Center" />
+                        <TextBlock x:Name="SettingsMemoryDatabaseScopeText" Text="-" IsVisible="False" />
+                        <TextBlock x:Name="SettingsMemoryFailedJobsText" Text="0" IsVisible="False" />
+                      </StackPanel>
+                    </Border>
+                    <TextBlock Grid.Row="1" Text="搜尋、審核、修正翻譯記憶。首頁只顯示目前需要處理的事。" Classes="moduleHeaderSubtitle" TextWrapping="Wrap" />
+                    <TextBlock x:Name="SettingsMemoryScopeStatusText" Grid.Row="1" Grid.Column="1" Text="Loading memory scope..." Classes="muted" TextWrapping="Wrap" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                  </Grid>
+                </Border>
+
+                <Border x:Name="SettingsMemoryLibraryFilterPanel" Grid.Row="1" Classes="memorySearchBar">
+                  <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="10">
+                      <TextBlock Text="⌕" Classes="panelTitle" Foreground="#27C3FF" VerticalAlignment="Center" />
+                      <TextBox x:Name="SettingsMemoryLibrarySearchBox" Grid.Column="1" PlaceholderText="搜尋記憶、術語、最近翻譯原因..." KeyDown="SettingsMemoryLibrarySearchBox_OnKeyDown" />
+                      <Button x:Name="SettingsMemoryAdvancedFiltersButton" Grid.Column="2" Classes="ghost" Click="SettingsMemoryAdvancedFiltersButton_OnClick">Filters</Button>
+                      <Button Grid.Column="3" Classes="primary" Click="SettingsMemoryLibraryNewButton_OnClick">新增記憶</Button>
+                      <Button Grid.Column="4" Classes="ghost" Click="SettingsMemoryLibraryRefreshButton_OnClick">Refresh</Button>
+                    </Grid>
+                    <Grid x:Name="SettingsMemoryAdvancedFiltersPanel" Grid.Row="1" ColumnDefinitions="*,*,*,*" ColumnSpacing="8" IsVisible="False">
+                      <StackPanel Spacing="4">
+                        <TextBlock Text="TYPE" Classes="label" />
+                        <ComboBox x:Name="SettingsMemoryKindFilterSelect" MinWidth="126" SelectionChanged="SettingsMemoryFilter_OnSelectionChanged" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Spacing="4">
+                        <TextBlock Text="TRUST" Classes="label" />
+                        <ComboBox x:Name="SettingsMemoryTrustFilterSelect" MinWidth="132" SelectionChanged="SettingsMemoryFilter_OnSelectionChanged" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="2" Spacing="4">
+                        <TextBlock Text="VISIBILITY" Classes="label" />
+                        <ComboBox x:Name="SettingsMemoryVisibilityFilterSelect" MinWidth="118" SelectionChanged="SettingsMemoryFilter_OnSelectionChanged" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="3" Spacing="4">
+                        <TextBlock Text="STATUS" Classes="label" />
+                        <ComboBox x:Name="SettingsMemoryActiveFilterSelect" MinWidth="116" SelectionChanged="SettingsMemoryFilter_OnSelectionChanged" />
+                      </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="SettingsMemoryLibraryStatusText" Grid.Row="2" Text="Library is scoped to the profile above." Classes="muted" TextWrapping="Wrap" />
+                  </Grid>
+                </Border>
+
+                <Border Grid.Row="2" Classes="memoryShell">
+                  <Grid RowDefinitions="Auto,Auto" RowSpacing="12">
+                    <StackPanel Spacing="3">
+                      <TextBlock Text="需要處理" Classes="sectionTitle" />
+                      <TextBlock Text="只列真正需要你做決定的項目；沒有問題時這區會自動收起。" Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                      <Border Classes="memoryAttentionCard warning">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                          <TextBlock x:Name="SettingsMemoryPendingReviewText" Text="0" Classes="memoryMetric" VerticalAlignment="Center" />
+                          <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="候選記憶等待審核" Classes="value" />
+                            <TextBlock Text="自動學習不會直接生效" Classes="faint" />
+                          </StackPanel>
+                          <Button Grid.Column="2" Classes="ghost" Tag="review" Click="SettingsMemoryTabButton_OnClick">Review</Button>
+                        </Grid>
+                      </Border>
+                      <Border Grid.Column="1" Classes="memoryAttentionCard danger">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                          <TextBlock Text="-" Classes="memoryMetric" Foreground="#FF6474" VerticalAlignment="Center" />
+                          <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="翻譯衝突" Classes="value" />
+                            <TextBlock Text="同一詞有多個譯法" Classes="faint" />
+                          </StackPanel>
+                          <Button Grid.Column="2" Classes="ghost" Tag="conflicts" Click="SettingsMemoryTabButton_OnClick">Resolve</Button>
+                        </Grid>
+                      </Border>
+                      <Border Grid.Column="2" Classes="memoryAttentionCard">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                          <TextBlock Text="-" Classes="memoryMetric" Foreground="#12D6E8" VerticalAlignment="Center" />
+                          <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="最近翻譯原因" Classes="value" />
+                            <TextBlock Text="查看為什麼翻成這樣" Classes="faint" />
+                          </StackPanel>
+                          <Button Grid.Column="2" Classes="ghost" Tag="used" Click="SettingsMemoryTabButton_OnClick">View</Button>
+                        </Grid>
+                      </Border>
+                    </Grid>
+                  </Grid>
+                </Border>
+
+                <Border Grid.Row="3" Classes="memoryPane">
+                  <Grid RowDefinitions="Auto,*" RowSpacing="10">
+                    <Grid Margin="14,14,14,0" ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" ColumnSpacing="10">
+                      <Button x:Name="SettingsMemoryLibraryTabButton" Classes="primary" HorizontalContentAlignment="Center" Click="SettingsMemoryTabButton_OnClick" Tag="library">Library</Button>
+                      <Button x:Name="SettingsMemoryReviewTabButton" Grid.Column="1" Classes="ghost" HorizontalContentAlignment="Center" Click="SettingsMemoryTabButton_OnClick" Tag="review">Review</Button>
+                      <Button x:Name="SettingsMemoryUsedTabButton" Grid.Column="2" Classes="ghost" HorizontalContentAlignment="Center" Click="SettingsMemoryTabButton_OnClick" Tag="used">Used</Button>
+                      <Button x:Name="SettingsMemoryConflictsTabButton" Grid.Column="3" Classes="ghost" HorizontalContentAlignment="Center" Click="SettingsMemoryTabButton_OnClick" Tag="conflicts">Conflicts</Button>
+                      <Button Grid.Column="5" Classes="primary" Click="SettingsMemoryLibraryNewButton_OnClick">新增記憶</Button>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="14,0,14,14">
+                      <Grid x:Name="SettingsMemoryLibraryContent" RowDefinitions="Auto,Auto" RowSpacing="12">
+                        <Border Classes="memoryScopeCard">
+                          <Grid RowDefinitions="Auto,*">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                              <TextBlock Text="Library" Classes="sectionTitle" />
+                              <TextBlock x:Name="SettingsMemoryLibraryCountText" Grid.Column="1" Text="0 items" Classes="muted" VerticalAlignment="Center" />
+                            </Grid>
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="360">
+                              <StackPanel x:Name="SettingsMemoryLibraryListPanel" Spacing="8" Margin="0,12,0,0" />
+                            </ScrollViewer>
+                          </Grid>
+                        </Border>
+                        <Border Grid.Row="1" Classes="memoryInspector">
+                          <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="10">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                              <StackPanel Spacing="3">
+                                <TextBlock x:Name="SettingsMemoryEditorTitleText" Text="Memory detail" Classes="sectionTitle" />
+                                <TextBlock x:Name="SettingsMemoryEditorMetaText" Text="Select an item or create a new memory." Classes="muted" TextWrapping="Wrap" />
+                              </StackPanel>
+                              <Button x:Name="SettingsMemoryEditorAdvancedButton" Grid.Column="1" Classes="ghost" VerticalAlignment="Center" Click="SettingsMemoryEditorAdvancedButton_OnClick">Details</Button>
+                              <CheckBox x:Name="SettingsMemoryEditorActiveCheck" Grid.Column="2" Content="Active" IsChecked="True" VerticalAlignment="Center" />
+                            </Grid>
+                            <Grid x:Name="SettingsMemoryEditorAdvancedPanel" Grid.Row="1" ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="8" IsVisible="False">
+                              <StackPanel Spacing="4">
+                                <TextBlock Text="TYPE" Classes="label" />
+                                <ComboBox x:Name="SettingsMemoryEditorKindSelect" />
+                              </StackPanel>
+                              <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="SOURCE" Classes="label" />
+                                <TextBox x:Name="SettingsMemoryEditorSourceBox" Text="auto" />
+                              </StackPanel>
+                              <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="TARGET" Classes="label" />
+                                <TextBox x:Name="SettingsMemoryEditorTargetBox" Text="zh-TW" />
+                              </StackPanel>
+                              <StackPanel Grid.Row="1" Spacing="4">
+                                <TextBlock Text="TRUST" Classes="label" />
+                                <ComboBox x:Name="SettingsMemoryEditorTrustSelect" />
+                              </StackPanel>
+                              <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4">
+                                <TextBlock Text="VISIBILITY" Classes="label" />
+                                <ComboBox x:Name="SettingsMemoryEditorVisibilitySelect" />
+                              </StackPanel>
+                              <Grid Grid.Row="1" Grid.Column="2" ColumnDefinitions="*,*" ColumnSpacing="8">
+                                <StackPanel Spacing="4">
+                                  <TextBlock Text="PRIORITY" Classes="label" />
+                                  <TextBox x:Name="SettingsMemoryEditorPriorityBox" Text="0" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                  <TextBlock Text="CONFIDENCE" Classes="label" />
+                                  <TextBox x:Name="SettingsMemoryEditorConfidenceBox" Text="1" />
+                                </StackPanel>
+                              </Grid>
+                            </Grid>
+                            <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                              <StackPanel Spacing="4">
+                                <TextBlock Text="SOURCE TEXT" Classes="label" />
+                                <TextBox x:Name="SettingsMemoryEditorSourceTextBox" AcceptsReturn="True" MinHeight="72" TextWrapping="Wrap" />
+                              </StackPanel>
+                              <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="TARGET TEXT" Classes="label" />
+                                <TextBox x:Name="SettingsMemoryEditorTargetTextBox" AcceptsReturn="True" MinHeight="72" TextWrapping="Wrap" />
+                              </StackPanel>
+                            </Grid>
+                            <StackPanel Grid.Row="3" Spacing="4">
+                              <TextBlock Text="NOTE" Classes="label" />
+                              <TextBox x:Name="SettingsMemoryEditorNoteBox" AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,Auto,*" ColumnSpacing="8">
+                              <Button Classes="primary" Click="SettingsMemoryLibrarySaveButton_OnClick">Save</Button>
+                              <Button Grid.Column="1" Classes="ghost" Click="SettingsMemoryLibraryDisableButton_OnClick">Disable</Button>
+                              <Button Grid.Column="2" Classes="ghost" Click="SettingsMemoryLibraryNewButton_OnClick">Clear</Button>
+                              <TextBlock x:Name="SettingsMemoryEditorStatusText" Grid.Column="3" Text="Ready." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </Grid>
+                          </Grid>
+                        </Border>
+                      </Grid>
+
+                      <Grid x:Name="SettingsMemoryReviewContent" RowDefinitions="Auto,Auto" RowSpacing="12" IsVisible="False">
+                        <Border Classes="memoryScopeCard">
+                          <Grid RowDefinitions="Auto,*">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                              <StackPanel Spacing="3">
+                                <TextBlock Text="Review" Classes="sectionTitle" />
+                                <TextBlock x:Name="SettingsMemoryReviewStatusText" Text="Review local generated, imported, and quarantined memory before it can affect translation." Classes="muted" TextWrapping="Wrap" />
+                              </StackPanel>
+                              <TextBlock x:Name="SettingsMemoryReviewCountText" Grid.Column="1" Text="0 items" Classes="muted" VerticalAlignment="Center" />
+                              <Button Grid.Column="2" Classes="ghost" Click="SettingsMemoryReviewRefreshButton_OnClick">Refresh</Button>
+                            </Grid>
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="330">
+                              <StackPanel x:Name="SettingsMemoryReviewListPanel" Spacing="8" Margin="0,12,0,0" />
+                            </ScrollViewer>
+                          </Grid>
+                        </Border>
+                        <Border Grid.Row="1" Classes="memoryInspector">
+                          <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="10">
+                            <StackPanel Spacing="3">
+                              <TextBlock x:Name="SettingsMemoryReviewTitleText" Text="Review detail" Classes="sectionTitle" />
+                              <TextBlock x:Name="SettingsMemoryReviewMetaText" Text="Select an item from the review queue." Classes="muted" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Border Grid.Row="1" Classes="settingsStatusCard">
+                              <TextBlock x:Name="SettingsMemoryReviewFlagsText" Text="No security flags." Classes="muted" TextWrapping="Wrap" />
+                            </Border>
+                            <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                              <StackPanel Spacing="4">
+                                <TextBlock Text="SOURCE TEXT" Classes="label" />
+                                <TextBox x:Name="SettingsMemoryReviewSourceTextBox" AcceptsReturn="True" MinHeight="72" TextWrapping="Wrap" />
+                              </StackPanel>
+                              <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="TARGET TEXT" Classes="label" />
+                                <TextBox x:Name="SettingsMemoryReviewTargetTextBox" AcceptsReturn="True" MinHeight="72" TextWrapping="Wrap" />
+                              </StackPanel>
+                            </Grid>
+                            <StackPanel Grid.Row="3" Spacing="4">
+                              <TextBlock Text="NOTE" Classes="label" />
+                              <TextBox x:Name="SettingsMemoryReviewNoteBox" AcceptsReturn="True" MinHeight="64" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,Auto,Auto,*" ColumnSpacing="8">
+                              <Button x:Name="SettingsMemoryReviewApproveButton" Classes="primary" Click="SettingsMemoryReviewApproveButton_OnClick">Approve</Button>
+                              <Button Grid.Column="1" Classes="primary" Click="SettingsMemoryReviewEditApproveButton_OnClick">Edit &amp; approve</Button>
+                              <Button Grid.Column="2" Classes="ghost" Click="SettingsMemoryReviewRejectButton_OnClick">Reject</Button>
+                              <Button Grid.Column="3" Classes="ghost" Click="SettingsMemoryReviewKeepButton_OnClick">Keep candidate</Button>
+                              <TextBlock x:Name="SettingsMemoryReviewActionStatusText" Grid.Column="4" Text="Ready." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </Grid>
+                          </Grid>
+                        </Border>
+                      </Grid>
+
+                      <Border x:Name="SettingsMemoryUsedContent" Classes="memoryScopeCard" IsVisible="False">
+                        <StackPanel Spacing="10">
+                          <TextBlock Text="Used recently" Classes="sectionTitle" />
+                          <TextBlock Text="這裡會顯示最近翻譯實際使用過的記憶，之後可從某次翻譯直接建立修正或停用錯誤記憶。" Classes="muted" TextWrapping="Wrap" />
+                          <Border Classes="settingsStatusCard">
+                            <TextBlock Text="Used / Why translated API 尚未接回 Avalonia。先保留簡潔入口，不把診斷資料塞在首頁。" Classes="muted" TextWrapping="Wrap" />
+                          </Border>
+                        </StackPanel>
+                      </Border>
+
+                      <Border x:Name="SettingsMemoryConflictsContent" Classes="memoryScopeCard" IsVisible="False">
+                        <StackPanel Spacing="10">
+                          <TextBlock Text="Conflicts" Classes="sectionTitle" />
+                          <TextBlock Text="這裡會集中處理同一 source key 的多個譯法，避免候選記憶互相覆蓋。" Classes="muted" TextWrapping="Wrap" />
+                          <Border Classes="settingsStatusCard">
+                            <TextBlock Text="Conflict detection API 尚未接回 Avalonia。先保留分頁與空狀態，避免把 Missing/候選資料混成正常模型一樣的列表。" Classes="muted" TextWrapping="Wrap" />
+                          </Border>
+                        </StackPanel>
+                      </Border>
+                    </Grid>
+                  </Grid>
+                </Border>
+              </Grid>
+            </Grid>
+          </Grid>
+        </ScrollViewer>
+
+        <ScrollViewer x:Name="SettingsViewLegacy" Grid.Row="0" IsVisible="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" SizeChanged="WorkspaceScrollViewer_OnSizeChanged">
+          <Grid ColumnDefinitions="210,*" MinHeight="520" Width="{Binding Bounds.Width, ElementName=SettingsView}">
+            <Border Classes="workspacePanel" CornerRadius="10,0,0,10">
+              <StackPanel Spacing="8">
+                <TextBlock Text="DESKTOP" Classes="label" />
+                <Border Classes="segment active"><TextBlock Text="General" Classes="value" /></Border>
+                <Border Classes="segment"><TextBlock Text="System &amp; Appearance" Classes="muted" /></Border>
+                <Border Classes="segment"><TextBlock Text="Providers" Classes="muted" /></Border>
+                <Border Classes="segment"><TextBlock Text="Sound" Classes="muted" /></Border>
+                <TextBlock Text="PIPELINES" Classes="label" Margin="0,14,0,0" />
+                <Border Classes="segment"><TextBlock Text="OCR" Classes="muted" /></Border>
+                <Border Classes="segment"><TextBlock Text="Audio" Classes="muted" /></Border>
+                <Border Classes="segment"><TextBlock Text="Region" Classes="muted" /></Border>
+                <TextBlock Text="RUNTIME" Classes="label" Margin="0,14,0,0" />
+                <Border Classes="segment"><TextBlock Text="Broadcast" Classes="muted" /></Border>
+                <Border Classes="segment"><TextBlock Text="Memory" Classes="muted" /></Border>
+              </StackPanel>
+            </Border>
+            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" RowSpacing="12" Margin="12,0,0,0">
+              <Border Classes="workspacePanel">
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                  <TextBlock Text="General" Classes="sectionTitle" />
+                  <Grid Grid.Row="1" ColumnDefinitions="1.1*,1.4*" RowDefinitions="Auto,Auto,Auto" RowSpacing="12" ColumnSpacing="16">
+                    <StackPanel>
+                      <TextBlock Text="Language" FontWeight="SemiBold" />
+                      <TextBlock Text="Display language for the native shell." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1">
+                      <ComboBoxItem Content="Auto" IsSelected="True" />
+                      <ComboBoxItem Content="繁體中文" />
+                      <ComboBoxItem Content="English" />
+                    </ComboBox>
+                    <StackPanel Grid.Row="1">
+                      <TextBlock Text="Theme" FontWeight="SemiBold" />
+                      <TextBlock Text="Mirror WebView presets without a duplicated preview." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ComboBox Grid.Row="1" Grid.Column="1">
+                      <ComboBoxItem Content="Follow system" IsSelected="True" />
+                      <ComboBoxItem Content="Verbeam dark" />
+                      <ComboBoxItem Content="Paper light" />
+                    </ComboBox>
+                    <StackPanel Grid.Row="2">
+                      <TextBlock Text="Density" FontWeight="SemiBold" />
+                      <TextBlock Text="Controls shell height, tab height, and spacing." Classes="muted" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ComboBox Grid.Row="2" Grid.Column="1">
+                      <ComboBoxItem Content="Compact" IsSelected="True" />
+                      <ComboBoxItem Content="Default" />
+                      <ComboBoxItem Content="Comfortable" />
+                    </ComboBox>
+                  </Grid>
+                </Grid>
+              </Border>
+              <Border Grid.Row="1" Classes="workspacePanel">
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+                  <TextBlock Text="Runtime Memory" Classes="sectionTitle" />
+                  <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="12">
+                    <TextBlock Text="API" Classes="label" />
+                    <TextBlock Grid.Column="1" Text="{Binding #ApiStatusText.Text}" Classes="value" />
+                    <TextBlock Grid.Row="1" Text="WebView" Classes="label" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding #WebViewRamText.Text}" Classes="value" />
+                    <TextBlock Grid.Row="2" Text="Model" Classes="label" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding #ModelRamText.Text}" Classes="value" />
+                  </Grid>
+                </Grid>
+              </Border>
+              <Border Grid.Row="2" Classes="actionBar">
+                <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+                  <Button Classes="primary">Apply</Button>
+                  <Button Grid.Column="1" Classes="ghost">Reset</Button>
+                  <TextBlock Grid.Column="2" Text="Native settings shell mirrors the WebView layout first; detailed controls can be wired section by section." Classes="muted" VerticalAlignment="Center" TextWrapping="Wrap" />
+                </Grid>
+              </Border>
+            </Grid>
+          </Grid>
+        </ScrollViewer>
+
+        <Border Grid.Row="1"
+                Margin="0,12,0,0"
+                Background="#111418"
+                BorderBrush="#252F3D"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10,8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock x:Name="LogText" Text="Ready." Classes="muted" TextWrapping="Wrap" />
+            <TextBlock Grid.Column="1" Text="/app" Classes="faint" />
+          </Grid>
+        </Border>
+      </Grid>
+    </Grid>
+
+    <Border Grid.Row="2" Background="#0B0F14" BorderBrush="#1D2633" BorderThickness="0,1,0,0">
+      <Grid ColumnDefinitions="*,Auto" Margin="8,0">
+        <TextBlock Text="ready" Classes="faint" VerticalAlignment="Center" />
+        <TextBlock x:Name="StatusPathText" Grid.Column="1" Text="/app / translate" Classes="faint" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

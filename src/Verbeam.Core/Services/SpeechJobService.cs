@@ -408,7 +408,8 @@ public sealed class SpeechJobService
                         Pick(request.TranslationProvider, _options.DefaultProvider),
                         outcome.Engine,
                         outcome.LatencyMs,
-                        outcome.CacheHit)
+                        outcome.CacheHit,
+                        outcome.TokenUsage)
                 }, cancellationToken);
             }
         }

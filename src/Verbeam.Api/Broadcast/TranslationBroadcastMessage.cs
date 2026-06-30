@@ -12,4 +12,12 @@ public sealed record TranslationBroadcastMessage(
     string Engine,
     long LatencyMs,
     bool CacheHit,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    string Id = "",
+    string SourceKind = "text",
+    int? SegmentIndex = null,
+    double? StartSeconds = null,
+    double? EndSeconds = null,
+    double? Confidence = null,
+    DateTimeOffset? DisplayUntil = null,
+    string StableKey = "");

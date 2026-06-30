@@ -1,18 +1,63 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <PropertyGroup>
+    <!-- Desktop single-user app: use Workstation GC (one heap, collects eagerly, returns memory to
+         the OS) instead of the Web SDK's default Server GC, which on a many-core machine spins up a
+         heap per logical core and hoards 10s of GB of committed heap under allocation churn (e.g. the
+         realtime low-contrast CLAHE path's per-frame buffers). Concurrent keeps collections off the
+         request/UI path. This single-user OCR+LLM proxy has no high-concurrency throughput need. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="RapidOcrNet" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <ProjectReference Include="..\Verbeam.Core\Verbeam.Core.csproj" />
+    <!-- GPU (DirectML) ONNX Runtime for the deployed app. RapidOcrNet pulls the CPU-only
+         Microsoft.ML.OnnxRuntime transitively into THIS project's graph (separate from Core's),
+         and its native onnxruntime.dll wins the runtimes/win-x64/native copy over DirectML's,
+         leaving the loaded DLL without the DML entry point. Exclude the CPU package here too so
+         only DirectML's onnxruntime.dll deploys, and pull Microsoft.AI.DirectML as a direct ref
+         so its build target stages DirectML.dll. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.3" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.3" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.AI.DirectML" Version="1.15.4" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\presets\**\*.json" Link="presets\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\glossaries\**\*.json" Link="glossaries\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\presets\**\*.json" Link="presets\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\glossaries\**\*.json" Link="glossaries\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\models.catalog.json" Link="models.catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\api-suppliers.catalog.json" Link="api-suppliers.catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- CJK PP-OCRv5 recognizer + dict so rapidocr-net can read Chinese (its bundled rec is Latin-only). -->
+    <Content Include="ocr-models\**\*" Exclude="ocr-models\**\*.json" Link="ocr-models\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- ocr_rec_catalog.json is already an SDK-default Content item; Update (not Include) it to copy + avoid a duplicate. -->
+    <Content Update="ocr-models\**\*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Update="wwwroot\images\brand\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Per-Monitor-V2 DPI awareness for the WinForms tray; see app.manifest. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>wwwroot\images\brand\verbeam.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <!-- Guarantee the DirectML-enabled onnxruntime.dll (+ DirectML.dll) land in the output,
+       regardless of how NuGet resolves the runtimes/win-x64/native copy collision between the
+       CPU and DirectML onnxruntime packages. Runs after Build and Publish. -->
+  <Target Name="DeployDirectMLNative" AfterTargets="Build;Publish">
+    <ItemGroup>
+      <_VbDmlNative Include="$(PkgMicrosoft_ML_OnnxRuntime_DirectML)\runtimes\win-x64\native\*.dll" />
+      <_VbDirectMLLib Include="$(PkgMicrosoft_AI_DirectML)\bin\x64-win\DirectML.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_VbDmlNative)" DestinationFolder="$(OutDir)runtimes\win-x64\native" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="@(_VbDirectMLLib)" DestinationFolder="$(OutDir)runtimes\win-x64\native" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="@(_VbDirectMLLib)" DestinationFolder="$(OutDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+  </Target>
 
 </Project>

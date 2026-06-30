@@ -68,6 +68,7 @@ public sealed class CacheTests : IDisposable
         Assert.Contains("glossary_terms", tables);
         Assert.Contains("memory_items", tables);
         Assert.Contains("memory_embeddings", tables);
+        Assert.Contains("memory_principal_credentials", tables);
         Assert.Contains("ocr_corrections", tables);
         Assert.Contains("ocr_events", tables);
         Assert.Contains("rag_context_audit", tables);
@@ -88,8 +89,43 @@ public sealed class CacheTests : IDisposable
             FROM pragma_table_info('memory_items')
             ORDER BY name
             """);
+        var auditColumns = await QueryStringsAsync(
+            connection,
+            """
+            SELECT name
+            FROM pragma_table_info('rag_context_audit')
+            ORDER BY name
+            """);
+        var ocrSmokeColumns = await QueryStringsAsync(
+            connection,
+            """
+            SELECT name
+            FROM pragma_table_info('ocr_smoke_results')
+            ORDER BY name
+            """);
+        var permissionColumns = await QueryStringsAsync(
+            connection,
+            """
+            SELECT name
+            FROM pragma_table_info('memory_principal_permissions')
+            ORDER BY name
+            """);
+        var sessionColumns = await QueryStringsAsync(
+            connection,
+            """
+            SELECT name
+            FROM pragma_table_info('memory_principal_sessions')
+            ORDER BY name
+            """);
+        var credentialColumns = await QueryStringsAsync(
+            connection,
+            """
+            SELECT name
+            FROM pragma_table_info('memory_principal_credentials')
+            ORDER BY name
+            """);
 
-        Assert.Equal(3, migrationVersion);
+        Assert.Equal(SqliteSchema.CurrentVersion, migrationVersion);
         Assert.Equal(1, defaultProfileCount);
         Assert.Equal("wal", journalMode);
         Assert.Contains("trust_level", memoryColumns);
@@ -100,6 +136,27 @@ public sealed class CacheTests : IDisposable
         Assert.Contains("security_flags_json", memoryColumns);
         Assert.Contains("classification", memoryColumns);
         Assert.Contains("visibility", memoryColumns);
+        Assert.Contains("can_read_shared_memory", permissionColumns);
+        Assert.Contains("can_write_memory", permissionColumns);
+        Assert.Contains("can_approve_memory", permissionColumns);
+        Assert.Contains("role", permissionColumns);
+        Assert.Contains("token_hash", sessionColumns);
+        Assert.Contains("revoked_at", sessionColumns);
+        Assert.Contains("last_seen_at", sessionColumns);
+        Assert.Contains("secret_hash", credentialColumns);
+        Assert.Contains("revoked_at", credentialColumns);
+        Assert.Contains("last_used_at", credentialColumns);
+        Assert.Contains("context_character_count", auditColumns);
+        Assert.Contains("selected_memory_count", auditColumns);
+        Assert.Contains("selected_recent_event_count", auditColumns);
+        Assert.Contains("principal_id", auditColumns);
+        Assert.Contains("decision", auditColumns);
+        Assert.Contains("reason", auditColumns);
+        Assert.Contains("structure_json", ocrSmokeColumns);
+        Assert.Contains("structure_assertion_json", ocrSmokeColumns);
+        Assert.Contains("succeeded", ocrSmokeColumns);
+        Assert.Contains("error_code", ocrSmokeColumns);
+        Assert.Contains("error_message", ocrSmokeColumns);
     }
 
     [Fact]
@@ -172,7 +229,7 @@ public sealed class CacheTests : IDisposable
 
         Assert.Equal("user_verified", trustLevel);
         Assert.Equal("profile", visibility);
-        Assert.Equal(3, migrationVersion);
+        Assert.Equal(SqliteSchema.CurrentVersion, migrationVersion);
     }
 
     public void Dispose()

@@ -9,222 +9,166 @@ public static class BroadcastViewerPage
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Verbeam Viewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <style>
     :root {
       color-scheme: dark;
-      --background: #12120f;
-      --surface: #1e1e18;
-      --surface-strong: #2a2a21;
-      --text: #f7f4ea;
-      --muted: #b9b39f;
-      --accent: #72d67c;
-      --warning: #f0c95a;
+      --bg: #090909;
+      --layer: #121212;
+      --layer-2: #1c1c1c;
+      --line: #1f1f1f;
+      --line-strong: #2d2d2d;
+      --text: #e8e8e8;
+      --muted: #7a7a7a;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --amber: #d6b86a;
+      --sans: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
     }
 
+    ::-webkit-scrollbar {
+      display: none;
+    }
     * {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       box-sizing: border-box;
     }
 
     body {
-      min-height: 100vh;
       margin: 0;
-      background: var(--background);
+      background: var(--bg);
       color: var(--text);
-      font-family: "Segoe UI", system-ui, sans-serif;
-      letter-spacing: 0;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      line-height: 1.5;
     }
 
     main {
       min-height: 100vh;
       display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 1rem;
-      padding: 1rem;
+      grid-template-rows: 44px minmax(0, 1fr) auto;
+      gap: 0;
+      padding: 0;
+      background: var(--bg);
     }
 
-    header,
-    footer {
+    header {
+      min-height: 44px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--layer);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      color: var(--muted);
-      font-size: 0.9rem;
+    }
+
+    footer {
+      display: flex;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      background: var(--layer);
     }
 
     .brand {
-      color: var(--text);
+      color: #ffffff;
+      font-size: 14px;
       font-weight: 700;
+      letter-spacing: 0.02em;
     }
 
     .status {
+      min-height: 26px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      min-height: 2rem;
-      padding: 0 0.75rem;
-      border: 1px solid var(--surface-strong);
-      border-radius: 999px;
-      background: var(--surface);
     }
 
     .dot {
-      width: 0.65rem;
-      height: 0.65rem;
+      width: 7px;
+      height: 7px;
       border-radius: 999px;
-      background: var(--warning);
+      background: var(--amber);
     }
 
     .status.live .dot {
-      background: var(--accent);
+      background: var(--green);
     }
 
     .translation {
+      place-self: center;
+      width: min(90vw, 1200px);
+      margin: 40px auto;
+      min-height: 22rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--layer);
+      color: var(--text);
+      font-size: clamp(1.8rem, 5vw, 3.4rem);
+      font-weight: 600;
+      box-shadow: none;
+      transition: all 0.3s ease;
       display: grid;
       place-items: center;
-      min-height: 18rem;
-      padding: 1.25rem;
-      border: 1px solid var(--surface-strong);
-      border-radius: 8px;
-      background: var(--surface);
-      font-size: 2rem;
-      line-height: 1.35;
+      padding: 40px 30px;
+      text-shadow: none;
       text-align: center;
       white-space: pre-wrap;
       word-break: break-word;
     }
 
     .source {
-      min-height: 4rem;
-      padding: 1rem;
-      border-left: 3px solid var(--surface-strong);
-      color: var(--muted);
+      flex: 1;
+      min-height: 4.5rem;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--blue);
+      border-radius: 6px;
+      background: var(--layer-2);
+      color: #94a3b8;
+      font-size: 14px;
+      padding: 12px 16px;
       line-height: 1.5;
       white-space: pre-wrap;
       word-break: break-word;
-    }
-
-    @media (min-width: 720px) {
-      main {
-        padding: 1.5rem;
-      }
-
-      .translation {
-        font-size: 2.8rem;
-      }
-    }
-  </style>
-  <style>
-    :root {
-      --oc-bg: #0f0f0f;
-      --oc-titlebar: #242424;
-      --oc-layer: #171717;
-      --oc-layer-2: #202020;
-      --oc-line: #2d2d2d;
-      --oc-text: #dddddd;
-      --oc-muted: #8b8b8b;
-      --oc-blue: #2f6fff;
-      --oc-green: #72d67c;
-      --oc-amber: #d6b86a;
-      --background: var(--oc-bg);
-      --surface: var(--oc-layer);
-      --surface-strong: var(--oc-line);
-      --text: var(--oc-text);
-      --muted: var(--oc-muted);
-      --accent: var(--oc-green);
-      --warning: var(--oc-amber);
-    }
-
-    body {
-      background: var(--oc-bg);
-      color: var(--oc-text);
-      font-size: 13px;
-    }
-
-    main {
-      grid-template-rows: 32px minmax(0, 1fr) auto;
-      gap: 0;
-      padding: 0;
-      background: #111111;
-    }
-
-    header {
-      min-height: 32px;
-      padding: 0 12px;
-      border-bottom: 1px solid #1f1f1f;
-      background: var(--oc-titlebar);
-      color: var(--oc-muted);
-      font-family: "Cascadia Mono", Consolas, monospace;
-      font-size: 11px;
-    }
-
-    footer {
-      align-items: stretch;
-      gap: 12px;
-      padding: 12px;
-      border-top: 1px solid var(--oc-line);
-      background: #121212;
-    }
-
-    .brand {
-      color: #f1f1f1;
-      font-family: "Cascadia Mono", Consolas, monospace;
-      font-size: 12px;
-      font-weight: 650;
-    }
-
-    .status {
-      min-height: 22px;
-      padding: 0 8px;
-      border-color: var(--oc-line);
-      border-radius: 5px;
-      background: var(--oc-layer);
-      color: var(--oc-muted);
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-    }
-
-    .translation {
-      place-self: stretch;
-      margin: 30px;
-      min-height: 18rem;
-      border-color: var(--oc-line);
-      border-radius: 8px;
-      background: var(--oc-layer);
-      color: var(--oc-text);
-      font-size: clamp(1.6rem, 4vw, 3.2rem);
-      box-shadow: none;
-    }
-
-    .source {
-      flex: 1;
-      min-height: 4rem;
-      border: 1px solid var(--oc-line);
-      border-left: 3px solid var(--oc-blue);
-      border-radius: 8px;
-      background: var(--oc-layer);
-      color: var(--oc-muted);
     }
 
     #meta {
       align-self: stretch;
       display: grid;
       place-items: center;
-      min-width: 150px;
-      border: 1px solid var(--oc-line);
-      border-radius: 8px;
-      background: var(--oc-layer);
-      color: var(--oc-muted);
-      font-family: "Cascadia Mono", Consolas, monospace;
+      min-width: 180px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--layer-2);
+      color: #94a3b8;
+      font-family: var(--mono);
       font-size: 12px;
+      font-weight: 500;
     }
 
     @media (max-width: 720px) {
       .translation {
-        margin: 14px;
+        margin: 20px;
+        min-height: 14rem;
+        padding: 24px;
       }
 
       footer {
@@ -264,6 +208,17 @@ public static class BroadcastViewerPage
       status.classList.toggle("live", isLive);
     }
 
+    let lastCaptionKey = "";
+
+    function captionKey(message) {
+      return message.id || message.stableKey || [
+        message.createdAt || "",
+        message.sourceKind || "",
+        message.sourceText || "",
+        message.translatedText || ""
+      ].join("|");
+    }
+
     function connect() {
       const protocol = location.protocol === "https:" ? "wss:" : "ws:";
       const socket = new WebSocket(`${protocol}//${location.host}/broadcast`);
@@ -276,6 +231,12 @@ public static class BroadcastViewerPage
           return;
         }
 
+        const key = captionKey(message);
+        if (key && key === lastCaptionKey) {
+          return;
+        }
+
+        lastCaptionKey = key;
         translation.textContent = message.translatedText || "";
         source.textContent = message.sourceText || "";
         meta.textContent = `${message.source} to ${message.target}`;

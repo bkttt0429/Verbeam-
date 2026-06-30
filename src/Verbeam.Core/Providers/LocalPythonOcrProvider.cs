@@ -7,11 +7,14 @@ using Verbeam.Core.Services;
 
 namespace Verbeam.Core.Providers;
 
-public sealed class LocalPythonOcrProvider : IOcrProvider
+public sealed class LocalPythonOcrProvider : IOcrProvider, IDisposable
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     private readonly string _engineName;
     private readonly LocalOcrSetOptions _options;
     private readonly string _contentRootPath;
+    private readonly LocalPythonOcrWorker? _worker;
 
     public LocalPythonOcrProvider(
         OcrProviderDescriptor descriptor,
@@ -23,11 +26,58 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
         _engineName = engineName;
         _options = options;
         _contentRootPath = contentRootPath;
+        _worker = CreateWorker();
     }
 
     public OcrProviderDescriptor Descriptor { get; }
 
     public async Task<OcrProviderResult> RecognizeAsync(
+        OcrProviderRequest request,
+        CancellationToken cancellationToken)
+    {
+        var extension = ExtensionFromMimeType(request.ImageMimeType);
+        var imagePath = Path.Combine(Path.GetTempPath(), $"verbeam-ocr-{_engineName}-{Guid.NewGuid():N}{extension}");
+        await File.WriteAllBytesAsync(imagePath, request.ImageBytes, cancellationToken);
+
+        try
+        {
+            if (_worker is not null)
+            {
+                try
+                {
+                    var workerOutput = await _worker.RecognizeAsync(
+                        _engineName,
+                        imagePath,
+                        request.Language,
+                        request.PreprocessingPreset,
+                        cancellationToken);
+                    var workerResult = ParseOutput(workerOutput, $"local:{_engineName}");
+                    return workerResult with { Engine = $"{workerResult.Engine}/worker" };
+                }
+                catch (Exception ex) when (_options.Worker.FallbackToOneShot && ex is not OperationCanceledException)
+                {
+                    // Fall back to the original one-shot path if the worker protocol fails.
+                    // One-shot restarts Python and reloads models per request, so surface the reason.
+                    Console.Error.WriteLine($"[ocr] {_engineName} worker failed, falling back to one-shot: {ex.Message}");
+                }
+            }
+
+            var oneShotResult = await RecognizeOneShotAsync(imagePath, request, cancellationToken);
+            return oneShotResult with { Engine = $"{oneShotResult.Engine}/oneshot" };
+        }
+        finally
+        {
+            TryDelete(imagePath);
+        }
+    }
+
+    public void Dispose()
+    {
+        _worker?.Dispose();
+    }
+
+    private async Task<OcrProviderResult> RecognizeOneShotAsync(
+        string imagePath,
         OcrProviderRequest request,
         CancellationToken cancellationToken)
     {
@@ -37,32 +87,23 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
             throw new InvalidOperationException($"Local OCR wrapper script was not found: {scriptPath}");
         }
 
-        var extension = ExtensionFromMimeType(request.ImageMimeType);
-        var imagePath = Path.Combine(Path.GetTempPath(), $"verbeam-ocr-{_engineName}-{Guid.NewGuid():N}{extension}");
-        await File.WriteAllBytesAsync(imagePath, request.ImageBytes, cancellationToken);
+        var arguments = BuildArguments(
+            scriptPath,
+            "--engine",
+            _engineName,
+            "--image",
+            imagePath,
+            "--language",
+            request.Language,
+            "--preprocess",
+            request.PreprocessingPreset);
+        var result = await RunAsync(
+            ResolvePythonFileName(),
+            arguments,
+            Math.Max(1, _options.TimeoutSeconds),
+            cancellationToken);
 
-        try
-        {
-            var arguments = BuildArguments(
-                scriptPath,
-                "--engine",
-                _engineName,
-                "--image",
-                imagePath,
-                "--language",
-                request.Language);
-            var result = await RunAsync(
-                ResolvePythonFileName(),
-                arguments,
-                Math.Max(1, _options.TimeoutSeconds),
-                cancellationToken);
-
-            return ParseOutput(result.Stdout, $"local:{_engineName}");
-        }
-        finally
-        {
-            TryDelete(imagePath);
-        }
+        return ParseOutput(result.Stdout, $"local:{_engineName}");
     }
 
     public async Task<LocalOcrEngineStatus> CheckAsync(CancellationToken cancellationToken = default)
@@ -99,8 +140,11 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
             var note = root.TryGetProperty("note", out var noteElement)
                 ? noteElement.GetString() ?? string.Empty
                 : string.Empty;
+            var status = root.TryGetProperty("status", out var statusElement)
+                ? statusElement.GetString() ?? string.Empty
+                : string.Empty;
 
-            return new LocalOcrEngineStatus(_engineName, available, missing, note);
+            return new LocalOcrEngineStatus(_engineName, available, missing, note, status);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -108,7 +152,8 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
                 _engineName,
                 IsAvailable: false,
                 Missing: [],
-                ex.Message);
+                ex.Message,
+                "missing_dependency");
         }
     }
 
@@ -131,6 +176,20 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
     private string ResolveScriptPath()
         => PathResolver.Resolve(_contentRootPath, _options.ScriptPath);
 
+    private LocalPythonOcrWorker? CreateWorker()
+    {
+        if (!_options.Worker.Enabled ||
+            !_options.Worker.Engines.Any(engine => string.Equals(engine, _engineName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return null;
+        }
+
+        return new LocalPythonOcrWorker(
+            ResolvePythonFileName(),
+            PathResolver.Resolve(_contentRootPath, _options.Worker.ScriptPath),
+            _options.Worker.TimeoutSeconds > 0 ? _options.Worker.TimeoutSeconds : _options.TimeoutSeconds);
+    }
+
     private static async Task<CommandResult> RunAsync(
         string fileName,
         string arguments,
@@ -148,6 +207,9 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
             StandardErrorEncoding = Encoding.UTF8,
             CreateNoWindow = true
         };
+        // Python inherits the console code page (e.g. cp950) for its own stdio unless told otherwise.
+        startInfo.EnvironmentVariables["PYTHONIOENCODING"] = "utf-8";
+        startInfo.EnvironmentVariables["PYTHONUTF8"] = "1";
 
         using var process = Process.Start(startInfo)
             ?? throw new InvalidOperationException($"Failed to start OCR command '{fileName}'.");
@@ -204,6 +266,9 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
         var blocks = root.TryGetProperty("blocks", out var blocksElement) && blocksElement.ValueKind == JsonValueKind.Array
             ? ParseBlocks(blocksElement)
             : Array.Empty<OcrTextBlock>();
+        var documentResult = root.TryGetProperty("document", out var documentElement) && documentElement.ValueKind == JsonValueKind.Object
+            ? ParseDocument(documentElement)
+            : null;
 
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -215,7 +280,19 @@ public sealed class LocalPythonOcrProvider : IOcrProvider
             blocks = [new OcrTextBlock(text, 1.0, null)];
         }
 
-        return new OcrProviderResult(text, blocks, engine);
+        return new OcrProviderResult(text, blocks, engine, documentResult);
+    }
+
+    private static OcrDocumentResult? ParseDocument(JsonElement element)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<OcrDocumentResult>(element.GetRawText(), JsonOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static IReadOnlyList<OcrTextBlock> ParseBlocks(JsonElement root)
@@ -301,4 +378,5 @@ public sealed record LocalOcrEngineStatus(
     string Engine,
     bool IsAvailable,
     IReadOnlyList<string> Missing,
-    string Note);
+    string Note,
+    string Status = "");

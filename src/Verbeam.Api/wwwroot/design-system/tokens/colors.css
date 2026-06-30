@@ -1,0 +1,81 @@
+/* Verbeam — Color tokens
+   The dark "OpenCode desktop" workbench palette is canonical.
+   Base ramp = near-black greys; four accents (blue/green/amber/red).
+   Values mirror the shipping app, viewer and projector surfaces. */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Base neutral ramp (darkest → lightest) ---- */
+  --vb-bg: #090909;        /* app background / projector stage */
+  --vb-rail: #121212;      /* activity rail, viewer chrome */
+  --vb-panel: #161616;     /* panel / sidebar surface */
+  --vb-panel-2: #1e1e1e;   /* raised control surface (buttons, fields) */
+  --vb-layer-2: #1c1c1c;   /* viewer source/meta blocks */
+  --vb-hover: rgba(255, 255, 255, 0.08); /* control hover fill */
+  --vb-hover-soft: rgba(255, 255, 255, 0.03); /* subtle status fill */
+
+  /* ---- Lines / borders ---- */
+  --vb-line: #1f1f1f;        /* default hairline */
+  --vb-line-strong: #2d2d2d; /* control border */
+  --vb-line-hover: #4b4b4b;  /* control border on hover */
+
+  /* ---- Text ---- */
+  --vb-text: #e8e8e8;        /* primary text */
+  --vb-text-strong: #f1f1f1; /* emphasized / brand wordmark */
+  --vb-muted: #7a7a7a;       /* secondary text, labels, icons */
+  --vb-faint: #555555;       /* tertiary / disabled */
+  --vb-label: #777777;       /* mono section-label grey */
+  --vb-slate: #94a3b8;       /* meta / source-text slate */
+
+  /* ---- Accents ---- */
+  --vb-blue: #3b82f6;        /* primary action, active state, focus, links */
+  --vb-blue-hover: #2563eb;  /* primary hover */
+  --vb-green: #22c55e;       /* live / success / result */
+  --vb-amber: #d6b86a;       /* idle / warning / notice */
+  --vb-red: #ef4444;         /* error / danger */
+  --vb-red-hover: #dc2626;   /* danger hover */
+
+  /* Region-selection blue (legacy workbench overlay accent) */
+  --vb-region: #2f6fff;
+
+  /* ---- Accent-tinted surfaces ---- */
+  --vb-active-bg: rgba(59, 130, 246, 0.15); /* active tab/nav fill */
+  --vb-active-ring: rgba(59, 130, 246, 0.20); /* active inset ring */
+  --vb-rail-active: rgba(59, 130, 246, 0.10); /* rail link active fill */
+  --vb-notice-bg: rgba(214, 184, 106, 0.08);
+  --vb-notice-border: rgba(214, 184, 106, 0.32);
+  --vb-notice-fg: #dec986;
+
+  /* ---- Selection ---- */
+  --vb-selection: rgba(59, 130, 246, 0.36);
+
+  /* ============================================================
+     Semantic aliases — prefer these in components & screens
+     ============================================================ */
+  --surface-app: var(--vb-bg);
+  --surface-rail: var(--vb-rail);
+  --surface-panel: var(--vb-panel);
+  --surface-raised: var(--vb-panel-2);
+  --surface-field: var(--vb-panel-2);
+  --surface-hover: var(--vb-hover);
+
+  --border-hairline: var(--vb-line);
+  --border-control: var(--vb-line-strong);
+  --border-hover: var(--vb-line-hover);
+
+  --text-body: var(--vb-text);
+  --text-strong: var(--vb-text-strong);
+  --text-muted: var(--vb-muted);
+  --text-faint: var(--vb-faint);
+  --text-label: var(--vb-label);
+  --text-meta: var(--vb-slate);
+  --text-link: var(--vb-blue);
+
+  --accent: var(--vb-blue);
+  --accent-hover: var(--vb-blue-hover);
+  --success: var(--vb-green);
+  --warning: var(--vb-amber);
+  --danger: var(--vb-red);
+  --danger-hover: var(--vb-red-hover);
+}

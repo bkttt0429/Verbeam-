@@ -1,0 +1,18 @@
+{
+  "Compile": "編譯",
+  "Compiler": "編譯器",
+  "Assemble": "組譯",
+  "Assembler": "組譯器",
+  "Preprocess": "預先處理",
+  "Preprocessor": "前置處理器",
+  "Link": "連結",
+  "Linker": "連結器",
+  "Loader": "載入器",
+  "Library": "程式庫",
+  "Executable": "執行檔",
+  "Source Program": "原程式",
+  "Source Code": "原始碼",
+  "Object Program": "目的程式",
+  "Object File": "目的檔",
+  "Object Code": "目的碼"
+}

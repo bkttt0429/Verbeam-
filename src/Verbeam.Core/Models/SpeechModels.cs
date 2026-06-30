@@ -102,11 +102,13 @@ public sealed record SpeechTranslatedSegment(
     string Provider,
     string Engine,
     long LatencyMs,
-    bool CacheHit);
+    bool CacheHit,
+    TokenUsage? TokenUsage = null);
 
 public sealed record SpeechTranslateResponse(
     SpeechResponse Speech,
-    IReadOnlyList<SpeechTranslatedSegment> Translations);
+    IReadOnlyList<SpeechTranslatedSegment> Translations,
+    TokenUsage? TokenUsage = null);
 
 public sealed record SpeechJobRequest
 {
@@ -172,3 +174,112 @@ public sealed record SpeechEvent(
     bool CaptionsUsed,
     long LatencyMs,
     DateTimeOffset CreatedAt);
+
+public sealed record VideoSpeechSessionRequest
+{
+    public string? SourceUrl { get; init; }
+    public string? Language { get; init; }
+    public string? Profile { get; init; }
+    public string? SessionId { get; init; }
+    public string? SpeechProvider { get; init; }
+    public string? Provider { get; init; }
+    public string? Glossary { get; init; }
+    public bool? PreferCaptions { get; init; }
+    public bool Translate { get; init; }
+    public string? Source { get; init; }
+    public string? Target { get; init; }
+    public string? Mode { get; init; }
+    public string? TranslationProvider { get; init; }
+    public string? Model { get; init; }
+    public string? PrincipalId { get; init; }
+    public bool AllowSharedMemory { get; init; }
+}
+
+public sealed record VideoSpeechPositionRequest
+{
+    public double PositionSeconds { get; init; }
+    public bool Playing { get; init; } = true;
+    public int? LookaheadSeconds { get; init; }
+    public bool? Translate { get; init; }
+}
+
+public sealed record VideoSpeechSessionStatus(
+    string Id,
+    string Status,
+    string ProfileId,
+    string SessionId,
+    string SourceUrl,
+    string Platform,
+    string VideoId,
+    string Title,
+    double DurationSeconds,
+    string Language,
+    string Provider,
+    bool CaptionsUsed,
+    int SegmentCount,
+    string ErrorCode,
+    string ErrorMessage,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record VideoSpeechSessionEvent(
+    long Sequence,
+    string SessionId,
+    string Type,
+    string PayloadJson,
+    DateTimeOffset CreatedAt);
+
+public sealed record VideoSpeechAudioBuffer(
+    string Id,
+    string SessionId,
+    double StartSeconds,
+    double EndSeconds,
+    string FilePath,
+    string AudioMimeType,
+    long ByteLength,
+    string Status,
+    string ErrorCode,
+    string ErrorMessage,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record VideoSpeechWindowTask(
+    string Id,
+    string SessionId,
+    double StartSeconds,
+    double EndSeconds,
+    int Priority,
+    string Status,
+    string ErrorCode,
+    string ErrorMessage,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);
+
+public sealed record VideoSpeechCachedSegment(
+    string Id,
+    string SessionId,
+    int Index,
+    double StartSeconds,
+    double EndSeconds,
+    string Text,
+    double Confidence,
+    string? Speaker,
+    string? Language,
+    string Provider,
+    string Engine,
+    double WindowStartSeconds,
+    double WindowEndSeconds,
+    DateTimeOffset CreatedAt);
+
+public sealed record VideoMediaMetadata(
+    string Platform,
+    string VideoId,
+    string Title,
+    double DurationSeconds);
+
+public sealed record VideoAudioSection(
+    string FilePath,
+    string AudioMimeType,
+    double StartSeconds,
+    double EndSeconds,
+    long ByteLength);

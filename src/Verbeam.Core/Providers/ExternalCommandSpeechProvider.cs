@@ -42,7 +42,6 @@ public sealed class ExternalCommandSpeechProvider : ISpeechProvider
             var startInfo = new ProcessStartInfo
             {
                 FileName = _options.FileName,
-                Arguments = BuildArguments(_options.Arguments, audioPath, request.Language),
                 WorkingDirectory = _workingDirectory,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -51,6 +50,20 @@ public sealed class ExternalCommandSpeechProvider : ISpeechProvider
                 StandardErrorEncoding = Encoding.UTF8,
                 CreateNoWindow = true
             };
+
+            // Pass each templated argument as a discrete ArgumentList entry (.NET applies correct
+            // Win32 escaping) so request-derived values can't inject extra arguments. See
+            // ExternalCommandTemplate.
+            foreach (var argument in ExternalCommandTemplate.BuildArguments(
+                _options.Arguments,
+                new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["{audio}"] = audioPath,
+                    ["{language}"] = request.Language
+                }))
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
 
             using var process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException($"Failed to start ASR command '{_options.FileName}'.");
@@ -86,14 +99,6 @@ public sealed class ExternalCommandSpeechProvider : ISpeechProvider
             TryDelete(audioPath);
         }
     }
-
-    private static string BuildArguments(string template, string audioPath, string language)
-        => template
-            .Replace("{audio}", Quote(audioPath), StringComparison.Ordinal)
-            .Replace("{language}", Quote(language), StringComparison.Ordinal);
-
-    private static string Quote(string value)
-        => "\"" + value.Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
 
     private static string ExtensionFromMimeType(string mimeType)
         => mimeType.ToLowerInvariant() switch

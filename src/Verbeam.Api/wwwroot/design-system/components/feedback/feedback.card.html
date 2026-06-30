@@ -1,0 +1,49 @@
+<!-- @dsCard group="Components" viewport="700x420" name="Feedback" subtitle="Pill, Message, StatusLine, Notice" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--surface-app); }
+  .wrap { display: grid; gap: 18px; max-width: 660px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .panel { border: 1px solid var(--border-hairline); border-radius: var(--radius-lg);
+           background: var(--surface-panel); padding: 12px; display: grid; gap: 10px; }
+</style>
+</head>
+<body>
+  <div id="root" class="wrap"></div>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="../../_ds_bundle.js"></script>
+  <script type="text/babel">
+    const { Pill, Message, StatusLine, Notice } = window.LocalTranslateHubDesignSystem_32566a;
+    function Demo() {
+      return (
+        <>
+          <div className="row">
+            <Pill dot="live">live</Pill>
+            <Pill dot="idle">broadcast</Pill>
+            <Pill dot="error">reconnect</Pill>
+            <Pill>text</Pill>
+            <Pill>142 ms</Pill>
+          </div>
+          <Message kind="user" title="source" meta="ollama / qwen2.5:7b">こんにちは、勇者さん。</Message>
+          <Message kind="result" title="translation" meta="142 ms">你好，勇者大人。</Message>
+          <Message kind="error" title="translate" meta="0 ms">source is empty</Message>
+          <div className="panel">
+            <StatusLine label="available" value="yes" valueColor="var(--success)" />
+            <StatusLine label="engine" value="windows-ocr" />
+            <StatusLine label="blocks" value="12" />
+            <Notice>預設本機 OCR，輕量，適合一般文字</Notice>
+          </div>
+        </>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+/* Verbeam — Radii, borders, shadows, motion
+   The workbench is flat: hairline borders do the work; shadows are
+   reserved for overlays and the projector's text legibility. */
+
+:root {
+  /* ---- Corner radii ---- */
+  --radius-xs: 4px;   /* projector controls, small chips */
+  --radius-sm: 5px;   /* pills */
+  --radius-md: 6px;   /* buttons, inputs, selects, panels, rail items */
+  --radius-lg: 8px;   /* cards, terminal, dialogs */
+  --radius-xl: 12px;  /* viewer translation stage */
+  --radius-pill: 999px;
+
+  /* ---- Border widths ---- */
+  --border-1: 1px;
+  --border-accent-l: 4px; /* viewer source left-accent rule */
+  --border-2: 2px;        /* region selection box */
+
+  /* ---- Shadows (sparingly used) ---- */
+  --shadow-none: none;
+  --shadow-overlay: 0 16px 36px rgba(0, 0, 0, 0.5); /* @kind shadow */
+  /* Projector caption text legibility over arbitrary video */
+  --shadow-caption: 0 3px 28px rgba(0,0,0,0.86), 0 0 6px #000, 0 0 2px #000; /* @kind shadow */
+  --shadow-caption-source: 0 2px 16px rgba(0,0,0,0.86), 0 0 3px #000; /* @kind shadow */
+
+  /* ---- Focus / active ring ---- */
+  --ring-active: inset 0 0 0 1px var(--vb-active-ring); /* @kind shadow */
+
+  /* ---- Blur (overlays, projector HUD) ---- */
+  --blur-hud: blur(12px); /* @kind other */
+  --blur-panel: blur(20px); /* @kind other */
+
+  /* ---- Motion ---- */
+  --ease-standard: ease; /* @kind other */
+  --ease-emphasized: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --duration-fast: 150ms; /* @kind other */
+  --duration-slow: 300ms; /* @kind other */
+  --transition-control: all 150ms ease; /* @kind other */
+}

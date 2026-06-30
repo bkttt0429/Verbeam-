@@ -1,0 +1,39 @@
+/* Verbeam — Spacing & layout tokens
+   Compact scale tuned for the dense desktop workbench. */
+
+:root {
+  /* ---- Spacing scale ---- */
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-9: 18px;
+  --space-10: 20px;
+  --space-12: 24px;
+  --space-15: 30px;
+  --space-18: 36px;
+  --space-20: 40px;
+
+  /* ---- Control heights ---- */
+  --control-h-sm: 26px;   /* pills, status capsules */
+  --control-h: 34px;      /* default button / input / select */
+  --control-h-rail: 36px; /* rail link / badge */
+
+  /* ---- App shell dimensions ---- */
+  --shell-rail-w: 53px;       /* activity rail */
+  --shell-sidebar-w: 230px;   /* workspace sidebar */
+  --shell-inspector-w: 320px; /* right inspector */
+  --shell-topbar-h: 44px;
+  --shell-footer-h: 30px;
+
+  /* ---- Common gaps ---- */
+  --gap-tight: var(--space-2);
+  --gap-row: var(--space-4);
+  --gap-stack: var(--space-6);
+  --gap-section: var(--space-9);
+}

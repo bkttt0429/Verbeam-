@@ -413,6 +413,189 @@ public sealed class SpeechService
         }
     }
 
+    public async Task<VideoAudioSection> DownloadYouTubeAudioSectionAsync(
+        string sourceUrl,
+        double startSeconds,
+        double durationSeconds,
+        string outputDirectory,
+        CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(outputDirectory);
+        var safeId = Guid.NewGuid().ToString("N");
+        var sectionStart = Math.Max(0, startSeconds);
+        var sectionDuration = Math.Max(1, durationSeconds);
+        var sectionEnd = sectionStart + sectionDuration;
+        var outputTemplate = Path.Combine(outputDirectory, $"section-{safeId}.%(ext)s");
+        var downloadArguments = new List<string>
+        {
+            "--no-playlist",
+            "-f",
+            Pick(_options.Speech.YouTube.AudioFormat, "bestaudio[abr<=64]/bestaudio/best"),
+            "--download-sections",
+            $"*{FormatMediaTimestamp(sectionStart)}-{FormatMediaTimestamp(sectionEnd)}",
+            // Without this, yt-dlp cuts at the nearest keyframe and segment
+            // timestamps drift by a few seconds. The forced re-encode is fine
+            // because the audio is converted to 16k mono wav anyway.
+            "--force-keyframes-at-cuts",
+            "-o",
+            outputTemplate,
+            sourceUrl
+        };
+
+        var downloadResult = await RunToolAsync(
+            _options.Speech.YouTube.YtDlpFileName,
+            downloadArguments,
+            _options.Speech.YouTube.TimeoutSeconds,
+            cancellationToken);
+        if (downloadResult.ExitCode != 0)
+        {
+            throw new InvalidOperationException($"yt-dlp section download failed with exit code {downloadResult.ExitCode}: {downloadResult.Error.Trim()}");
+        }
+
+        var downloadedPath = Directory.EnumerateFiles(outputDirectory, $"section-{safeId}.*", SearchOption.TopDirectoryOnly)
+            .Where(path => !path.EndsWith(".part", StringComparison.OrdinalIgnoreCase) &&
+                           !path.EndsWith(".ytdl", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(path => path)
+            .FirstOrDefault()
+            ?? throw new InvalidOperationException("yt-dlp did not produce an audio section.");
+
+        var wavPath = Path.Combine(outputDirectory, $"section-{safeId}.wav");
+        if (!downloadedPath.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
+        {
+            var ffmpegArguments = new List<string>
+            {
+                "-hide_banner",
+                "-y",
+                "-i",
+                downloadedPath,
+                "-ac",
+                "1",
+                "-ar",
+                "16000",
+                wavPath
+            };
+            var ffmpegResult = await RunToolAsync(
+                ResolveToolPath(_options.Speech.YouTube.FfmpegFileName),
+                ffmpegArguments,
+                _options.Speech.YouTube.TimeoutSeconds,
+                cancellationToken);
+            if (ffmpegResult.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"ffmpeg section convert failed with exit code {ffmpegResult.ExitCode}: {ffmpegResult.Error.Trim()}");
+            }
+
+            TryDeleteFile(downloadedPath);
+        }
+        else
+        {
+            wavPath = downloadedPath;
+        }
+
+        var file = new FileInfo(wavPath);
+        return new VideoAudioSection(
+            file.FullName,
+            "audio/wav",
+            sectionStart,
+            sectionEnd,
+            file.Exists ? file.Length : 0);
+    }
+
+    /// <summary>
+    /// Probes video duration and title via yt-dlp without downloading.
+    /// Returns (0, "") on any failure so callers can degrade gracefully.
+    /// </summary>
+    public async Task<(double DurationSeconds, string Title)> ProbeVideoMetadataAsync(
+        string sourceUrl,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var arguments = new List<string>
+            {
+                "--no-playlist",
+                "--skip-download",
+                "--print",
+                "%(duration)s\t%(title)s",
+                sourceUrl
+            };
+            var result = await RunToolAsync(
+                _options.Speech.YouTube.YtDlpFileName,
+                arguments,
+                Math.Min(30, Math.Max(5, _options.Speech.YouTube.TimeoutSeconds)),
+                cancellationToken);
+            if (result.ExitCode != 0)
+            {
+                return (0, string.Empty);
+            }
+
+            var line = result.Output
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault() ?? string.Empty;
+            var pieces = line.Split('\t', 2);
+            var duration = double.TryParse(
+                pieces[0],
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var parsed) && parsed > 0
+                ? parsed
+                : 0;
+            var title = pieces.Length > 1 ? pieces[1].Trim() : string.Empty;
+            return (duration, title);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return (0, string.Empty);
+        }
+    }
+
+    public async Task<byte[]> CutAudioFileAsync(
+        string audioPath,
+        double offsetSeconds,
+        double durationSeconds,
+        CancellationToken cancellationToken)
+    {
+        if (!File.Exists(audioPath))
+        {
+            throw new FileNotFoundException("Audio buffer file was not found.", audioPath);
+        }
+
+        var tempPath = Path.Combine(Path.GetTempPath(), $"verbeam-window-{Guid.NewGuid():N}.wav");
+        try
+        {
+            var ffmpegArguments = new List<string>
+            {
+                "-hide_banner",
+                "-y",
+                "-ss",
+                Math.Max(0, offsetSeconds).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                "-i",
+                audioPath,
+                "-t",
+                Math.Max(1, durationSeconds).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                "-ac",
+                "1",
+                "-ar",
+                "16000",
+                tempPath
+            };
+            var ffmpegResult = await RunToolAsync(
+                ResolveToolPath(_options.Speech.YouTube.FfmpegFileName),
+                ffmpegArguments,
+                _options.Speech.YouTube.TimeoutSeconds,
+                cancellationToken);
+            if (ffmpegResult.ExitCode != 0)
+            {
+                throw new InvalidOperationException($"ffmpeg window cut failed with exit code {ffmpegResult.ExitCode}: {ffmpegResult.Error.Trim()}");
+            }
+
+            return await ReadFileWithLimitAsync(tempPath, _options.Speech.MaxAudioBytes, cancellationToken);
+        }
+        finally
+        {
+            TryDeleteFile(tempPath);
+        }
+    }
+
     private async Task<SpeechAudioInput> DownloadAudioFromUrlAsync(
         string sourceUrl,
         CancellationToken cancellationToken)
@@ -686,9 +869,16 @@ public sealed class SpeechService
         {
             await process.WaitForExitAsync(timeout.Token);
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
+            // Kill on both timeout and external cancellation; otherwise
+            // yt-dlp/ffmpeg keeps running after the session is canceled.
             TryKill(process);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+
             throw new TimeoutException($"External media tool timed out after {timeoutSeconds} seconds.");
         }
 
@@ -753,6 +943,16 @@ public sealed class SpeechService
     private static string Pick(string? value, string fallback)
         => string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
 
+    private static string FormatMediaTimestamp(double seconds)
+    {
+        var value = Math.Max(0, seconds);
+        var whole = (int)Math.Floor(value);
+        var hours = whole / 3600;
+        var minutes = (whole % 3600) / 60;
+        var remain = whole % 60;
+        return $"{hours:D2}:{minutes:D2}:{remain:D2}";
+    }
+
     private static void TryKill(Process process)
     {
         try
@@ -774,6 +974,20 @@ public sealed class SpeechService
             if (Directory.Exists(path))
             {
                 Directory.Delete(path, recursive: true);
+            }
+        }
+        catch (IOException)
+        {
+        }
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
             }
         }
         catch (IOException)

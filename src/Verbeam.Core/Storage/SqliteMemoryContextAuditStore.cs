@@ -34,14 +34,16 @@ public sealed class SqliteMemoryContextAuditStore : IMemoryContextAuditStore
             await using var command = connection.CreateCommand();
             command.CommandText = """
                 INSERT INTO rag_context_audit (
-                    id, request_id, profile_id, session_id, translation_key,
+                    id, request_id, profile_id, principal_id, session_id, translation_key,
                     memory_id, memory_kind, snippet_hash, context_hash, trust_level,
-                    source_hash, policy_version, created_at
+                    source_hash, policy_version, context_character_count,
+                    selected_memory_count, selected_recent_event_count, decision, reason, created_at
                 )
                 VALUES (
-                    $id, $request_id, $profile_id, $session_id, $translation_key,
+                    $id, $request_id, $profile_id, $principal_id, $session_id, $translation_key,
                     $memory_id, $memory_kind, $snippet_hash, $context_hash, $trust_level,
-                    $source_hash, $policy_version, $created_at
+                    $source_hash, $policy_version, $context_character_count,
+                    $selected_memory_count, $selected_recent_event_count, $decision, $reason, $created_at
                 )
                 """;
             AddParameters(command, entry);
@@ -52,21 +54,37 @@ public sealed class SqliteMemoryContextAuditStore : IMemoryContextAuditStore
     public async Task<IReadOnlyList<MemoryContextAuditEntry>> ListAsync(
         string profileId,
         int limit,
+        string? principalId = null,
         CancellationToken cancellationToken = default)
     {
         await InitializeAsync(cancellationToken);
 
         await using var connection = await SqliteDatabase.OpenConnectionAsync(_databasePath, cancellationToken);
         await using var command = connection.CreateCommand();
+        var conditions = new List<string>
+        {
+            "profile_id = $profile_id"
+        };
+        if (!string.IsNullOrWhiteSpace(principalId))
+        {
+            conditions.Add("principal_id = $principal_id");
+            command.Parameters.AddWithValue("$principal_id", principalId.Trim());
+        }
+
         command.CommandText = """
-            SELECT id, request_id, profile_id, session_id, translation_key,
+            SELECT id, request_id, profile_id, principal_id, session_id, translation_key,
                    memory_id, memory_kind, snippet_hash, context_hash, trust_level,
-                   source_hash, policy_version, created_at
+                   source_hash, policy_version, context_character_count,
+                   selected_memory_count, selected_recent_event_count, decision, reason, created_at
             FROM rag_context_audit
             WHERE profile_id = $profile_id
             ORDER BY created_at DESC
             LIMIT $limit
             """;
+        command.CommandText = command.CommandText.Replace(
+            "WHERE profile_id = $profile_id",
+            "WHERE " + string.Join("\n              AND ", conditions),
+            StringComparison.Ordinal);
         command.Parameters.AddWithValue("$profile_id", profileId);
         command.Parameters.AddWithValue("$limit", Math.Clamp(limit, 1, 500));
 
@@ -85,6 +103,7 @@ public sealed class SqliteMemoryContextAuditStore : IMemoryContextAuditStore
         command.Parameters.AddWithValue("$id", entry.Id);
         command.Parameters.AddWithValue("$request_id", entry.RequestId);
         command.Parameters.AddWithValue("$profile_id", entry.ProfileId);
+        command.Parameters.AddWithValue("$principal_id", entry.PrincipalId);
         command.Parameters.AddWithValue("$session_id", entry.SessionId);
         command.Parameters.AddWithValue("$translation_key", (object?)entry.TranslationKey ?? DBNull.Value);
         command.Parameters.AddWithValue("$memory_id", entry.MemoryId);
@@ -94,6 +113,11 @@ public sealed class SqliteMemoryContextAuditStore : IMemoryContextAuditStore
         command.Parameters.AddWithValue("$trust_level", entry.TrustLevel);
         command.Parameters.AddWithValue("$source_hash", entry.SourceHash);
         command.Parameters.AddWithValue("$policy_version", entry.PolicyVersion);
+        command.Parameters.AddWithValue("$context_character_count", entry.ContextCharacterCount);
+        command.Parameters.AddWithValue("$selected_memory_count", entry.SelectedMemoryCount);
+        command.Parameters.AddWithValue("$selected_recent_event_count", entry.SelectedRecentEventCount);
+        command.Parameters.AddWithValue("$decision", entry.Decision);
+        command.Parameters.AddWithValue("$reason", entry.Reason);
         command.Parameters.AddWithValue("$created_at", entry.CreatedAt.ToString("O"));
     }
 
@@ -103,13 +127,19 @@ public sealed class SqliteMemoryContextAuditStore : IMemoryContextAuditStore
             reader.GetString(1),
             reader.GetString(2),
             reader.GetString(3),
-            reader.IsDBNull(4) ? null : reader.GetString(4),
-            reader.GetString(5),
+            reader.GetString(4),
+            reader.IsDBNull(5) ? null : reader.GetString(5),
             reader.GetString(6),
             reader.GetString(7),
             reader.GetString(8),
             reader.GetString(9),
             reader.GetString(10),
             reader.GetString(11),
-            DateTimeOffset.Parse(reader.GetString(12)));
+            reader.GetString(12),
+            reader.GetInt32(13),
+            reader.GetInt32(14),
+            reader.GetInt32(15),
+            reader.GetString(16),
+            reader.GetString(17),
+            DateTimeOffset.Parse(reader.GetString(18)));
 }

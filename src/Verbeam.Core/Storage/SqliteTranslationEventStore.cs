@@ -25,20 +25,73 @@ public sealed class SqliteTranslationEventStore : ITranslationEventStore
 
         await EnsureProfileAsync(connection, entry, cancellationToken);
         await EnsureSessionAsync(connection, entry, cancellationToken);
+        await InsertEventAsync(connection, entry, cancellationToken);
+    }
 
+    public async Task AddEventsAsync(IReadOnlyList<TranslationEvent> entries, CancellationToken cancellationToken = default)
+    {
+        if (entries.Count == 0)
+        {
+            return;
+        }
+
+        await InitializeAsync(cancellationToken);
+
+        await using var connection = await SqliteDatabase.OpenConnectionAsync(_databasePath, cancellationToken);
+
+        // Raw BEGIN/COMMIT keeps the shared Ensure*/Insert helpers usable as-is;
+        // Microsoft.Data.Sqlite would otherwise require Transaction on every command.
+        await ExecuteAsync(connection, "BEGIN IMMEDIATE", cancellationToken);
+        try
+        {
+            foreach (var entry in entries)
+            {
+                await EnsureProfileAsync(connection, entry, cancellationToken);
+                await EnsureSessionAsync(connection, entry, cancellationToken);
+                await InsertEventAsync(connection, entry, cancellationToken);
+            }
+
+            await ExecuteAsync(connection, "COMMIT", cancellationToken);
+        }
+        catch
+        {
+            await ExecuteAsync(connection, "ROLLBACK", CancellationToken.None);
+            throw;
+        }
+    }
+
+    private static async Task ExecuteAsync(
+        SqliteConnection connection,
+        string sql,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private static async Task InsertEventAsync(
+        SqliteConnection connection,
+        TranslationEvent entry,
+        CancellationToken cancellationToken)
+    {
         await using var command = connection.CreateCommand();
         command.CommandText = """
             INSERT INTO translation_events (
                 id, session_id, profile_id, translation_key, request_name,
                 source_text, translated_text, source_language, target_language,
                 mode, provider, glossary_id, glossary_hash, engine, model,
-                latency_ms, cache_hit, error_code, error_message, created_at
+                latency_ms, cache_hit, error_code, error_message, created_at,
+                input_tokens, output_tokens, total_tokens, token_source, token_estimated,
+                surface
             )
             VALUES (
                 $id, $session_id, $profile_id, $translation_key, $request_name,
                 $source_text, $translated_text, $source_language, $target_language,
                 $mode, $provider, $glossary_id, $glossary_hash, $engine, $model,
-                $latency_ms, $cache_hit, $error_code, $error_message, $created_at
+                $latency_ms, $cache_hit, $error_code, $error_message, $created_at,
+                $input_tokens, $output_tokens, $total_tokens, $token_source, $token_estimated,
+                $surface
             )
             """;
 
@@ -62,6 +115,12 @@ public sealed class SqliteTranslationEventStore : ITranslationEventStore
         command.Parameters.AddWithValue("$error_code", entry.ErrorCode);
         command.Parameters.AddWithValue("$error_message", entry.ErrorMessage);
         command.Parameters.AddWithValue("$created_at", entry.CreatedAt.ToString("O"));
+        command.Parameters.AddWithValue("$input_tokens", entry.InputTokens);
+        command.Parameters.AddWithValue("$output_tokens", entry.OutputTokens);
+        command.Parameters.AddWithValue("$total_tokens", entry.TotalTokens);
+        command.Parameters.AddWithValue("$token_source", entry.TokenSource);
+        command.Parameters.AddWithValue("$token_estimated", entry.TokenEstimated ? 1 : 0);
+        command.Parameters.AddWithValue("$surface", entry.Surface);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -120,6 +179,252 @@ public sealed class SqliteTranslationEventStore : ITranslationEventStore
         }
 
         return values;
+    }
+
+    public async Task<IReadOnlyList<TranslationEvent>> ListRecentContextAsync(
+        string profileId,
+        string sessionId,
+        string sourceLanguage,
+        string targetLanguage,
+        string mode,
+        string excludeSourceText,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+        {
+            return [];
+        }
+
+        await InitializeAsync(cancellationToken);
+
+        await using var connection = await SqliteDatabase.OpenConnectionAsync(_databasePath, cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id, session_id, profile_id, translation_key, request_name,
+                   source_text, translated_text, source_language, target_language,
+                   mode, provider, glossary_id, glossary_hash, engine, model,
+                   latency_ms, cache_hit, error_code, error_message, created_at
+            FROM translation_events
+            WHERE profile_id = $profile_id
+              AND IFNULL(session_id, '') = $session_id
+              AND source_language = $source_language
+              AND target_language = $target_language
+              AND mode = $mode
+              AND error_code = '0'
+              AND translated_text <> ''
+              AND source_text <> $exclude_source_text
+            ORDER BY created_at DESC
+            LIMIT $limit
+            """;
+        command.Parameters.AddWithValue("$profile_id", profileId);
+        command.Parameters.AddWithValue("$session_id", sessionId);
+        command.Parameters.AddWithValue("$source_language", sourceLanguage);
+        command.Parameters.AddWithValue("$target_language", targetLanguage);
+        command.Parameters.AddWithValue("$mode", mode);
+        command.Parameters.AddWithValue("$exclude_source_text", excludeSourceText);
+        command.Parameters.AddWithValue("$limit", Math.Clamp(limit, 1, 50));
+
+        var values = new List<TranslationEvent>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            values.Add(ReadEvent(reader));
+        }
+
+        return values;
+    }
+
+    public async Task<IReadOnlyList<TranslationEvent>> ListSessionSuccessEventsAsync(
+        string profileId,
+        string sessionId,
+        string sourceLanguage,
+        string targetLanguage,
+        string mode,
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+        {
+            return [];
+        }
+
+        await InitializeAsync(cancellationToken);
+
+        await using var connection = await SqliteDatabase.OpenConnectionAsync(_databasePath, cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id, session_id, profile_id, translation_key, request_name,
+                   source_text, translated_text, source_language, target_language,
+                   mode, provider, glossary_id, glossary_hash, engine, model,
+                   latency_ms, cache_hit, error_code, error_message, created_at
+            FROM translation_events
+            WHERE profile_id = $profile_id
+              AND IFNULL(session_id, '') = $session_id
+              AND source_language = $source_language
+              AND target_language = $target_language
+              AND mode = $mode
+              AND error_code = '0'
+              AND translated_text <> ''
+            ORDER BY created_at DESC
+            LIMIT $limit
+            """;
+        command.Parameters.AddWithValue("$profile_id", profileId);
+        command.Parameters.AddWithValue("$session_id", sessionId);
+        command.Parameters.AddWithValue("$source_language", sourceLanguage);
+        command.Parameters.AddWithValue("$target_language", targetLanguage);
+        command.Parameters.AddWithValue("$mode", mode);
+        command.Parameters.AddWithValue("$limit", Math.Clamp(limit, 1, 500));
+
+        var values = new List<TranslationEvent>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            values.Add(ReadEvent(reader));
+        }
+
+        values.Reverse();
+        return values;
+    }
+
+    public async Task<TokenUsageSummary> GetUsageSummaryAsync(
+        string profileId,
+        string range,
+        DateTimeOffset? sinceUtc,
+        CancellationToken cancellationToken = default)
+    {
+        await InitializeAsync(cancellationToken);
+
+        await using var connection = await SqliteDatabase.OpenConnectionAsync(_databasePath, cancellationToken);
+
+        var sinceClause = sinceUtc.HasValue ? "AND created_at >= $since" : string.Empty;
+        var sinceValue = sinceUtc?.ToString("O");
+
+        // Per provider+model breakdown.
+        var byProvider = new List<TokenUsageBreakdown>();
+        long totalRequests = 0, totalInput = 0, totalOutput = 0, totalTokens = 0;
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = $"""
+                SELECT provider, model,
+                       COUNT(*) AS requests,
+                       COALESCE(SUM(input_tokens), 0) AS input_tokens,
+                       COALESCE(SUM(output_tokens), 0) AS output_tokens,
+                       COALESCE(SUM(total_tokens), 0) AS total_tokens
+                FROM translation_events
+                WHERE profile_id = $profile_id
+                  AND error_code = '0'
+                  {sinceClause}
+                GROUP BY provider, model
+                ORDER BY total_tokens DESC
+                """;
+            command.Parameters.AddWithValue("$profile_id", profileId);
+            if (sinceUtc.HasValue)
+            {
+                command.Parameters.AddWithValue("$since", sinceValue!);
+            }
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                var requests = reader.GetInt64(2);
+                var input = reader.GetInt64(3);
+                var output = reader.GetInt64(4);
+                var total = reader.GetInt64(5);
+                byProvider.Add(new TokenUsageBreakdown(
+                    reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
+                    reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
+                    requests,
+                    input,
+                    output,
+                    total));
+                totalRequests += requests;
+                totalInput += input;
+                totalOutput += output;
+                totalTokens += total;
+            }
+        }
+
+        // Daily trend.
+        var daily = new List<TokenUsageDailyPoint>();
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = $"""
+                SELECT substr(created_at, 1, 10) AS day,
+                       COUNT(*) AS requests,
+                       COALESCE(SUM(total_tokens), 0) AS total_tokens
+                FROM translation_events
+                WHERE profile_id = $profile_id
+                  AND error_code = '0'
+                  {sinceClause}
+                GROUP BY day
+                ORDER BY day ASC
+                """;
+            command.Parameters.AddWithValue("$profile_id", profileId);
+            if (sinceUtc.HasValue)
+            {
+                command.Parameters.AddWithValue("$since", sinceValue!);
+            }
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                daily.Add(new TokenUsageDailyPoint(
+                    reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
+                    reader.GetInt64(1),
+                    reader.GetInt64(2)));
+            }
+        }
+
+        // Per app-surface breakdown (feature source).
+        var bySurface = new List<TokenUsageSurfaceBreakdown>();
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = $"""
+                SELECT surface,
+                       COUNT(*) AS requests,
+                       COALESCE(SUM(input_tokens), 0) AS input_tokens,
+                       COALESCE(SUM(output_tokens), 0) AS output_tokens,
+                       COALESCE(SUM(total_tokens), 0) AS total_tokens
+                FROM translation_events
+                WHERE profile_id = $profile_id
+                  AND error_code = '0'
+                  {sinceClause}
+                GROUP BY surface
+                ORDER BY total_tokens DESC
+                """;
+            command.Parameters.AddWithValue("$profile_id", profileId);
+            if (sinceUtc.HasValue)
+            {
+                command.Parameters.AddWithValue("$since", sinceValue!);
+            }
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                bySurface.Add(new TokenUsageSurfaceBreakdown(
+                    TranslationSurface.ToKey(reader.GetInt32(0)),
+                    reader.GetInt64(1),
+                    reader.GetInt64(2),
+                    reader.GetInt64(3),
+                    reader.GetInt64(4)));
+            }
+        }
+
+        return new TokenUsageSummary(
+            profileId,
+            range,
+            totalRequests,
+            totalInput,
+            totalOutput,
+            totalTokens,
+            byProvider,
+            daily)
+        {
+            BySurface = bySurface
+        };
     }
 
     private static async Task EnsureProfileAsync(

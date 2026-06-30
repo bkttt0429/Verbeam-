@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verbeam Web Translator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup">
+    <header class="topbar">
+      <img class="brand-mark" src="assets/verbeam-mark.png" alt="" aria-hidden="true">
+      <div class="brand-copy">
+        <h1>Verbeam</h1>
+        <p id="status" role="status">Ready.</p>
+      </div>
+      <span class="status-chip">Local</span>
+    </header>
+
+    <section class="hero-actions" aria-label="Page actions">
+      <button id="translateButton" type="button">Translate page</button>
+      <button id="restoreButton" type="button" class="secondary">Restore</button>
+    </section>
+
+    <section class="primary-settings" aria-label="Translation settings">
+      <div class="language-row">
+        <label class="field compact-field">
+          <span>From</span>
+          <input id="source" type="text" spellcheck="false">
+        </label>
+        <span class="direction-mark" aria-hidden="true">to</span>
+        <label class="field compact-field">
+          <span>To</span>
+          <input id="target" type="text" spellcheck="false">
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Engine</span>
+        <select id="provider">
+          <option value="">Backend default</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Model</span>
+        <select id="model">
+          <option value="">Provider default</option>
+        </select>
+      </label>
+    </section>
+
+    <details class="advanced">
+      <summary>
+        <span>Advanced</span>
+        <span>Connection, speed, display</span>
+      </summary>
+
+      <div class="advanced-body">
+        <label class="field">
+          <span>Backend URL</span>
+          <div class="inline-action">
+            <input id="backendUrl" type="url" spellcheck="false">
+            <button id="detectBackendButton" type="button" class="secondary">Detect</button>
+          </div>
+        </label>
+
+        <div class="two-up">
+          <label class="field">
+            <span>Mode</span>
+            <input id="mode" type="text" spellcheck="false">
+          </label>
+          <label class="field">
+            <span>Context</span>
+            <select id="contextMode">
+              <option value="fast">Fast</option>
+              <option value="balanced">Balanced</option>
+              <option value="full">Full page</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="two-up">
+          <label class="field">
+            <span>Display</span>
+            <select id="displayMode">
+              <option value="bilingual">Bilingual</option>
+              <option value="translationOnly">Translation only</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Parallel</span>
+            <input id="concurrency" type="number" min="1" max="6" step="1">
+          </label>
+        </div>
+
+        <div class="toggle-list">
+          <label class="toggle">
+            <input id="watchAjax" type="checkbox">
+            <span>Watch page updates</span>
+          </label>
+          <label class="toggle">
+            <input id="floatingButtonEnabled" type="checkbox">
+            <span>Floating button</span>
+          </label>
+          <label class="toggle">
+            <input id="floatingButtonLocked" type="checkbox">
+            <span>Lock floating button</span>
+          </label>
+        </div>
+
+        <div class="two-up">
+          <label class="field">
+            <span>Floating side</span>
+            <select id="floatingButtonSide">
+              <option value="right">Right</option>
+              <option value="left">Left</option>
+            </select>
+          </label>
+          <button id="refreshCatalogButton" type="button" class="secondary">Refresh models</button>
+        </div>
+
+        <button id="resetDisabledSitesButton" type="button" class="ghost-button">Enable floating button everywhere</button>
+      </div>
+    </details>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -60,7 +60,11 @@ public sealed class OllamaTranslationProvider : ITranslationProvider
             throw new InvalidOperationException("Ollama returned an empty translation.");
         }
 
-        return new ProviderTranslationResult(translated, $"ollama:{request.Model}");
+        return new ProviderTranslationResult(translated, $"ollama:{request.Model}")
+        {
+            TokenUsage = chat?.ToTokenUsage()
+                ?? TokenUsageEstimator.EstimateProviderRequest(request, translated, "ollama:estimated")
+        };
     }
 
     private static Uri BuildEndpoint(string baseUrl)
@@ -101,7 +105,26 @@ public sealed class OllamaTranslationProvider : ITranslationProvider
         [property: JsonPropertyName("num_predict")]
         int NumPredict);
 
-    private sealed record OllamaChatResponse([property: JsonPropertyName("message")] OllamaChatMessageResponse? Message);
+    private sealed record OllamaChatResponse(
+        [property: JsonPropertyName("message")]
+        OllamaChatMessageResponse? Message,
+        [property: JsonPropertyName("prompt_eval_count")]
+        long? PromptEvalCount = null,
+        [property: JsonPropertyName("eval_count")]
+        long? EvalCount = null)
+    {
+        public TokenUsage? ToTokenUsage()
+        {
+            if (PromptEvalCount is null && EvalCount is null)
+            {
+                return null;
+            }
+
+            var input = Math.Max(0, PromptEvalCount ?? 0);
+            var output = Math.Max(0, EvalCount ?? 0);
+            return new TokenUsage(input, output, input + output, "ollama:exact", IsEstimated: false);
+        }
+    }
 
     private sealed record OllamaChatMessageResponse([property: JsonPropertyName("content")] string? Content);
 }

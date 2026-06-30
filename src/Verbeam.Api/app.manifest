@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <assemblyIdentity version="1.0.0.0" name="Verbeam.Api" />
+
+  <!--
+    Per-Monitor-V2 DPI awareness for the WinForms tray (region capture + translation
+    overlays + selection overlays). Declared in the manifest rather than via
+    Application.SetHighDpiMode so the awareness is set by the OS at process start —
+    before either the ASP.NET host or the side-thread WinForms UI creates its first
+    HWND. That avoids the ordering pitfalls of SetHighDpiMode in this hybrid host, and
+    makes CopyFromScreen capture true physical pixels (sharper OCR) instead of an
+    OS-stretched bitmap. PerMonitor is listed as the fallback for pre-1607 Windows.
+  -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true/PM</dpiAware>
+      <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2, PerMonitor</dpiAwareness>
+    </windowsSettings>
+  </application>
+</assembly>

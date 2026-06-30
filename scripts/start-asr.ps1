@@ -5,6 +5,7 @@ param(
     [string]$HostName = "127.0.0.1",
     [string]$Model = "iic/SenseVoiceSmall",
     [string]$PythonFileName = "python",
+    [int]$HealthTimeoutSeconds = 900,
     [switch]$ForceInstall,
     [switch]$SkipInstall
 )
@@ -70,9 +71,30 @@ function Test-RequiredPackagesInstalled {
     }
 }
 
-if (Test-PortListening $Port) {
-    Write-Host "FunASR server is already listening on http://localhost:$Port"
-    return
+function Get-FunAsrHealth {
+    $healthHost = if ($HostName -eq "0.0.0.0" -or $HostName -eq "::") { "127.0.0.1" } else { $HostName }
+    $healthUrl = "http://$healthHost`:$Port/health"
+
+    try {
+        $response = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 3 -ErrorAction Stop
+        $status = if ($response.status) { [string]$response.status } else { "unknown" }
+        return [pscustomobject]@{
+            Reachable = $true
+            Ready = $status -eq "ok"
+            Status = $status
+            Error = ""
+            Url = $healthUrl
+        }
+    }
+    catch {
+        return [pscustomobject]@{
+            Reachable = $false
+            Ready = $false
+            Status = "unreachable"
+            Error = $_.Exception.Message
+            Url = $healthUrl
+        }
+    }
 }
 
 $existingServer = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
@@ -82,11 +104,55 @@ $existingServer = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
     } |
     Select-Object -First 1
 
+function Wait-FunAsrHealth {
+    param([int]$TimeoutSeconds)
+
+    $deadline = (Get-Date).AddSeconds([Math]::Max(1, $TimeoutSeconds))
+    $lastHealth = $null
+    while ((Get-Date) -lt $deadline) {
+        $lastHealth = Get-FunAsrHealth
+        if ($lastHealth.Ready) {
+            Write-Host "FunASR health is ready at $($lastHealth.Url)"
+            return
+        }
+
+        if ($lastHealth.Reachable) {
+            Write-Host "FunASR health reachable but not ready yet (status: $($lastHealth.Status))."
+        }
+        else {
+            Write-Host "Waiting for FunASR health at $($lastHealth.Url): $($lastHealth.Error)"
+        }
+
+        Start-Sleep -Seconds 2
+    }
+
+    $message = if ($lastHealth) {
+        "FunASR health did not become ready within $TimeoutSeconds seconds. Last status: $($lastHealth.Status). $($lastHealth.Error)"
+    }
+    else {
+        "FunASR health did not become ready within $TimeoutSeconds seconds."
+    }
+    throw $message
+}
+
+if (Test-PortListening $Port) {
+    $health = Get-FunAsrHealth
+    if ($health.Ready) {
+        Write-Host "FunASR server is already healthy at $($health.Url)"
+        return
+    }
+
+    if (-not $existingServer) {
+        throw "Port $Port is listening, but FunASR health is not ready at $($health.Url): $($health.Error)"
+    }
+}
+
 if ($existingServer) {
     Write-Host "FunASR server is already starting/loading on port $Port (PID $($existingServer.ProcessId))."
     Write-Host "Check logs:"
     Write-Host "  $AsrLog"
     Write-Host "  $AsrErr"
+    Wait-FunAsrHealth -TimeoutSeconds $HealthTimeoutSeconds
     return
 }
 
@@ -149,3 +215,4 @@ Write-Host "  Log:         $AsrLog"
 Write-Host "  Error log:   $AsrErr"
 Write-Host ""
 Write-Host "First launch downloads SenseVoiceSmall and may take several minutes."
+Wait-FunAsrHealth -TimeoutSeconds $HealthTimeoutSeconds

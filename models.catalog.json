@@ -1,0 +1,567 @@
+{
+  "schemaVersion": 2,
+  "catalogVersion": "2026-06-19-task-aware-picker",
+  "minAppVersion": "0.1.0",
+  "expiresAt": "2026-07-10T00:00:00Z",
+  "llamaCppBinaries": [
+    {
+      "version": "b9590",
+      "flavor": "cuda",
+      "platform": "windows",
+      "architecture": "x64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-win-cuda-12.4-x64.zip",
+      "filename": "llama-b9590-bin-win-cuda-12.4-x64.zip",
+      "sha256": "5861a7e273608fe5b7b9335e967c38d1c0507e364aba3bf3e3c700619a221d4d",
+      "sizeBytes": 260940181,
+      "executableRelativePath": "llama-server.exe",
+      "dependencyArchives": [
+        {
+          "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/cudart-llama-bin-win-cuda-12.4-x64.zip",
+          "filename": "cudart-llama-bin-win-cuda-12.4-x64.zip",
+          "sha256": "8c79a9b226de4b3cacfd1f83d24f962d0773be79f1e7b75c6af4ded7e32ae1d6",
+          "sizeBytes": 391443627
+        }
+      ]
+    },
+    {
+      "version": "b9590",
+      "flavor": "hip-radeon",
+      "platform": "windows",
+      "architecture": "x64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-win-hip-radeon-x64.zip",
+      "filename": "llama-b9590-bin-win-hip-radeon-x64.zip",
+      "sha256": "",
+      "sizeBytes": 320916218,
+      "executableRelativePath": "llama-server.exe"
+    },
+    {
+      "version": "b9590",
+      "flavor": "vulkan",
+      "platform": "windows",
+      "architecture": "x64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-win-vulkan-x64.zip",
+      "filename": "llama-b9590-bin-win-vulkan-x64.zip",
+      "sha256": "c7d6e136db45791ca2a4d870c04c3ab008ff099f2a81f6f44678522d8ef52cff",
+      "sizeBytes": 38406970,
+      "executableRelativePath": "llama-server.exe"
+    },
+    {
+      "version": "b9590",
+      "flavor": "cpu",
+      "platform": "windows",
+      "architecture": "x64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-win-cpu-x64.zip",
+      "filename": "llama-b9590-bin-win-cpu-x64.zip",
+      "sha256": "7ed1c88747fa47bd0a3f0ceed728f35494865b14f185067e3b8ca9c25dc1250e",
+      "sizeBytes": 16722004,
+      "executableRelativePath": "llama-server.exe"
+    },
+    {
+      "version": "b9590",
+      "flavor": "vulkan",
+      "platform": "linux",
+      "architecture": "x64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-ubuntu-vulkan-x64.tar.gz",
+      "filename": "llama-b9590-bin-ubuntu-vulkan-x64.tar.gz",
+      "sha256": "",
+      "sizeBytes": 38254591,
+      "executableRelativePath": "llama-b9590/llama-server"
+    },
+    {
+      "version": "b9590",
+      "flavor": "vulkan",
+      "platform": "linux",
+      "architecture": "arm64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-ubuntu-vulkan-arm64.tar.gz",
+      "filename": "llama-b9590-bin-ubuntu-vulkan-arm64.tar.gz",
+      "sha256": "",
+      "sizeBytes": 31662808,
+      "executableRelativePath": "llama-b9590/llama-server"
+    },
+    {
+      "version": "b9590",
+      "flavor": "rocm",
+      "platform": "linux",
+      "architecture": "x64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-ubuntu-rocm-7.2-x64.tar.gz",
+      "filename": "llama-b9590-bin-ubuntu-rocm-7.2-x64.tar.gz",
+      "sha256": "",
+      "sizeBytes": 130992853,
+      "executableRelativePath": "llama-b9590/llama-server"
+    },
+    {
+      "version": "b9590",
+      "flavor": "macos-arm64",
+      "platform": "macos",
+      "architecture": "arm64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-macos-arm64.tar.gz",
+      "filename": "llama-b9590-bin-macos-arm64.tar.gz",
+      "sha256": "",
+      "sizeBytes": 10546945,
+      "executableRelativePath": "llama-b9590/llama-server"
+    },
+    {
+      "version": "b9590",
+      "flavor": "macos-x64",
+      "platform": "macos",
+      "architecture": "x64",
+      "downloadUrl": "https://github.com/ggml-org/llama.cpp/releases/download/b9590/llama-b9590-bin-macos-x64.tar.gz",
+      "filename": "llama-b9590-bin-macos-x64.tar.gz",
+      "sha256": "",
+      "sizeBytes": 10787096,
+      "executableRelativePath": "llama-b9590/llama-server"
+    }
+  ],
+  "models": [
+    {
+      "id": "verbeam-mort-qwen2.5-0.5b",
+      "provider": "ollama",
+      "name": "verbeam-mort-qwen2.5-0.5b:latest",
+      "displayName": "Verbeam MORT Qwen2.5 0.5B",
+      "status": "recommended",
+      "audience": "beginner",
+      "tier": "small",
+      "recommendedUse": "realtime OCR overlay",
+      "tierRank": 1,
+      "estimatedMemoryGb": 2.8,
+      "defaultContextTokens": 2048,
+      "kvCacheGbPer4096Tokens": 0.06,
+      "qualityScore": 0.54,
+      "latencyScore": 0.92,
+      "contextScore": 0.5,
+      "stabilityScore": 0.82,
+      "languagePairs": ["ja->zh-TW", "ja->zh-CN", "en->zh-TW", "*->zh-TW", "*"],
+      "bestFor": ["realtime_overlay", "ocr", "short_text", "game_dialogue"],
+      "install": {
+        "type": "local_profile",
+        "command": "run scripts/create-ollama-profiles.ps1"
+      },
+      "artifact": {
+        "format": "gguf",
+        "quant": "Q8_0",
+        "downloadUrl": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q8_0.gguf",
+        "huggingFace": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+        "filename": "qwen2.5-0.5b-instruct-q8_0.gguf",
+        "sha256": "ca59ca7f13d0e15a8cfa77bd17e65d24f6844b554a7b6c12e07a5f89ff76844e",
+        "sizeBytes": 675710816,
+        "license": "Apache-2.0"
+      },
+      "runtimes": {
+        "ollama": {
+          "modelName": "verbeam-mort-qwen2.5-0.5b:latest",
+          "installCommand": "run scripts/create-ollama-profiles.ps1"
+        },
+        "llamaCpp": {
+          "modelAlias": "verbeam-mort-qwen2.5-0.5b",
+          "minLlamaCppVersion": "b9590",
+          "binaryFlavor": "vulkan",
+          "recommendedFallback": ["llama-cpp:managed-cpu", "ollama:verbeam-mort-qwen2.5-0.5b:latest"],
+          "profiles": [
+            {
+              "name": "realtime-ocr",
+              "displayName": "Realtime OCR",
+              "contextSize": 2048,
+              "parallel": 1,
+              "gpuLayers": 999,
+              "batchSize": 256,
+              "microBatchSize": 128
+            }
+          ],
+          "sampling": {
+            "temperature": 0,
+            "maxTokens": 128,
+            "timeoutSeconds": 20,
+            "cachePrompt": true
+          }
+        }
+      },
+      "source": {
+        "ollama": "https://ollama.com/library/qwen2.5",
+        "huggingFace": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF"
+      },
+      "lastVerified": "2026-06-10",
+      "rank": 10
+    },
+    {
+      "id": "gemmafit-gemma4-e2b-iq2m",
+      "provider": "llama-cpp",
+      "name": "gemmafit-gemma4-e2b-iq2m",
+      "displayName": "GemmaFit Gemma4 E2B IQ2_M",
+      "status": "candidate",
+      "audience": "beginner",
+      "tier": "small-gpu",
+      "recommendedUse": "quality candidate; slower for realtime OCR",
+      "tierRank": 2,
+      "estimatedMemoryGb": 4.0,
+      "defaultContextTokens": 2048,
+      "kvCacheGbPer4096Tokens": 0.16,
+      "qualityScore": 0.72,
+      "latencyScore": 0.58,
+      "contextScore": 0.62,
+      "stabilityScore": 0.76,
+      "languagePairs": ["ja->zh-TW", "en->zh-TW", "ja->zh-CN", "*->zh-TW", "*"],
+      "bestFor": ["ocr", "short_text", "quality_candidate", "local_gpu"],
+      "install": {
+        "type": "local_file",
+        "command": "use D:\\GemmaFit\\models\\gemma4_e2b_vision_gguf\\gemma-4-E2B-it-UD-IQ2_M.gguf or copy gemma-4-E2B-it-UD-IQ2_M.gguf to models/llama-cpp"
+      },
+      "artifact": {
+        "format": "gguf",
+        "quant": "UD-IQ2_M",
+        "downloadUrl": "",
+        "huggingFace": "",
+        "filename": "gemma-4-E2B-it-UD-IQ2_M.gguf",
+        "sha256": "60f84cb5b9512175f219506da4a5d98d30b112855c474a3a6f06f6596dc7fd9b",
+        "sizeBytes": 2290858112,
+        "license": "Gemma Terms of Use",
+        "localPaths": [
+          "D:\\GemmaFit\\models\\gemma4_e2b_vision_gguf\\gemma-4-E2B-it-UD-IQ2_M.gguf"
+        ]
+      },
+      "runtimes": {
+        "llamaCpp": {
+          "modelAlias": "gemmafit-gemma4-e2b-iq2m",
+          "minLlamaCppVersion": "b9590",
+          "binaryFlavor": "vulkan",
+          "recommendedFallback": ["llama-cpp:managed-cpu", "ollama:verbeam-mort-qwen2.5-0.5b:latest"],
+          "profiles": [
+            {
+              "name": "realtime-ocr",
+              "displayName": "Realtime OCR GPU",
+              "contextSize": 2048,
+              "parallel": 1,
+              "gpuLayers": 999,
+              "batchSize": 256,
+              "microBatchSize": 128,
+              "fit": false,
+              "reasoning": "off",
+              "flashAttention": true,
+              "cacheReuse": 256,
+              "environment": {}
+            }
+          ],
+          "sampling": {
+            "temperature": 0,
+            "maxTokens": 64,
+            "timeoutSeconds": 20,
+            "cachePrompt": true
+          }
+        }
+      },
+      "source": {},
+      "lastVerified": "2026-06-12",
+      "rank": 35
+    },
+    {
+      "id": "hy-mt2-1.8b-q6k",
+      "provider": "llama-cpp",
+      "name": "hy-mt2-1.8b-q6k",
+      "displayName": "Tencent Hy-MT2 1.8B (Q6_K)",
+      "status": "candidate",
+      "audience": "beginner",
+      "tier": "small-gpu",
+      "recommendedUse": "higher-quality local translation when latency allows",
+      "tierRank": 2,
+      "estimatedMemoryGb": 2.0,
+      "defaultContextTokens": 2048,
+      "kvCacheGbPer4096Tokens": 0.12,
+      "qualityScore": 0.8,
+      "latencyScore": 0.9,
+      "contextScore": 0.6,
+      "stabilityScore": 0.82,
+      "languagePairs": ["ja->zh-TW", "en->zh-TW", "zh-CN->zh-TW", "*->zh-TW", "*"],
+      "bestFor": ["subtitle", "short_text", "translation", "local_gpu", "quality_local"],
+      "install": {
+        "type": "local_file",
+        "command": "copy Hy-MT2-1.8B-Q6_K.gguf to models/llama-cpp or use D:\\GemmaFit\\models\\hy-mt2\\Hy-MT2-1.8B-Q6_K.gguf"
+      },
+      "artifact": {
+        "format": "gguf",
+        "quant": "Q6_K",
+        "downloadUrl": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q6_K.gguf",
+        "huggingFace": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF",
+        "filename": "Hy-MT2-1.8B-Q6_K.gguf",
+        "sha256": "d98fe604dec1f28f58f80d7d560f7177e584d3b8e5835862687660e5ff97cb40",
+        "sizeBytes": 1474785120,
+        "license": "Tencent Hunyuan Community License",
+        "localPaths": [
+          "D:\\GemmaFit\\models\\hy-mt2\\Hy-MT2-1.8B-Q6_K.gguf"
+        ]
+      },
+      "runtimes": {
+        "llamaCpp": {
+          "modelAlias": "hy-mt2-1.8b-q6k",
+          "minLlamaCppVersion": "b9590",
+          "binaryFlavor": "vulkan",
+          "recommendedFallback": ["llama-cpp:managed-cpu"],
+          "profiles": [
+            {
+              "name": "realtime-ocr",
+              "displayName": "Realtime translation GPU",
+              "contextSize": 2048,
+              "parallel": 1,
+              "gpuLayers": 999,
+              "batchSize": 256,
+              "microBatchSize": 128,
+              "cacheTypeK": "q8_0",
+              "cacheTypeV": "q8_0",
+              "flashAttention": true,
+              "cacheReuse": 256,
+              "environment": {}
+            }
+          ],
+          "sampling": {
+            "temperature": 0,
+            "maxTokens": 128,
+            "timeoutSeconds": 20,
+            "cachePrompt": true
+          }
+        }
+      },
+      "source": {
+        "huggingFace": "https://huggingface.co/tencent/Hy-MT2-1.8B"
+      },
+      "lastVerified": "2026-06-14",
+      "rank": 12
+    },
+    {
+      "id": "hy-mt2-1.8b-q4km",
+      "provider": "llama-cpp",
+      "name": "hy-mt2-1.8b-q4km",
+      "displayName": "Tencent Hy-MT2 1.8B (Q4_K_M)",
+      "status": "recommended",
+      "audience": "beginner",
+      "tier": "small-gpu",
+      "recommendedUse": "best realtime OCR and region translation default",
+      "tierRank": 2,
+      "estimatedMemoryGb": 1.9,
+      "defaultContextTokens": 2048,
+      "kvCacheGbPer4096Tokens": 0.12,
+      "qualityScore": 0.79,
+      "latencyScore": 0.92,
+      "contextScore": 0.6,
+      "stabilityScore": 0.82,
+      "languagePairs": ["ja->zh-TW", "en->zh-TW", "zh-CN->zh-TW", "*->zh-TW", "*"],
+      "bestFor": ["realtime_overlay", "region", "ocr", "subtitle", "short_text", "translation", "game_dialogue", "local_gpu", "igpu_offload"],
+      "install": {
+        "type": "local_file",
+        "command": "copy Hy-MT2-1.8B-Q4_K_M.gguf to models/llama-cpp or use D:\\GemmaFit\\models\\hy-mt2\\Hy-MT2-1.8B-Q4_K_M.gguf"
+      },
+      "artifact": {
+        "format": "gguf",
+        "quant": "Q4_K_M",
+        "downloadUrl": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF/resolve/main/Hy-MT2-1.8B-Q4_K_M.gguf",
+        "huggingFace": "https://huggingface.co/tencent/Hy-MT2-1.8B-GGUF",
+        "filename": "Hy-MT2-1.8B-Q4_K_M.gguf",
+        "sha256": "dc5f44fcf1fa496ee7ad725982c0c8c553a4de00259b53af84c4b89fb0c06699",
+        "sizeBytes": 1133080448,
+        "license": "Tencent Hunyuan Community License",
+        "localPaths": [
+          "D:\\GemmaFit\\models\\hy-mt2\\Hy-MT2-1.8B-Q4_K_M.gguf"
+        ]
+      },
+      "runtimes": {
+        "llamaCpp": {
+          "modelAlias": "hy-mt2-1.8b-q4km",
+          "minLlamaCppVersion": "b9590",
+          "binaryFlavor": "vulkan",
+          "recommendedFallback": ["llama-cpp:managed-cpu"],
+          "profiles": [
+            {
+              "name": "realtime-ocr",
+              "displayName": "Realtime translation GPU",
+              "contextSize": 2048,
+              "parallel": 1,
+              "gpuLayers": 999,
+              "batchSize": 256,
+              "microBatchSize": 128,
+              "cacheTypeK": "q8_0",
+              "cacheTypeV": "q8_0",
+              "flashAttention": true,
+              "cacheReuse": 256,
+              "environment": {}
+            },
+            {
+              "name": "realtime-ocr-parallel2",
+              "displayName": "Realtime translation GPU (2 concurrent slots)",
+              "contextSize": 4096,
+              "parallel": 2,
+              "gpuLayers": 999,
+              "batchSize": 256,
+              "microBatchSize": 128,
+              "cacheTypeK": "q8_0",
+              "cacheTypeV": "q8_0",
+              "flashAttention": true,
+              "cacheReuse": 256,
+              "environment": {}
+            },
+            {
+              "name": "web-page-parallel4",
+              "displayName": "Web translation GPU (4 concurrent slots)",
+              "contextSize": 8192,
+              "parallel": 4,
+              "gpuLayers": 999,
+              "batchSize": 512,
+              "microBatchSize": 128,
+              "cacheTypeK": "q8_0",
+              "cacheTypeV": "q8_0",
+              "flashAttention": true,
+              "cacheReuse": 256,
+              "environment": {}
+            }
+          ],
+          "sampling": {
+            "temperature": 0,
+            "maxTokens": 128,
+            "timeoutSeconds": 20,
+            "cachePrompt": true
+          }
+        }
+      },
+      "source": {
+        "huggingFace": "https://huggingface.co/tencent/Hy-MT2-1.8B"
+      },
+      "lastVerified": "2026-06-16",
+      "rank": 5
+    },
+    {
+      "id": "qwen2.5-0.5b",
+      "provider": "ollama",
+      "name": "qwen2.5:0.5b",
+      "displayName": "Qwen2.5 0.5B",
+      "status": "candidate",
+      "audience": "beginner",
+      "tier": "minimal",
+      "recommendedUse": "smoke test",
+      "tierRank": 0,
+      "estimatedMemoryGb": 2.4,
+      "defaultContextTokens": 2048,
+      "kvCacheGbPer4096Tokens": 0.06,
+      "qualityScore": 0.46,
+      "latencyScore": 0.9,
+      "contextScore": 0.48,
+      "stabilityScore": 0.64,
+      "languagePairs": ["ja->zh-TW", "en->zh-TW", "ja->en", "en->ja", "*"],
+      "bestFor": ["smoke_test", "short_text"],
+      "install": {
+        "type": "ollama_pull",
+        "command": "ollama pull qwen2.5:0.5b"
+      },
+      "artifact": {
+        "format": "gguf",
+        "quant": "Q8_0",
+        "downloadUrl": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q8_0.gguf",
+        "huggingFace": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+        "filename": "qwen2.5-0.5b-instruct-q8_0.gguf",
+        "sha256": "ca59ca7f13d0e15a8cfa77bd17e65d24f6844b554a7b6c12e07a5f89ff76844e",
+        "sizeBytes": 675710816,
+        "license": "Apache-2.0"
+      },
+      "runtimes": {
+        "ollama": {
+          "modelName": "qwen2.5:0.5b",
+          "installCommand": "ollama pull qwen2.5:0.5b"
+        },
+        "llamaCpp": {
+          "modelAlias": "qwen2.5-0.5b",
+          "minLlamaCppVersion": "b9590",
+          "binaryFlavor": "vulkan",
+          "recommendedFallback": ["llama-cpp:managed-cpu", "ollama:qwen2.5:0.5b"],
+          "profiles": [
+            {
+              "name": "realtime-ocr",
+              "displayName": "Realtime OCR",
+              "contextSize": 2048,
+              "parallel": 1,
+              "gpuLayers": 999,
+              "batchSize": 256,
+              "microBatchSize": 128
+            }
+          ],
+          "sampling": {
+            "temperature": 0,
+            "maxTokens": 128,
+            "timeoutSeconds": 20,
+            "cachePrompt": true
+          }
+        }
+      },
+      "source": {
+        "ollama": "https://ollama.com/library/qwen2.5",
+        "huggingFace": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF"
+      },
+      "lastVerified": "2026-06-10",
+      "rank": 20
+    },
+    {
+      "id": "qwen2.5-1.5b",
+      "provider": "ollama",
+      "name": "qwen2.5:1.5b",
+      "displayName": "Qwen2.5 1.5B",
+      "status": "candidate",
+      "audience": "beginner",
+      "tier": "balanced",
+      "recommendedUse": "balanced local translation",
+      "tierRank": 2,
+      "estimatedMemoryGb": 4.2,
+      "defaultContextTokens": 2048,
+      "kvCacheGbPer4096Tokens": 0.45,
+      "qualityScore": 0.66,
+      "latencyScore": 0.72,
+      "contextScore": 0.68,
+      "stabilityScore": 0.74,
+      "languagePairs": ["ja->zh-TW", "ja->zh-CN", "en->zh-TW", "en->ja", "ko->zh-TW", "*"],
+      "bestFor": ["balanced", "subtitle", "ocr", "short_text", "web_article"],
+      "install": {
+        "type": "ollama_pull",
+        "command": "ollama pull qwen2.5:1.5b"
+      },
+      "runtimes": {
+        "ollama": {
+          "modelName": "qwen2.5:1.5b",
+          "installCommand": "ollama pull qwen2.5:1.5b"
+        }
+      },
+      "source": {
+        "ollama": "https://ollama.com/library/qwen2.5"
+      },
+      "lastVerified": "2026-06-10",
+      "rank": 30
+    },
+    {
+      "id": "translategemma",
+      "provider": "ollama",
+      "name": "translategemma:latest",
+      "displayName": "TranslateGemma",
+      "status": "candidate",
+      "audience": "beginner",
+      "tier": "quality",
+      "recommendedUse": "higher quality translation",
+      "tierRank": 3,
+      "estimatedMemoryGb": 7.5,
+      "defaultContextTokens": 4096,
+      "kvCacheGbPer4096Tokens": 0.75,
+      "qualityScore": 0.86,
+      "latencyScore": 0.48,
+      "contextScore": 0.84,
+      "stabilityScore": 0.8,
+      "languagePairs": ["ja->zh-TW", "ja->zh-CN", "en->zh-TW", "en->ja", "ko->zh-TW", "*"],
+      "bestFor": ["quality", "document", "batch", "long_text", "web_article", "subtitle"],
+      "install": {
+        "type": "ollama_pull",
+        "command": "ollama pull translategemma:latest"
+      },
+      "runtimes": {
+        "ollama": {
+          "modelName": "translategemma:latest",
+          "installCommand": "ollama pull translategemma:latest"
+        }
+      },
+      "source": {
+        "ollama": "https://ollama.com/search?q=translategemma"
+      },
+      "lastVerified": "2026-06-10",
+      "rank": 40
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "Verbeam Web Translator",
+  "version": "0.1.19",
+  "description": "Translate web pages through the local Verbeam API.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Verbeam Web Translator",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/verbeam-icon-16.png",
+      "32": "assets/verbeam-icon-32.png",
+      "48": "assets/verbeam-icon-48.png",
+      "128": "assets/verbeam-icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/verbeam-icon-16.png",
+    "32": "assets/verbeam-icon-32.png",
+    "48": "assets/verbeam-icon-48.png",
+    "128": "assets/verbeam-icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/verbeam-icon-16.png",
+        "assets/verbeam-icon-32.png",
+        "assets/verbeam-icon-48.png",
+        "assets/verbeam-icon-128.png",
+        "assets/verbeam-mark.png"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
+    }
+  ]
+}

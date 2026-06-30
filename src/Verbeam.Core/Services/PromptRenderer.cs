@@ -4,6 +4,8 @@ namespace Verbeam.Core.Services;
 
 public static class PromptRenderer
 {
+    private const string StableNewLine = "\n";
+
     public static RenderedPrompt Render(ProviderTranslationRequest request)
     {
         var glossary = FormatGlossary(request.GlossaryTerms);
@@ -29,11 +31,44 @@ public static class PromptRenderer
         return new RenderedPrompt(request.Preset.SystemPrompt, user);
     }
 
+    public static RenderedCachedPrompt RenderForPrefixCache(ProviderTranslationRequest request)
+    {
+        var glossary = FormatGlossary(request.GlossaryTerms).ReplaceLineEndings(StableNewLine);
+        var source = TranslationConfigurationCatalog.FormatLanguageForPrompt(request.Source);
+        var target = TranslationConfigurationCatalog.FormatLanguageForPrompt(request.Target);
+        var hasContext = !string.IsNullOrWhiteSpace(request.Context) ||
+            !string.IsNullOrWhiteSpace(request.MemoryContext);
+        var context = hasContext
+            ? FormatContext(request.Context, request.MemoryContext).ReplaceLineEndings(StableNewLine)
+            : string.Empty;
+        var stablePrefix = string.Join(
+            $"{StableNewLine}{StableNewLine}",
+            request.Preset.SystemPrompt.Trim().ReplaceLineEndings(StableNewLine),
+            string.Join(
+                StableNewLine,
+                "Translation setup:",
+                $"Source: {source}",
+                $"Target: {target}",
+                $"Mode: {request.Mode}",
+                "Glossary:",
+                glossary));
+        var suffix = hasContext
+            ? string.Join(
+                $"{StableNewLine}{StableNewLine}",
+                "Dynamic context:",
+                context,
+                "Text:",
+                request.Text)
+            : request.Text.ReplaceLineEndings(StableNewLine);
+
+        return new RenderedCachedPrompt(stablePrefix, suffix);
+    }
+
     private static string FormatGlossary(IReadOnlyDictionary<string, string> terms)
     {
         if (terms.Count == 0)
         {
-            return "(none)";
+            return string.Empty;
         }
 
         return string.Join(
@@ -66,3 +101,5 @@ public static class PromptRenderer
 }
 
 public sealed record RenderedPrompt(string System, string User);
+
+public sealed record RenderedCachedPrompt(string StablePrefix, string Suffix);

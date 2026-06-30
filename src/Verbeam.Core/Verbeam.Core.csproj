@@ -1,13 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.11" />
+    <PackageReference Include="RapidOcrNet" Version="2.0.0" />
+    <!-- DirectML-enabled ONNX Runtime (Windows GPU EP) for the det session and OnnxRecognizer.
+         RapidOcrNet pulls the CPU-only Microsoft.ML.OnnxRuntime transitively; both packages ship a
+         native onnxruntime.dll to the same runtimes/ path and the CPU one wins the copy, so the
+         loaded DLL lacks the DML entry point (OrtSessionOptionsAppendExecutionProvider_DML). Pin the
+         CPU package directly and drop its native asset so only the DirectML native onnxruntime.dll
+         (which also carries the CPU EP) is deployed. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.24.3">
+      <ExcludeAssets>all</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.24.3" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.11" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- OpenCC dictionaries for deterministic Simplified<->Traditional variant conversion. -->
+    <EmbeddedResource Include="Data\opencc\*.txt" />
   </ItemGroup>
 
 </Project>

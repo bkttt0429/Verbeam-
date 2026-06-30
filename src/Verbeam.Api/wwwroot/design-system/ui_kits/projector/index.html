@@ -1,0 +1,160 @@
+<!-- @dsCard group="Projector" viewport="900x520" name="Projector overlay" subtitle="The /projector fullscreen caption overlay" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verbeam · Projector</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  html, body { width: 100%; min-height: 100%; overflow: hidden; background: #000; }
+  .projector-stage {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 6vh 5vw 8vh;
+    background: #000;
+  }
+  .caption-window {
+    width: min(92vw, 1760px);
+    max-height: 44vh;
+    display: grid;
+    align-content: end;
+    justify-items: center;
+    gap: 0.75rem;
+    opacity: 1;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  .source-line {
+    max-width: 100%;
+    color: rgba(247, 247, 242, 0.72);
+    font-size: 24px;
+    line-height: 1.28;
+    text-align: center;
+    text-shadow: var(--shadow-caption-source);
+    white-space: pre-wrap;
+    padding: 0.16em 0.32em;
+    background: rgba(0, 0, 0, 0.48);
+    border-radius: 6px;
+  }
+  .translation-line {
+    max-width: 100%;
+    color: #f7f7f2;
+    font-weight: 760;
+    font-size: 72px;
+    line-height: 1.16;
+    text-align: center;
+    text-wrap: balance;
+    white-space: pre-wrap;
+    text-shadow: var(--shadow-caption);
+    padding: 0.16em 0.32em;
+    background: rgba(0, 0, 0, 0.48);
+    border-radius: 6px;
+  }
+  .hud {
+    position: fixed;
+    top: 14px; left: 14px; right: 14px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--vb-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    pointer-events: none;
+  }
+  .status, .meta {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 1px solid var(--vb-line-strong);
+    border-radius: 6px;
+    background: var(--vb-hover-soft);
+    backdrop-filter: var(--blur-hud);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--vb-amber); }
+  .status.live .dot { background: var(--vb-green); }
+  .controls {
+    position: fixed;
+    left: 50%; bottom: 20px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--vb-line-strong);
+    border-radius: 6px;
+    background: rgba(10, 10, 10, 0.85);
+    transform: translateX(-50%);
+    backdrop-filter: var(--blur-panel);
+  }
+  .controls button, .controls a {
+    min-width: 38px;
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 12px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .controls button:hover, .controls a:hover {
+    border-color: #333;
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+<main class="projector-stage">
+  <section class="caption-window" aria-live="polite">
+    <div id="sourceLine" class="source-line">こんにちは、勇者さん。</div>
+    <div id="translationLine" class="translation-line">你好，勇者大人。</div>
+  </section>
+</main>
+
+<div class="hud" aria-hidden="true">
+  <div id="status" class="status live"><span class="dot"></span><span>Live</span></div>
+  <div class="meta">ja to zh-TW / text</div>
+</div>
+
+<nav class="controls" aria-label="Projector controls">
+  <button type="button" title="Smaller">A-</button>
+  <button type="button" title="Larger">A+</button>
+  <button type="button" title="Move">bottom</button>
+  <button type="button" title="Toggle source">source on</button>
+  <button type="button" title="Toggle backdrop">backdrop on</button>
+  <button type="button" title="Clear">clear</button>
+  <a href="../workbench/index.html" title="Open workbench">app</a>
+</nav>
+
+<script>
+  const SAMPLES = [
+    { src: "こんにちは、勇者さん。", tr: "你好，勇者大人。" },
+    { src: "魔王を倒すための旅に出よう。", tr: "踏上討伐魔王的旅程吧。" },
+    { src: "ここはどこですか？", tr: "這裡是哪裡？" },
+  ];
+  const sourceLine = document.getElementById("sourceLine");
+  const translationLine = document.getElementById("translationLine");
+  let i = 0;
+  setInterval(() => {
+    i += 1;
+    const m = SAMPLES[i % SAMPLES.length];
+    sourceLine.textContent = m.src;
+    translationLine.textContent = m.tr;
+  }, 3200);
+</script>
+</body>
+</html>

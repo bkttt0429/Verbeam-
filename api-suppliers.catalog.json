@@ -1,0 +1,1137 @@
+{
+    "schemaVersion":  1,
+    "catalogVersion":  "2026-06-12-official-core-and-coding-plan",
+    "minAppVersion":  "",
+    "expiresAt":  "2026-07-12T00:00:00Z",
+    "presets":  [
+                    {
+                        "id":  "openai",
+                        "displayName":  "OpenAI",
+                        "category":  "official",
+                        "websiteUrl":  "https://platform.openai.com",
+                        "apiKeyUrl":  "https://platform.openai.com/api-keys",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.openai.com/v1",
+                        "modelsUrl":  "https://api.openai.com/v1/models",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "gpt-5.4-mini",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "gpt-5.4-mini",
+                                                      "displayName":  "GPT-5.4 Mini",
+                                                      "tier":  "balanced",
+                                                      "recommendedUse":  "official OpenAI translation with lower latency and cost",
+                                                      "qualityScore":  0.89,
+                                                      "latencyScore":  0.74,
+                                                      "contextScore":  0.9,
+                                                      "stabilityScore":  0.86,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "balanced",
+                                                                      "subtitle",
+                                                                      "web_article"
+                                                                  ]
+                                                  },
+                                                  {
+                                                      "id":  "gpt-5.5",
+                                                      "displayName":  "GPT-5.5",
+                                                      "tier":  "quality",
+                                                      "recommendedUse":  "highest quality official OpenAI translation",
+                                                      "qualityScore":  0.96,
+                                                      "latencyScore":  0.62,
+                                                      "contextScore":  0.98,
+                                                      "stabilityScore":  0.88,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "quality",
+                                                                      "technical_document",
+                                                                      "web_article"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "anthropic",
+                        "displayName":  "Claude",
+                        "category":  "official",
+                        "websiteUrl":  "https://www.anthropic.com/api",
+                        "apiKeyUrl":  "https://console.anthropic.com/settings/keys",
+                        "protocol":  "anthropic",
+                        "baseUrl":  "https://api.anthropic.com",
+                        "modelsUrl":  "https://api.anthropic.com/v1/models",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "x-api-key",
+                        "apiKeyScheme":  "",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4-6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4-6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "balanced",
+                                                      "recommendedUse":  "official Claude translation with strong quality and speed",
+                                                      "qualityScore":  0.93,
+                                                      "latencyScore":  0.68,
+                                                      "contextScore":  0.96,
+                                                      "stabilityScore":  0.86,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "quality",
+                                                                      "long_context",
+                                                                      "technical_document"
+                                                                  ]
+                                                  },
+                                                  {
+                                                      "id":  "claude-opus-4-8",
+                                                      "displayName":  "Claude Opus 4.8",
+                                                      "tier":  "quality",
+                                                      "recommendedUse":  "highest quality official Claude translation",
+                                                      "qualityScore":  0.97,
+                                                      "latencyScore":  0.55,
+                                                      "contextScore":  0.98,
+                                                      "stabilityScore":  0.86,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "quality",
+                                                                      "long_context",
+                                                                      "web_article"
+                                                                  ]
+                                                  },
+                                                  {
+                                                      "id":  "claude-haiku-4-5",
+                                                      "displayName":  "Claude Haiku 4.5",
+                                                      "tier":  "fast",
+                                                      "recommendedUse":  "fast official Claude translation",
+                                                      "qualityScore":  0.84,
+                                                      "latencyScore":  0.82,
+                                                      "contextScore":  0.84,
+                                                      "stabilityScore":  0.84,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "fast",
+                                                                      "ocr",
+                                                                      "subtitle"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "gemini",
+                        "displayName":  "Gemini",
+                        "category":  "official",
+                        "websiteUrl":  "https://ai.google.dev/gemini-api",
+                        "apiKeyUrl":  "https://aistudio.google.com/apikey",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://generativelanguage.googleapis.com/v1beta/openai",
+                        "modelsUrl":  "https://generativelanguage.googleapis.com/v1beta/openai/models",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "gemini-3.5-flash",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "gemini-3.5-flash",
+                                                      "displayName":  "Gemini 3.5 Flash",
+                                                      "tier":  "balanced",
+                                                      "recommendedUse":  "official Gemini translation through OpenAI-compatible API",
+                                                      "qualityScore":  0.9,
+                                                      "latencyScore":  0.76,
+                                                      "contextScore":  0.92,
+                                                      "stabilityScore":  0.84,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "balanced",
+                                                                      "long_context",
+                                                                      "web_article"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "deepseek",
+                        "displayName":  "DeepSeek",
+                        "category":  "official",
+                        "websiteUrl":  "https://platform.deepseek.com",
+                        "apiKeyUrl":  "https://platform.deepseek.com/api_keys",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.deepseek.com",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  true,
+                        "balanceTemplate":  "deepseek-balance",
+                        "defaultModel":  "deepseek-chat",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "deepseek-chat",
+                                                      "displayName":  "DeepSeek Chat",
+                                                      "tier":  "quality",
+                                                      "recommendedUse":  "higher quality remote translation",
+                                                      "qualityScore":  0.84,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.82,
+                                                      "stabilityScore":  0.76,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "quality",
+                                                                      "web_article",
+                                                                      "subtitle"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "openrouter",
+                        "displayName":  "OpenRouter",
+                        "category":  "aggregator",
+                        "websiteUrl":  "https://openrouter.ai",
+                        "apiKeyUrl":  "https://openrouter.ai/settings/keys",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://openrouter.ai/api/v1",
+                        "modelsUrl":  "https://openrouter.ai/api/v1/models",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  true,
+                        "balanceTemplate":  "openrouter-balance",
+                        "defaultModel":  "deepseek/deepseek-chat",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "deepseek/deepseek-chat",
+                                                      "displayName":  "DeepSeek Chat via OpenRouter",
+                                                      "tier":  "quality",
+                                                      "recommendedUse":  "remote translation through an aggregator",
+                                                      "qualityScore":  0.82,
+                                                      "latencyScore":  0.52,
+                                                      "contextScore":  0.82,
+                                                      "stabilityScore":  0.72,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "quality",
+                                                                      "fallback",
+                                                                      "web_article"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "siliconflow",
+                        "displayName":  "SiliconFlow",
+                        "category":  "aggregator",
+                        "websiteUrl":  "https://siliconflow.cn",
+                        "apiKeyUrl":  "https://cloud.siliconflow.cn/account/ak",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.siliconflow.cn/v1",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  true,
+                        "balanceTemplate":  "siliconflow-balance",
+                        "defaultModel":  "Qwen/Qwen2.5-7B-Instruct",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "Qwen/Qwen2.5-7B-Instruct",
+                                                      "displayName":  "Qwen2.5 7B Instruct via SiliconFlow",
+                                                      "tier":  "balanced",
+                                                      "recommendedUse":  "balanced remote translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.62,
+                                                      "contextScore":  0.72,
+                                                      "stabilityScore":  0.72,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "balanced",
+                                                                      "subtitle",
+                                                                      "web_article"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "bailian",
+                        "displayName":  "Bailian",
+                        "category":  "cn_official",
+                        "websiteUrl":  "https://bailian.console.aliyun.com",
+                        "apiKeyUrl":  "https://bailian.console.aliyun.com/?apiKey=1",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://dashscope.aliyuncs.com/compatible-mode/v1",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "qwen-plus",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "qwen-plus",
+                                                      "displayName":  "Qwen Plus",
+                                                      "tier":  "balanced",
+                                                      "recommendedUse":  "general translation through Alibaba Bailian",
+                                                      "qualityScore":  0.8,
+                                                      "latencyScore":  0.62,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.74,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "balanced",
+                                                                      "web_article",
+                                                                      "subtitle"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "kimi",
+                        "displayName":  "Kimi",
+                        "category":  "cn_official",
+                        "websiteUrl":  "https://platform.moonshot.cn/console",
+                        "apiKeyUrl":  "https://platform.moonshot.cn/console/api-keys",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.moonshot.cn/v1",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "kimi-k2.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "kimi-k2.6",
+                                                      "displayName":  "Kimi K2.6",
+                                                      "tier":  "quality",
+                                                      "recommendedUse":  "long-context remote translation",
+                                                      "qualityScore":  0.82,
+                                                      "latencyScore":  0.56,
+                                                      "contextScore":  0.88,
+                                                      "stabilityScore":  0.72,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "long_context",
+                                                                      "web_article",
+                                                                      "quality"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "stepfun",
+                        "displayName":  "StepFun",
+                        "category":  "cn_official",
+                        "websiteUrl":  "https://platform.stepfun.com/step-plan",
+                        "apiKeyUrl":  "https://platform.stepfun.com/interface-key",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.stepfun.com/step_plan/v1",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "step-3.5-flash-2603",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "step-3.5-flash-2603",
+                                                      "displayName":  "Step 3.5 Flash 2603",
+                                                      "tier":  "fast",
+                                                      "recommendedUse":  "fast remote translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.7,
+                                                      "contextScore":  0.74,
+                                                      "stabilityScore":  0.7,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "fast",
+                                                                      "subtitle",
+                                                                      "ocr"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "modelscope",
+                        "displayName":  "ModelScope",
+                        "category":  "aggregator",
+                        "websiteUrl":  "https://modelscope.cn",
+                        "apiKeyUrl":  "https://modelscope.cn/my/myaccesstoken",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api-inference.modelscope.cn/v1",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "ZhipuAI/GLM-5.1",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "ZhipuAI/GLM-5.1",
+                                                      "displayName":  "GLM 5.1 via ModelScope",
+                                                      "tier":  "balanced",
+                                                      "recommendedUse":  "model marketplace translation",
+                                                      "qualityScore":  0.78,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.68,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "marketplace",
+                                                                      "balanced",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "aihubmix",
+                        "displayName":  "AiHubMix",
+                        "category":  "aggregator",
+                        "websiteUrl":  "https://aihubmix.com",
+                        "apiKeyUrl":  "https://aihubmix.com",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://aihubmix.com/v1",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "gpt-4o-mini",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "gpt-4o-mini",
+                                                      "displayName":  "GPT-4o mini via AiHubMix",
+                                                      "tier":  "balanced",
+                                                      "recommendedUse":  "aggregated OpenAI-compatible translation",
+                                                      "qualityScore":  0.78,
+                                                      "latencyScore":  0.62,
+                                                      "contextScore":  0.76,
+                                                      "stabilityScore":  0.68,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "balanced",
+                                                                      "fallback",
+                                                                      "web_article"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "nvidia",
+                        "displayName":  "Nvidia",
+                        "category":  "aggregator",
+                        "websiteUrl":  "https://build.nvidia.com",
+                        "apiKeyUrl":  "https://build.nvidia.com/settings/api-keys",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://integrate.api.nvidia.com/v1",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  true,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "moonshotai/kimi-k2.5",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "moonshotai/kimi-k2.5",
+                                                      "displayName":  "Kimi K2.5 via Nvidia",
+                                                      "tier":  "quality",
+                                                      "recommendedUse":  "Nvidia-hosted remote translation",
+                                                      "qualityScore":  0.82,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.84,
+                                                      "stabilityScore":  0.7,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "quality",
+                                                                      "long_context",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "opencode-go",
+                        "displayName":  "OpenCode Go",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://opencode.ai",
+                        "apiKeyUrl":  "https://opencode.ai",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://opencode.ai/zen/go",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "deepseek-v4-flash",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "deepseek-v4-flash",
+                                                      "displayName":  "DeepSeek V4 Flash",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "coding-plan translation fallback",
+                                                      "qualityScore":  0.74,
+                                                      "latencyScore":  0.66,
+                                                      "contextScore":  0.72,
+                                                      "stabilityScore":  0.66,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "qianfan-coding",
+                        "displayName":  "Baidu Qianfan Coding Plan",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://cloud.baidu.com/product/qianfan_modelbuilder",
+                        "apiKeyUrl":  "https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://qianfan.baidubce.com/anthropic/coding",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "qianfan-code-latest",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "qianfan-code-latest",
+                                                      "displayName":  "Qianfan Code Latest",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "Baidu coding-plan translation",
+                                                      "qualityScore":  0.72,
+                                                      "latencyScore":  0.62,
+                                                      "contextScore":  0.72,
+                                                      "stabilityScore":  0.66,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "cn",
+                                                                      "budget"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "bailian-coding",
+                        "displayName":  "Bailian For Coding",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://bailian.console.aliyun.com",
+                        "apiKeyUrl":  "https://bailian.console.aliyun.com/?apiKey=1",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://coding.dashscope.aliyuncs.com/apps/anthropic",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "qwen3-coder-plus",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "qwen3-coder-plus",
+                                                      "displayName":  "Qwen3 Coder Plus",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "Bailian coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.62,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.68,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "cn",
+                                                                      "long_context"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "kimi-coding",
+                        "displayName":  "Kimi For Coding",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://www.kimi.com/code/docs/",
+                        "apiKeyUrl":  "https://www.kimi.com/code/docs/",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.kimi.com/coding",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "kimi-k2.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "kimi-k2.6",
+                                                      "displayName":  "Kimi K2.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "Kimi coding-plan translation",
+                                                      "qualityScore":  0.8,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.86,
+                                                      "stabilityScore":  0.68,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "long_context",
+                                                                      "quality"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "minimax-coding",
+                        "displayName":  "MiniMax Coding Plan",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://platform.minimaxi.com",
+                        "apiKeyUrl":  "https://platform.minimaxi.com/subscribe/coding-plan",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.minimaxi.com/anthropic",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "MiniMax-M2.7",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "MiniMax-M2.7",
+                                                      "displayName":  "MiniMax M2.7",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "MiniMax coding-plan translation",
+                                                      "qualityScore":  0.78,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.8,
+                                                      "stabilityScore":  0.68,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "long_context",
+                                                                      "quality"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "packycode",
+                        "displayName":  "PackyCode",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://www.packyapi.com",
+                        "apiKeyUrl":  "https://www.packyapi.com/register?aff=cc-switch",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://www.packyapi.com",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "third-party coding-plan translation",
+                                                      "qualityScore":  0.78,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.8,
+                                                      "stabilityScore":  0.62,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "sudocode",
+                        "displayName":  "SudoCode",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://sudocode.us",
+                        "apiKeyUrl":  "https://sudocode.us",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://sudocode.us",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "third-party coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.62,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "relaxycode",
+                        "displayName":  "RelaxyCode",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://www.relaxycode.com",
+                        "apiKeyUrl":  "https://www.relaxycode.com/register",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://www.relaxycode.com",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "third-party coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.62,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "rightcode",
+                        "displayName":  "RightCode",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://www.right.codes",
+                        "apiKeyUrl":  "https://www.right.codes/register?aff=CCSWITCH",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://www.right.codes/claude",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "third-party coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.62,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "aicodemirror",
+                        "displayName":  "AICodeMirror",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://www.aicodemirror.com",
+                        "apiKeyUrl":  "https://www.aicodemirror.com/register?invitecode=9915W3",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://api.aicodemirror.com/api/claudecode",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "third-party coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.6,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "sssaicode",
+                        "displayName":  "SSSAiCode",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://sssaicodeapi.com",
+                        "apiKeyUrl":  "https://sssaicodeapi.com/register?ref=DCP0SM",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://node-hk.sssaicodeapi.com/api",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "third-party coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.6,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "compshare-coding",
+                        "displayName":  "Compshare Coding Plan",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://www.compshare.cn",
+                        "apiKeyUrl":  "https://www.compshare.cn/coding-plan?ytag=GPU_YY_YX_git_cc-switch",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://cp.compshare.cn",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "Compshare coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.62,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "eflowcode",
+                        "displayName":  "E-FlowCode",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://e-flowcode.cc",
+                        "apiKeyUrl":  "https://e-flowcode.cc",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://e-flowcode.cc",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-sonnet-4.6",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-sonnet-4.6",
+                                                      "displayName":  "Claude Sonnet 4.6",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "third-party coding-plan translation",
+                                                      "qualityScore":  0.76,
+                                                      "latencyScore":  0.58,
+                                                      "contextScore":  0.78,
+                                                      "stabilityScore":  0.6,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "budget",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "id":  "pipellm",
+                        "displayName":  "PIPELLM",
+                        "category":  "coding_plan",
+                        "websiteUrl":  "https://code.pipellm.ai",
+                        "apiKeyUrl":  "https://code.pipellm.ai/login?ref=uvw650za",
+                        "protocol":  "openai_chat",
+                        "baseUrl":  "https://cc-api.pipellm.ai",
+                        "modelsUrl":  "",
+                        "requiresApiKey":  true,
+                        "apiKeyHeader":  "Authorization",
+                        "apiKeyScheme":  "Bearer",
+                        "supportsModelFetch":  false,
+                        "supportsBalance":  false,
+                        "balanceTemplate":  "",
+                        "defaultModel":  "claude-opus-4-8",
+                        "recommendedModels":  [
+                                                  {
+                                                      "id":  "claude-opus-4-8",
+                                                      "displayName":  "Claude Opus 4.8",
+                                                      "tier":  "coding-plan",
+                                                      "recommendedUse":  "premium coding-plan translation",
+                                                      "qualityScore":  0.82,
+                                                      "latencyScore":  0.52,
+                                                      "contextScore":  0.82,
+                                                      "stabilityScore":  0.62,
+                                                      "languagePairs":  [
+                                                                            "ja-\u003ezh-TW",
+                                                                            "en-\u003ezh-TW",
+                                                                            "*"
+                                                                        ],
+                                                      "bestFor":  [
+                                                                      "coding_plan",
+                                                                      "quality",
+                                                                      "fallback"
+                                                                  ]
+                                                  }
+                                              ]
+                    },
+                    {
+                        "apiKeyUrl":  "https://console.groq.com/keys",
+                        "protocol":  "openai_chat",
+                        "id":  "groq",
+                        "category":  "third_party",
+                        "defaultModel":  "llama3-8b-8192",
+                        "baseUrl":  "https://api.groq.com/openai/v1",
+                        "websiteUrl":  "https://groq.com",
+                        "requiresApiKey":  true,
+                        "displayName":  "Groq"
+                    },
+                    {
+                        "apiKeyUrl":  "https://console.mistral.ai/api-keys",
+                        "protocol":  "openai_chat",
+                        "id":  "mistral",
+                        "category":  "first_party",
+                        "defaultModel":  "mistral-large-latest",
+                        "baseUrl":  "https://api.mistral.ai/v1",
+                        "websiteUrl":  "https://mistral.ai",
+                        "requiresApiKey":  true,
+                        "displayName":  "Mistral AI"
+                    },
+                    {
+                        "apiKeyUrl":  "https://dashboard.cohere.com/api-keys",
+                        "protocol":  "openai_chat",
+                        "id":  "cohere",
+                        "category":  "first_party",
+                        "defaultModel":  "command-r-plus",
+                        "baseUrl":  "https://api.cohere.com/v1",
+                        "websiteUrl":  "https://cohere.com",
+                        "requiresApiKey":  true,
+                        "displayName":  "Cohere"
+                    },
+                    {
+                        "apiKeyUrl":  "https://www.perplexity.ai/settings/api",
+                        "protocol":  "openai_chat",
+                        "id":  "perplexity",
+                        "category":  "first_party",
+                        "defaultModel":  "llama-3-sonar-large-32k-online",
+                        "baseUrl":  "https://api.perplexity.ai",
+                        "websiteUrl":  "https://www.perplexity.ai",
+                        "requiresApiKey":  true,
+                        "displayName":  "Perplexity"
+                    },
+                    {
+                        "apiKeyUrl":  "https://api.together.xyz/settings/api-keys",
+                        "protocol":  "openai_chat",
+                        "id":  "together",
+                        "category":  "third_party",
+                        "defaultModel":  "meta-llama/Llama-3-70b-chat-hf",
+                        "baseUrl":  "https://api.together.xyz/v1",
+                        "websiteUrl":  "https://www.together.ai",
+                        "requiresApiKey":  true,
+                        "displayName":  "Together AI"
+                    }
+                ]
+}

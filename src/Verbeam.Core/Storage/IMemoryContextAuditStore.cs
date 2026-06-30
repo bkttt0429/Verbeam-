@@ -2,10 +2,8 @@ using Verbeam.Core.Models;
 
 namespace Verbeam.Core.Storage;
 
-public interface IMemoryContextAuditStore
+public interface IMemoryContextAuditStore : IInitializableStore
 {
-    Task InitializeAsync(CancellationToken cancellationToken = default);
-
     Task AddEntriesAsync(
         IReadOnlyList<MemoryContextAuditEntry> entries,
         CancellationToken cancellationToken = default);
@@ -13,5 +11,6 @@ public interface IMemoryContextAuditStore
     Task<IReadOnlyList<MemoryContextAuditEntry>> ListAsync(
         string profileId,
         int limit,
+        string? principalId = null,
         CancellationToken cancellationToken = default);
 }

@@ -8,6 +8,8 @@ namespace Verbeam.Core.Providers;
 
 public sealed class ExternalCommandOcrProvider : IOcrProvider
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     private readonly ExternalOcrOptions _options;
     private readonly string _workingDirectory;
 
@@ -43,7 +45,6 @@ public sealed class ExternalCommandOcrProvider : IOcrProvider
             var startInfo = new ProcessStartInfo
             {
                 FileName = _options.FileName,
-                Arguments = BuildArguments(_options.Arguments, imagePath, request.Language),
                 WorkingDirectory = _workingDirectory,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -52,6 +53,21 @@ public sealed class ExternalCommandOcrProvider : IOcrProvider
                 StandardErrorEncoding = Encoding.UTF8,
                 CreateNoWindow = true
             };
+
+            // Pass each templated argument as a discrete ArgumentList entry (.NET applies correct
+            // Win32 escaping) so request-derived values can't inject extra arguments. See
+            // ExternalCommandTemplate.
+            foreach (var argument in ExternalCommandTemplate.BuildArguments(
+                _options.Arguments,
+                new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["{image}"] = imagePath,
+                    ["{language}"] = request.Language,
+                    ["{preprocess}"] = request.PreprocessingPreset
+                }))
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
 
             using var process = Process.Start(startInfo)
                 ?? throw new InvalidOperationException($"Failed to start OCR command '{_options.FileName}'.");
@@ -87,14 +103,6 @@ public sealed class ExternalCommandOcrProvider : IOcrProvider
             TryDelete(imagePath);
         }
     }
-
-    private static string BuildArguments(string template, string imagePath, string language)
-        => template
-            .Replace("{image}", Quote(imagePath), StringComparison.Ordinal)
-            .Replace("{language}", Quote(language), StringComparison.Ordinal);
-
-    private static string Quote(string value)
-        => "\"" + value.Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
 
     private static OcrProviderResult ParseOutput(string stdout, string engineName)
     {
@@ -136,6 +144,10 @@ public sealed class ExternalCommandOcrProvider : IOcrProvider
         var blocks = root.TryGetProperty("blocks", out var blocksElement) && blocksElement.ValueKind == JsonValueKind.Array
             ? ParseBlocks(blocksElement)
             : Array.Empty<OcrTextBlock>();
+        var document = root.TryGetProperty("document", out var documentElement) && documentElement.ValueKind == JsonValueKind.Object
+            ? ParseDocument(documentElement)
+            : null;
+        var engine = ResolveEngine(root, document, engineName);
 
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -147,7 +159,37 @@ public sealed class ExternalCommandOcrProvider : IOcrProvider
             blocks = [new OcrTextBlock(text, 1.0, null)];
         }
 
-        return new OcrProviderResult(text, blocks, $"external:{engineName}");
+        return new OcrProviderResult(text, blocks, engine, document);
+    }
+
+    private static string ResolveEngine(JsonElement root, OcrDocumentResult? document, string engineName)
+    {
+        if (root.TryGetProperty("engine", out var engineElement))
+        {
+            var engine = engineElement.GetString();
+            if (!string.IsNullOrWhiteSpace(engine))
+            {
+                return engine;
+            }
+        }
+
+        var documentEngine = document?.Pages
+            .SelectMany(page => page.Blocks)
+            .SelectMany(FlattenBlocks)
+            .Select(block => block.Engine)
+            .FirstOrDefault(engine => !string.IsNullOrWhiteSpace(engine));
+        return string.IsNullOrWhiteSpace(documentEngine)
+            ? $"external:{engineName}"
+            : documentEngine;
+    }
+
+    private static IEnumerable<OcrBlock> FlattenBlocks(OcrBlock block)
+    {
+        yield return block;
+        foreach (var child in block.Children.SelectMany(FlattenBlocks))
+        {
+            yield return child;
+        }
     }
 
     private static OcrProviderResult ParseBlocksOnly(JsonElement root, string engineName)
@@ -155,6 +197,18 @@ public sealed class ExternalCommandOcrProvider : IOcrProvider
         var blocks = ParseBlocks(root);
         var text = string.Join(Environment.NewLine, blocks.Select(block => block.Text).Where(value => !string.IsNullOrWhiteSpace(value)));
         return new OcrProviderResult(text, blocks, $"external:{engineName}");
+    }
+
+    private static OcrDocumentResult? ParseDocument(JsonElement element)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<OcrDocumentResult>(element.GetRawText(), JsonOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static IReadOnlyList<OcrTextBlock> ParseBlocks(JsonElement root)

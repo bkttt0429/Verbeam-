@@ -1,9 +1,7 @@
 namespace Verbeam.Core.Storage;
 
-public interface ITranslationCache
+public interface ITranslationCache : IInitializableStore
 {
-    Task InitializeAsync(CancellationToken cancellationToken = default);
-
     Task<CachedTranslation?> GetAsync(string key, CancellationToken cancellationToken = default);
 
     Task SetAsync(CachedTranslation entry, CancellationToken cancellationToken = default);
