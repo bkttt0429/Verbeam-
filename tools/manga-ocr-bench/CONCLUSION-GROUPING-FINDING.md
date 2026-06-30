@@ -235,6 +235,38 @@ gate it in #3. New tunables: `RECALL_CLOSE_KERNEL`, `RECALL_SEED_SCORE_PENALTY`,
 
 ---
 
+## UPDATE 7 — 2026-06-30 — #3 SHIPPED: temporal block cache. 78% fewer OCR calls on the 48s stream.
+
+Phase 2 cache built (`temporal_cache.py` + `temporal_stream.py`). The detector emits blocks every frame and
+manga-ocr has no KV-cache, so re-reading a stable caption every frame is the cost. The cache matches a
+frame's blocks to tracklets by bbox IoU and fires OCR only once a block is STABLE (≥ `stable_frames`), then
+HOLDs (reuse cached text, 0 OCR); a vanished block EXPIREs after `expire_frames` misses.
+
+- **`TemporalBlockCache`** (`temporal_cache.py`): NEW → OCR_DONE (OCR fires once) → HOLD (0 OCR) → EXPIRE.
+  Defaults `stable_frames=2, expire_frames=3, match_iou=0.5`. Dependency-free (inline IoU); `python
+  temporal_cache.py` runs a self-check (static block OCRs exactly once then HOLDs; expires when gone; a
+  10-frame caption = 1 OCR not 10).
+- **`hard_mixed_art_text` needs no special-casing** — it is a confirm *reject*, never a kept block, so it
+  never enters the cache.
+- **`temporal_stream.py`**: runs `detect_text_blocks` over consecutive frames, feeds the cache, reports OCR
+  calls cache-vs-naive (`--start 48.0 --frames 15`).
+
+**Measured (48.0s, 15 consecutive native frames):** naive = **108** OCR calls (every block every frame),
+cache = **24 → 78% fewer**; several frames hit 0 OCR. The residual calls are detector **jitter**:
+seed/broad_split bboxes wobble frame-to-frame and drop below `match_iou` → new tracklet → re-OCR. The stable
+`block_merged` captions (これ/語っといて/teal/white) hold cleanly. Pushing savings higher is the detector
+*stabiliser's* job (separate — see `realtime-region-stabilizer`), not the cache.
+
+**ponytail caveat:** matching is position-IoU only — a same-position scene change would reuse stale text;
+add a crop mean-abs-diff re-OCR trigger if real clips show it. **Cost:** the #2 recall source adds 1 CC/frame
+— gate it (cold-frame only) when this goes realtime. New tunables: `stable_frames`, `expire_frames`, `match_iou`.
+
+**#1–#3 complete.** Grouping/lifecycle work (UPDATE 3–7) done; 48s acceptance A–E pass; the temporal cache
+cuts realtime OCR ~78%. Remaining: detector temporal stability, and the learned-detector/VLM path for the
+`hard_mixed_art_text` 既視感/視感 region (cheap-CV can't separate it — UPDATE 1).
+
+---
+
 ## 1. Current pipeline (what already works)
 
 ```
