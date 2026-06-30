@@ -64,6 +64,17 @@ BROAD_SPLIT_MIN_GAP_FRAC = 1.25   # cut where an inter-column gap exceeds this *
 CONFIRM_OCC_MAX = 0.48            # confirm/split occ ceiling (measured: a real dense 3-col block = 0.47)
 HARD_MIXED_OCC = 0.55             # above this, a reject is tagged hard_mixed_art_text (offline fallback)
 
+# Column-seed grouping (UPDATE 3 plan): emit one block per same-column comp chain so a weak vote-2
+# column survives instead of dying before merge. ponytail: SEED_SIZE_RATIO is the user-spec gate,
+# but it is the measured 語->っ blocker (max-dim 29/12 = 2.42 > 2.0) — left tunable; raise/disable on
+# the same-column branch to recover kanji+kana columns (see UPDATE 3). Seeds are proposal-stage only
+# for now (NOT fed to confirm), so the core gate is untouched.
+SEED_SIZE_RATIO = 2.0
+SEED_ALIGN_FRAC = 0.8     # |cx delta| < this * median glyph width = same column
+SEED_STACK_GAP = 2.5      # vertical gap < this * median glyph height = stacked glyphs
+SEED_MIN_H = 45           # a real column spans at least this many px tall
+SEED_MAX_W = 110          # wider than this is not a single column
+
 
 @dataclass
 class BlockCandidate:
@@ -81,6 +92,9 @@ class BlockCandidate:
     edge_frac: float = 0.0
     max_dom: float = 0.0
     columnizer_result: dict | None = None
+    kind: str = "block_merged"          # "column_seed" | "block_merged" | "broad_split"
+    parent_id: int | None = None        # for a column_seed: the block_merged it sits inside
+    component_ids: tuple = ()            # source-local comp indices in this proposal
 
 
 def _inter(a, b):
@@ -371,11 +385,82 @@ def group_components_into_blocks_graph(comps, frame_shape, mode="vertical", stat
     return blocks
 
 
+def _seed_size_similar(a, b):
+    sa, sb = max(a.w, a.h), max(b.w, b.h)
+    return max(sa, sb) / float(max(1, min(sa, sb))) <= SEED_SIZE_RATIO
+
+
+def _vertical_seed_edge(a, b, med_w, med_h):
+    """Same-column stack edge: shared cross-axis center + small vertical gap. ponytail: NO size gate
+    here — within one column a kanji next to a kana legitimately differs ~2.4x (語/っ = 2.42), and
+    that gate was the measured cause of 語 dropping out of the 語っといて seed. _seed_size_similar is
+    kept for the adjacent-column branch (text<->art), which is where the size signal belongs."""
+    if abs(a.cx - b.cx) >= SEED_ALIGN_FRAC * med_w:
+        return False
+    upper, lower = (a, b) if a.cy <= b.cy else (b, a)
+    gap = max(0, lower.y - (upper.y + upper.h))
+    return gap <= SEED_STACK_GAP * med_h
+
+
+def _column_seeds(comps, frame_shape, stats=None):
+    """One column_seed proposal per same-column comp chain (>=2 comps). ponytail: alignment/line
+    sub-gates from the spec are dropped here — the edge already enforces cx-alignment, and occ/tl/
+    line get re-checked at confirm; add them back only if seeds prove too noisy."""
+    frame_h, frame_w = frame_shape[:2]
+    n = len(comps)
+    if n < 2:
+        return []
+    med_w = statistics.median([c.w for c in comps]) or 1.0
+    med_h = statistics.median([c.h for c in comps]) or 1.0
+
+    parent = list(range(n))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if _vertical_seed_edge(comps[i], comps[j], med_w, med_h):
+                ri, rj = find(i), find(j)
+                if ri != rj:
+                    parent[ri] = rj
+
+    groups = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(i)
+
+    seeds = []
+    for idxs in groups.values():
+        if len(idxs) < 2:
+            continue
+        g = [comps[i] for i in idxs]
+        x0 = min(c.x for c in g)
+        y0 = min(c.y for c in g)
+        x1 = max(c.x + c.w for c in g)
+        y1 = max(c.y + c.h for c in g)
+        h, w = y1 - y0, x1 - x0
+        if h < SEED_MIN_H or w > SEED_MAX_W:
+            continue
+        seeds.append({
+            "bbox": _pad_bbox(x0, y0, w, h, frame_w, frame_h),
+            "score": 1.0 + 0.035 * min(len(g), 24) - 0.00000008 * max(1, w * h),
+            "vote": len(g),
+            "kind": "column_seed",
+            "component_ids": tuple(sorted(idxs)),
+        })
+    return seeds
+
+
 def _merge_proposal(items):
     merged = []
     for item in sorted(items, key=lambda p: p["score"], reverse=True):
         found = None
         for existing in merged:
+            if existing.get("kind") != item.get("kind"):
+                continue  # column_seed and block_merged never absorb each other (UPDATE 3 step 3)
             if (
                 _iou(item["bbox"], existing["bbox"]) > 0.50
                 or _contained_frac(item["bbox"], existing["bbox"]) > 0.82
@@ -399,7 +484,7 @@ def _merge_proposal(items):
     return merged
 
 
-def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None, group="graph"):
+def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None, group="graph", emit_seeds=False):
     grouper = (
         group_components_into_blocks_graph if group == "graph"
         else group_components_into_blocks
@@ -409,10 +494,19 @@ def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None, group="g
         for block in grouper(comps, frame.shape, mode=mode, stats=stats):
             proposals.append({
                 **block,
+                "kind": "block_merged",
                 "source": source,
                 "sources": [source],
                 "layout": f"{mode}_candidate",
             })
+        if emit_seeds:
+            for seed in _column_seeds(comps, frame.shape, stats):
+                proposals.append({
+                    **seed,
+                    "source": source,
+                    "sources": [source],
+                    "layout": f"{mode}_candidate",
+                })
 
     merged = _merge_proposal(proposals)
     ranked = []
@@ -428,6 +522,8 @@ def propose_blocks_from_frame_masks(frame, mode="vertical", stats=None, group="g
             tl=0.0,
             n=proposal["vote"],
             source="+".join(dict.fromkeys(proposal["sources"])),
+            kind=proposal.get("kind", "block_merged"),
+            component_ids=proposal.get("component_ids", ()),
         ))
     ranked.sort(key=lambda c: c.rank, reverse=True)
     if stats is not None:
@@ -754,11 +850,12 @@ def detect_text_blocks(
     require_vertical=True,
     min_vote=MIN_CLUSTER_VOTE,
     group="graph",
+    emit_seeds=False,
     return_stats=False,
 ):
     stats = _new_stats(scorer)
     if scorer == "cc":
-        ranked = propose_blocks_from_frame_masks(frame, mode=mode, stats=stats, group=group)
+        ranked = propose_blocks_from_frame_masks(frame, mode=mode, stats=stats, group=group, emit_seeds=emit_seeds)
         kept = []
         for candidate in ranked:
             if confirm_raw:

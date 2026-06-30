@@ -21,10 +21,11 @@ OUT = Path(r"D:\LocalTranslateHub\.codex-run\manga-ocr-bench\rois\detector_previ
 
 def draw_proposal(frame, index, candidate):
     x0, y0, x1, y1 = candidate.bbox
-    color = (0, 210, 255)
+    # column_seed = cyan, block_merged = orange (UPDATE 3 overlay legend)
+    color = (255, 255, 0) if candidate.kind == "column_seed" else (0, 210, 255)
     cv2.rectangle(frame, (x0, y0), (x1, y1), color, 2)
     label = (
-        f"proposal#{index} vote={candidate.vote} rank={candidate.rank:.2f} "
+        f"proposal#{index} {candidate.kind} vote={candidate.vote} rank={candidate.rank:.2f} "
         f"{candidate.layout} source={candidate.source}"
     )
     put_label(frame, label, x0 + 4, y0 - 8, color=color, scale=0.45)
@@ -122,6 +123,8 @@ def proposal_event_row(t, index, candidate):
         "det_line_frac": candidate.line_frac,
         "det_edge_frac": candidate.edge_frac,
         "det_max_dom": candidate.max_dom,
+        "proposal_kind": candidate.kind,
+        "component_count": len(candidate.component_ids),
         "layout": "",
         "status": "proposal",
         "mask_source": candidate.source,
@@ -184,6 +187,7 @@ def main():
                 scorer=args.scorer,
                 min_vote=args.min_vote,
                 group=args.group,
+                emit_seeds=args.stage == "proposal",
                 confirm_raw=args.stage in ("confirm", "ocr"),
                 return_stats=True,
             )
@@ -253,7 +257,7 @@ def main():
     fieldnames = [
         "time_s", "det_index", "det_bbox", "det_vote", "det_rank", "det_layout_hint",
         "det_cols_hint", "det_occ", "det_tl", "det_n", "det_line_frac",
-        "det_edge_frac", "det_max_dom", "layout", "status",
+        "det_edge_frac", "det_max_dom", "proposal_kind", "component_count", "layout", "status",
         "mask_source", "mask_occ", "mask_tl", "mask_n", "reader", "reader_status",
         "route_reason", "ocr_calls", "joined", "column_order", "column_bbox_abs",
         "ocr_text", "ocr_ms", "ocr_jp_ratio",
