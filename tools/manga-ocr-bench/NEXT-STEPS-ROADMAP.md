@@ -41,8 +41,11 @@ experimental full-frame detector at **~540 ms/frame** (group + confirm ≈ 400 m
 ### P1 — Cross-frame temporal state: Kalman track + crop-diff (items "て instability" + "stale guard")
 **These are one workstream (cross-frame change logic), not two.** The subtitles MOVE (animated scene), and
 the per-frame rescues are noisy:
-- `_extend_column_tails` re-detects て with a fresh CLAHE probe every frame → it catches て on some frames,
-  misses it on others (real run OCR'd 語っといて on a frame where the tail wasn't caught → "語っとい").
+- `_extend_column_tails` re-detects て with a fresh CLAHE probe every frame → measured: it hits て on
+  frames 0/4/13 (y≈792) but misses on 7/8/12 (y=744), while the column x-drifts 843→872 (the caption moves).
+  **DOWN-PAYMENT DONE:** the cache now keeps a column_seed track's max observed Y-extent and OCRs that
+  (`temporal_cache._extend_seed_y`), so the firing frame no longer drops a tail glyph an earlier frame
+  proved — real run reads 語っといて in full. Full cross-frame smoothing (below) still wanted for the drift.
 - Center-linking makes a track persist across more frames, so a same-position content change would reuse
   stale cached text (no re-OCR trigger today).
 

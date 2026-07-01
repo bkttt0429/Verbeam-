@@ -82,10 +82,20 @@ global mask dropped. Two things the measurement forced:
   area 179) and gives **0 hits on a rain-only control**; the wrong polarity (blackhat) grabs a rain streak.
   So the rescue picks the op from `_otsu_polarity` of the column crop.
 
-Gated to glyph-sized / column-centered / aspect < 2.5 blobs. Result: 語っといて extends y744 → **792**
-(includes て); これ and every other column unchanged; no junk blocks; block count stays 10; gate
-**raw 16/20 | core 15/15**. ponytail ceiling: single-column + one pitch each end only — multi-column and
-multi-glyph tails are a later step.
+Gated to glyph-sized / column-centered / aspect < 2.5 blobs. On the 48.0s reference frame 語っといて extends
+y744 → **792** (includes て); これ and every other column unchanged; no junk blocks; block count stays 10;
+gate **raw 16/20 | core 15/15**.
+
+**Cross-frame caveat + cache fix (reconciles the real run).** The per-frame CLAHE probe is *frame-
+inconsistent*: over the 15-frame window the 語っといて column is detected on frames 0/4/7/8/12/13, and the
+tail-probe hits て only on **frames 0/4/13 (y≈792), misses on 7/8/12 (y=744)** — and the column x-drifts
+843→872 (the subtitle is moving). The temporal cache fires OCR when the track reaches count 3 (frame 7), a
+*non-extended* frame → the first real run read "語っとい". This is **not** a wiring miss (the extension does
+reach the final bbox on the frames that hit) and **not** reader faintness. Fixed at the cache layer
+(`temporal_cache._extend_seed_y`): a column_seed track remembers its **max observed Y-extent** and OCRs that
+(current x), so a tail glyph proven on an earlier frame isn't lost on the firing frame. Real run now reads
+**'語っといて'** in both modes (bbox 859,545,903,**792**). ponytail ceiling: y-union memory + single-column
+one-pitch probe; full cross-frame smoothing (Kalman) for the drifting/animated caption is the P1 roadmap item.
 
 ---
 

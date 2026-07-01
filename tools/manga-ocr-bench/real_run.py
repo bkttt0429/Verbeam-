@@ -65,7 +65,8 @@ def run_mode(name, frames, reader, defer_rects, log):
                 total_ocr += 1
                 ms = ""  # per-call ms captured inside reader; keep table compact
                 t = (START * 24.0 + i) / 24.0
-                log.append(f"{i:<5d}  {i:<5d}  {b.kind:<12}  {str(b.bbox):<26}  {'':<4}  {r['text']!r}")
+                # log r["bbox"] (the actual OCR'd geometry, incl. any cache tail-extension), not the raw block
+                log.append(f"{i:<5d}  {i:<5d}  {b.kind:<12}  {str(r['bbox']):<26}  {'':<4}  {r['text']!r}")
                 w = where(b.bbox)
                 if w:
                     captions[w] = r["text"]

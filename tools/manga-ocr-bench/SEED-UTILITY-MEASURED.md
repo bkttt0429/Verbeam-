@@ -1,7 +1,13 @@
 # Seed admission → optimal A/B — MEASURED, and what survives of the utility-scorer proposal
 
+> **NUMBERS UPDATED — current is 15 / 5, not 17 / 7.** The 17/7 figures in this doc were measured on the
+> detector *before* the char-drop fixes (`_seed_supersedes`, `_extend_column_tails`), which changed the
+> block set. **Current, authoritative:** new A / Full Recall = **15 OCR**, new B / Realtime = **5 OCR**
+> (both keep これ + 語っといて); old A = 23, old B = 13 (drops これ). The analysis and mechanism below are
+> unchanged — only the exact counts shifted. Cite 15/5, see `SEED-ADMISSION-IMPL-SPEC.md` / `real_run_results.md`.
+
 Date: 2026-07-01. Bench dir: `tools/manga-ocr-bench/`. Reproducer: `measure_seed_spread.py`
-(48.0s × 15 frames, the same clip/window as UPDATE 8/9). All numbers below are from one run of it.
+(48.0s × 15 frames, the same clip/window as UPDATE 8/9). Counts in the body are the pre-fix 17/7 run.
 
 The starting point was a design proposal to replace the single `seed_stable=2/4` gate with a weighted
 **SeedUtility = P(text) × P(new_info) − OCR_cost − false_positive_risk** scorer (per-seed features, log-odds

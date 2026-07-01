@@ -25,7 +25,29 @@ count-of-hits rather than consecutive age. `center_r` must stay below the minimu
 (~54px on the measured clip) or it will fuse two adjacent columns into one track.
 """
 
+import copy
+
 NEW, OCR_DONE, HOLD, EXPIRE = "new", "ocr_done", "hold", "expire"
+
+
+def _extend_seed_y(b, y_top, y_bot):
+    """Return a COPY of a column_seed block whose Y-extent covers [y_top, y_bot] (keeping its CURRENT x —
+    correct for a horizontally-drifting subtitle), mirrored into its single column_boxes_abs. Returned to
+    ocr_fn so the reader gets the track's MAX observed column height: the per-frame CLAHE tail-probe
+    (_extend_column_tails) is frame-inconsistent (finds て on some frames, misses on others), so without
+    this the OCR-firing frame may drop a faint column-end glyph another frame already proved is there.
+    Never mutates the caller's block (callers reuse block lists across cache runs). ponytail: y-union
+    memory only; full cross-frame smoothing (Kalman) is the P1 roadmap item."""
+    x0, y0, x1, y1 = b.bbox
+    ny0, ny1 = min(y0, y_top), max(y1, y_bot)
+    if (ny0, ny1) == (y0, y1):
+        return b
+    nb = copy.copy(b)
+    nb.bbox = (x0, ny0, x1, ny1)
+    cols = getattr(b, "column_boxes_abs", None)
+    if cols and len(cols) == 1:
+        nb.column_boxes_abs = ((x0, ny0, x1, ny1),)
+    return nb
 
 
 def _iou(a, b):
@@ -105,10 +127,15 @@ class TemporalBlockCache:
                 t["missed"] = 0
             t = self.tracks[tid]
             seen.add(tid)
+            if t["kind"] == "column_seed":   # remember the track's max Y-extent for tail recovery
+                t["y_top"] = min(t.get("y_top", b.bbox[1]), b.bbox[1])
+                t["y_bot"] = max(t.get("y_bot", b.bbox[3]), b.bbox[3])
 
             ocr_called = False
             need = self.stable_by_kind.get(t["kind"], self.stable_frames)
             if not t["ocr_done"] and t["age"] >= need:
+                if t["kind"] == "column_seed":
+                    b = _extend_seed_y(b, t["y_top"], t["y_bot"])   # OCR the max observed column height
                 if ocr_fn is not None:
                     t["text"] = ocr_fn(b)
                 t["ocr_done"] = True
