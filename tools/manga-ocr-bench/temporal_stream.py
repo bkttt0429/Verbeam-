@@ -35,6 +35,10 @@ def main():
     cache = TemporalBlockCache(stable_frames=args.stable, expire_frames=args.expire)
 
     naive_total = cache_total = 0
+    spawns_by_kind = Counter()      # 4A: which proposal kinds spawn new tracks (-> re-OCR)
+    ocr_by_kind = Counter()
+    blocks_by_kind = Counter()
+    nearmiss = Counter()            # best_iou bucket of SPAWNS: rescuable by a better matcher?
     print(f"frame   t     blocks  ocr(cache)  states")
     for i in range(args.frames):
         cap.set(cv2.CAP_PROP_POS_FRAMES, start + i * args.step)
@@ -47,6 +51,16 @@ def main():
         ocr_now = sum(r["ocr_called"] for r in res)
         naive_total += len(blocks)
         cache_total += ocr_now
+        for b, r in zip(blocks, res):
+            blocks_by_kind[b.kind] += 1
+            if r["ocr_called"]:
+                ocr_by_kind[b.kind] += 1
+            if r["spawned"] and i > 0:  # frame 0 spawns are unavoidable cold start
+                spawns_by_kind[b.kind] += 1
+                iou = r["best_iou"]
+                bucket = ("iou<0.1" if iou < 0.1 else "0.1-0.35" if iou < 0.35
+                          else "0.35-0.5(rescuable)" if iou < 0.5 else ">=0.5")
+                nearmiss[f"{b.kind}:{bucket}"] += 1
         states = Counter(r["state"] for r in res)
         t = (start + i * args.step) / fps
         print(f"{i:<5d} {t:5.2f}  {len(blocks):<6d}  {ocr_now:<10d}  {dict(states)}")
@@ -54,6 +68,10 @@ def main():
 
     saved = (1 - cache_total / naive_total) * 100 if naive_total else 0.0
     print(f"\nOCR calls: naive={naive_total}  cache={cache_total}  saved={saved:.0f}%")
+    print(f"blocks_by_kind:  {dict(blocks_by_kind)}")
+    print(f"ocr_by_kind:     {dict(ocr_by_kind)}")
+    print(f"spawns_by_kind (frame>0, = jitter re-OCR source): {dict(spawns_by_kind)}")
+    print(f"spawn best_iou buckets: {dict(sorted(nearmiss.items()))}")
 
 
 if __name__ == "__main__":

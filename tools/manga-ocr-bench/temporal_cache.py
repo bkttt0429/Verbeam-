@@ -38,22 +38,25 @@ class TemporalBlockCache:
         self.tracks = {}      # id -> {bbox, age, missed, state, text, ocr_done}
         self._next_id = 0
 
-    def _match(self, bbox):
-        best_id, best = None, self.match_iou
+    def _best(self, bbox):
+        """Best-overlapping track and its IoU, regardless of threshold (for 4A jitter diagnostics)."""
+        best_id, best_iou = None, 0.0
         for tid, t in self.tracks.items():
             i = _iou(bbox, t["bbox"])
-            if i >= best:
-                best_id, best = tid, i
-        return best_id
+            if i > best_iou:
+                best_id, best_iou = tid, i
+        return best_id, best_iou
 
     def update(self, blocks, ocr_fn=None):
         """blocks: objects with a .bbox tuple (and whatever ocr_fn needs). ocr_fn(block)->text is called
         AT MOST once per tracklet, the frame it stabilises. Returns one dict per input block:
-        {id, bbox, state, ocr_called, text}."""
+        {id, bbox, state, ocr_called, text, spawned, best_iou}."""
         seen = set()
         out = []
         for b in blocks:
-            tid = self._match(b.bbox)
+            cand_id, best_iou = self._best(b.bbox)
+            spawned = cand_id is None or best_iou < self.match_iou
+            tid = None if spawned else cand_id
             if tid is None:
                 tid = self._next_id
                 self._next_id += 1
@@ -78,8 +81,8 @@ class TemporalBlockCache:
                 t["state"] = HOLD
             else:
                 t["state"] = NEW
-            out.append({"id": tid, "bbox": b.bbox, "state": t["state"],
-                        "ocr_called": ocr_called, "text": t["text"]})
+            out.append({"id": tid, "bbox": b.bbox, "state": t["state"], "ocr_called": ocr_called,
+                        "text": t["text"], "spawned": spawned, "best_iou": round(best_iou, 3)})
 
         for tid in list(self.tracks):
             if tid not in seen:

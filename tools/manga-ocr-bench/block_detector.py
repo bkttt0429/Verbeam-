@@ -917,18 +917,20 @@ def _accept_candidate(candidate, kept):
 
 
 def _representing_parent(child, parents):
-    """Return the parent that already has a confirmed column AT the child seed's position (so the
-    seed just duplicates it), else None. In a vertical_rl block columns are separated by x, so we
-    match on strong x-overlap AND non-trivial y-overlap (same column, same vertical run). Overlap is
-    normalised by the narrower box because a seed's comp-derived bbox is wider/taller than the
-    parent's columnize column. None => the seed is a column no parent represents (e.g. 語っといて) -> keep."""
-    cx0, cy0, cx1, cy1 = child.bbox
-    cw, ch = cx1 - cx0, cy1 - cy0
+    """Return a parent that already represents this seed's column (so the seed is a redundant dup),
+    else None. A seed mostly INSIDE a parent's bbox AND x-aligned with one of that parent's confirmed
+    columns is dropped. No y-overlap requirement: the seed's comp bbox and the columnize column differ
+    in vertical extent, and requiring y-overlap made redundant seeds flicker in/out (removed a dup teal
+    column). A seed in a parent GUTTER (no column x-match) or outside every parent (語っといて, これ) is a
+    real missed column -> kept. NOTE (4A): this is NOT the residual-OCR lever — the churn is STANDALONE
+    marginal/recall seeds flickering at varying positions (best_iou<0.1), upstream of this test."""
+    cx0, _cy0, cx1, _cy1 = child.bbox
+    cw = cx1 - cx0
     for p in parents:
+        if _contained_frac(child.bbox, p.bbox) < 0.6:
+            continue
         for col in p.column_boxes_abs:
-            xov = _overlap_1d(cx0, cx1, col[0], col[2]) / max(1, min(cw, col[2] - col[0]))
-            yov = _overlap_1d(cy0, cy1, col[1], col[3]) / max(1, min(ch, col[3] - col[1]))
-            if xov > 0.60 and yov > 0.50:
+            if _overlap_1d(cx0, cx1, col[0], col[2]) / max(1, min(cw, col[2] - col[0])) > 0.60:
                 return p
     return None
 

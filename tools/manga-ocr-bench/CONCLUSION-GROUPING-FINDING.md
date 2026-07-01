@@ -267,6 +267,44 @@ cuts realtime OCR ~78%. Remaining: detector temporal stability, and the learned-
 
 ---
 
+## UPDATE 8 — 2026-06-30 — Phase 4 (4A) done. Finding: a matching stabilizer will NOT reach the ≤12 target.
+
+Built 4A observation first (as planned: measure before tuning), plus a small redundant-seed cleanup. The
+measurement **redirects Phase 4** — the residual OCR is not what the stabilizer (4B/4C) would fix.
+
+- **Instrumentation:** `TemporalBlockCache.update` returns `spawned` + `best_iou` per block;
+  `temporal_stream.py` breaks OCR/spawns down by proposal kind and best-IoU bucket.
+- **Redundant-seed cleanup:** `_representing_parent` dropped its y-overlap requirement (it made a seed
+  duplicating a parent column flicker in/out); now drops a seed contained in a parent bbox AND x-aligned
+  with one of its columns. Removed a duplicate teal column from 48s. Core gate unchanged (`16/20`).
+
+**4A measured (48.0s, 15 frames, cache = 23 OCR):**
+- Spawns (= jitter re-OCR source): block_merged 4, **column_seed 16**, broad_split 5. OCR by kind:
+  block_merged 7, broad_split 5, column_seed 11.
+- **The stable captions are already stable**: これ spawns once (f3) then HOLDs, 語っといて never re-spawns,
+  block_merged captions barely churn.
+- **The residual is STANDALONE marginal/recall column_seed FLICKER**: 9 of 16 seed spawns have
+  `best_iou < 0.1` — they form at DIFFERENT positions each frame (teal-region x214/233/305, art-region,
+  white-adjacent x1229/1271), not the same box wobbling. Suppression tests don't touch them (they aren't
+  inside a parent).
+
+**Conclusion — 4B (kind-aware IoU) / 4C (canonical bbox) cannot reach ≤12.** Those target position WOBBLE
+(`best_iou 0.35–0.5`) = only ~5 spawns here. The dominant jitter is APPEARANCE flicker (`best_iou<0.1`) of
+low-value marginal/recall seeds — a detection-precision problem, not track-matching. The high-value text
+(block_merged + これ + 語っといて) is already stable and cached.
+
+**Real levers (a decision, not a stabilizer module):**
+1. **Marginal-seed precision** — the flickering seeds are the h/w≈2.2–2.5 recall/aspect-threshold ones near
+   art; tightening cuts flicker but trades against これ recall (これ is itself h/w 2.3).
+2. **Defer the art region** (視感/dress broad_split + its seeds ≈ 7 of 23 OCR) — the hard_mixed zone already
+   slated for deferral; removing it drops that share with no stabilizer.
+3. **Caveat:** 48.0–48.6s is animation — some "flicker" may be real content change (correct re-OCR), not jitter.
+
+4B–4F (stabilizer module, canonical bbox, crop-diff, recall gating) are **NOT built** — the data says they
+won't pay off before the precision/deferral decision above. Recommend deciding (1)/(2) first.
+
+---
+
 ## 1. Current pipeline (what already works)
 
 ```
