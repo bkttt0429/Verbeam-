@@ -20,6 +20,7 @@ from columnizer import (
     _branch_mask,
     _columnize_vertical,
     _evaluate_mask,
+    _otsu_polarity,
     component_filter_global,
     component_filter,
     columnize,
@@ -935,11 +936,27 @@ def _representing_parent(child, parents):
     return None
 
 
+def _seed_supersedes(seed, parent):
+    """True if a column_seed covers a SINGLE-column parent's column AND extends beyond it by ~a glyph.
+    That means the seed holds a glyph the size-gated block_merged dropped: 散々ワガママ seed (with the
+    leading kanji 散) vs the 々ワガママ parent whose _graph_edge size gate refused 散 (size 34.5 / 15.0 =
+    2.30 > GRAPH_SIZE_RATIO). The fuller seed should REPLACE that truncated parent, not be suppressed by
+    it. Guarded to single-column parents so a multi-column block is never dropped for one taller seed."""
+    if len(parent.column_boxes_abs) != 1:
+        return False
+    col = parent.column_boxes_abs[0]
+    sx0, sy0, sx1, sy1 = seed.bbox
+    if _overlap_1d(sx0, sx1, col[0], col[2]) / max(1, min(sx1 - sx0, col[2] - col[0])) < 0.6:
+        return False
+    return sy0 < col[1] - 20 or sy1 > col[3] + 20   # extends ~half a glyph past either end of the column
+
+
 def _suppress_confirmed(confirmed, max_blocks):
     """Parent/child-aware NMS (UPDATE 3 step 4). Accept block_merged/broad_split parents first
     (normal NMS), then column_seed children: a seed is dropped only if some confirmed parent already
     has a column at its position; a seed no parent column represents (a missed column, e.g. the
-    standalone 語っといて) is KEPT. Seeds dedup against other kept seeds too."""
+    standalone 語っといて) is KEPT. A seed that is a taller SUPERSET of a single-column parent replaces
+    it (recovers a size-gate-dropped leading kanji, e.g. 散). Seeds dedup against other kept seeds too."""
     parents = [c for c in confirmed if c.kind != "column_seed"]
     seeds = [c for c in confirmed if c.kind == "column_seed"]
     kept = []
@@ -953,8 +970,12 @@ def _suppress_confirmed(confirmed, max_blocks):
             break
         rep = _representing_parent(s, kept_parents)
         if rep is not None:
-            s.parent_id = rep.proposal_id  # debug: which parent already covers this column
-            continue
+            if _seed_supersedes(s, rep):
+                kept.remove(rep)            # fuller seed replaces the truncated single-col parent
+                kept_parents.remove(rep)
+            else:
+                s.parent_id = rep.proposal_id  # debug: which parent already covers this column
+                continue
         if not any(
             k.kind == "column_seed"
             and (_iou(s.bbox, k.bbox) > 0.30 or _contained_frac(s.bbox, k.bbox) > 0.70)
@@ -962,6 +983,64 @@ def _suppress_confirmed(confirmed, max_blocks):
         ):
             kept.append(s)
     return kept
+
+
+_RESCUE_CLAHE = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+_RESCUE_K15 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+_RESCUE_KCLOSE = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 5))
+
+
+def _rescue_mask(bgr, op):
+    """CLAHE + morphology + a PERCENTILE threshold — more sensitive than the global Otsu mask, to reveal
+    a faint column-end glyph the frame-scale mask dropped (て = blackhat 14px vs neighbour 142px). Minimal
+    morphology (no OPEN) so thin cursive strokes survive. Measured: with polarity-matched op this finds て
+    and gives 0 false positives on a rain-only control (the wrong polarity, blackhat here, grabs rain)."""
+    gray = _RESCUE_CLAHE.apply(cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY))
+    m = cv2.morphologyEx(gray, op, _RESCUE_K15)
+    thr = max(20.0, float(np.percentile(m, 92)))
+    _, mask = cv2.threshold(m, thr, 255, cv2.THRESH_BINARY)
+    return cv2.morphologyEx(mask, cv2.MORPH_CLOSE, _RESCUE_KCLOSE)
+
+
+def _extend_column_tails(frame, blocks):
+    """Detection-drop rescue: recover a faint glyph one pitch beyond a SINGLE-column vertical block that
+    the global mask never turned into a component (て below 語っといて). Polarity-matched (tophat for
+    light-on-dark, so it does not grab rain) and tightly gated on size / centering / aspect. ponytail:
+    single-column + one pitch each end only; multi-column and multi-glyph tails are a later step."""
+    fh, fw = frame.shape[:2]
+    for b in blocks:
+        if b.layout != "vertical_rl" or len(b.column_boxes_abs) != 1:
+            continue
+        x0, y0, x1, y1 = b.column_boxes_abs[0]
+        cw = x1 - x0
+        if cw < 8:
+            continue
+        op = (cv2.MORPH_TOPHAT
+              if _otsu_polarity(cv2.cvtColor(frame[y0:y1, x0:x1], cv2.COLOR_BGR2GRAY)) == "light_on_dark"
+              else cv2.MORPH_BLACKHAT)
+        pitch = int(cw * 1.3)
+        ny0, ny1 = y0, y1
+        for down in (True, False):
+            py0, py1 = (y1, min(fh, y1 + pitch)) if down else (max(0, y0 - pitch), y0)
+            if py1 - py0 < 12:
+                continue
+            comps = component_filter(_rescue_mask(frame[py0:py1, x0:x1], op), (py1 - py0, cw, 3))
+            best = None
+            for c in comps:
+                if not (60 <= c.area <= 2.0 * cw * cw):   continue   # glyph-sized, not a blob
+                if abs(c.cx - cw / 2.0) > cw * 0.5:       continue   # centered in the column
+                if c.h / max(1, c.w) >= 2.5:              continue   # not a tall rain streak
+                if best is None or c.area > best.area:
+                    best = c
+            if best is not None:
+                if down:
+                    ny1 = max(ny1, py0 + best.y + best.h)
+                else:
+                    ny0 = min(ny0, py0 + best.y)
+        if ny0 < y0 or ny1 > y1:
+            b.bbox = (b.bbox[0], min(b.bbox[1], ny0), b.bbox[2], max(b.bbox[3], ny1))
+            b.column_boxes_abs = ((x0, ny0, x1, ny1),)
+    return blocks
 
 
 def detect_text_blocks(
@@ -992,6 +1071,7 @@ def detect_text_blocks(
                     confirmed.extend(_confirm_candidate_on_raw_many(frame, candidate, require_vertical, stats))
             _add_ms(stats, "confirm_ms", ts)
             kept = _suppress_confirmed(confirmed, max_blocks)
+            _extend_column_tails(frame, kept)  # detection-drop rescue for faint column ends (て)
         else:
             kept = []
             for candidate in ranked:

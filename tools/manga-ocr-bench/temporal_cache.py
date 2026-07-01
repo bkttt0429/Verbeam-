@@ -14,6 +14,15 @@ State machine per tracklet:
 hard_mixed_art_text never reaches here (it is a confirm reject, not a kept block), so it is skipped for
 free. ponytail: matching is position-IoU only; a same-position SCENE CHANGE would reuse stale text — add a
 crop-diff re-OCR trigger if that shows up on real clips (cheap mean-abs-diff on the cached crop).
+
+Seed admission (measured, SEED-UTILITY-MEASURED.md): a real sparse caption (これ, detected only 3/15
+frames) recurs near the same CENTER, but its recall-source bbox EXTENT varies between hits enough that
+pairwise IoU < match_iou — so IoU-only matching fragments its 3 hits into separate age-1 stubs that never
+reach a consecutive-age gate. Flicker seeds, by contrast, appear at a genuinely different center each time.
+So for column_seed only, `_best_center` links a new detection to an existing track by CENTER distance
+(within `center_r`) when IoU fails, and `stable_by_kind={"column_seed": 3}` gates on the resulting
+count-of-hits rather than consecutive age. `center_r` must stay below the minimum real inter-column gap
+(~54px on the measured clip) or it will fuse two adjacent columns into one track.
 """
 
 NEW, OCR_DONE, HOLD, EXPIRE = "new", "ocr_done", "hold", "expire"
@@ -31,14 +40,16 @@ def _iou(a, b):
 
 
 class TemporalBlockCache:
-    def __init__(self, stable_frames=2, expire_frames=3, match_iou=0.5, stable_by_kind=None):
+    def __init__(self, stable_frames=2, expire_frames=3, match_iou=0.5, stable_by_kind=None,
+                 center_r=20.0):
         self.stable_frames = stable_frames
-        # seed admission (Patch 5): a flickering column_seed lands at a new position each frame so its
-        # track never reaches this age -> never OCR'd; a real caption (これ/語っといて) persists and does.
-        # e.g. {"column_seed": 4}. block_merged/broad_split fall back to stable_frames.
+        # seed admission: a flickering column_seed lands at a new position each frame so its track
+        # never reaches this age -> never OCR'd; a real caption (これ/語っといて) persists and does.
+        # e.g. {"column_seed": 3}. block_merged/broad_split fall back to stable_frames.
         self.stable_by_kind = stable_by_kind or {}
         self.expire_frames = expire_frames
         self.match_iou = match_iou
+        self.center_r = center_r   # column_seed center-link radius; see _best_center
         self.tracks = {}      # id -> {bbox, kind, age, missed, state, text, ocr_done}
         self._next_id = 0
 
@@ -51,6 +62,22 @@ class TemporalBlockCache:
                 best_id, best_iou = tid, i
         return best_id, best_iou
 
+    def _best_center(self, bbox):
+        """Nearest COLUMN_SEED track whose center is within center_r (see module docstring). Only
+        used as a fallback when IoU matching fails, and only for column_seed candidates/tracks — block_
+        merged/broad_split never use center-linking."""
+        cx, cy = (bbox[0] + bbox[2]) * 0.5, (bbox[1] + bbox[3]) * 0.5
+        best_id, best_d = None, self.center_r
+        for tid, t in self.tracks.items():
+            if t.get("kind") != "column_seed":
+                continue
+            tcx = (t["bbox"][0] + t["bbox"][2]) * 0.5
+            tcy = (t["bbox"][1] + t["bbox"][3]) * 0.5
+            d = ((cx - tcx) ** 2 + (cy - tcy) ** 2) ** 0.5
+            if d < best_d:
+                best_id, best_d = tid, d
+        return best_id
+
     def update(self, blocks, ocr_fn=None):
         """blocks: objects with a .bbox tuple (and whatever ocr_fn needs). ocr_fn(block)->text is called
         AT MOST once per tracklet, the frame it stabilises. Returns one dict per input block:
@@ -59,7 +86,12 @@ class TemporalBlockCache:
         out = []
         for b in blocks:
             cand_id, best_iou = self._best(b.bbox)
-            spawned = cand_id is None or best_iou < self.match_iou
+            matched = cand_id is not None and best_iou >= self.match_iou
+            if not matched and getattr(b, "kind", None) == "column_seed":
+                cid = self._best_center(b.bbox)   # IoU failed -> try center-link (column_seed only)
+                if cid is not None:
+                    cand_id, matched = cid, True
+            spawned = not matched
             tid = None if spawned else cand_id
             if tid is None:
                 tid = self._next_id
@@ -136,6 +168,30 @@ def _demo():
     cache5 = TemporalBlockCache(stable_frames=2, stable_by_kind={"column_seed": 4})
     blk_calls = [cache5.update([BK(static, "block_merged")])[0]["ocr_called"] for _ in range(5)]
     assert blk_calls == [False, True, False, False, False], blk_calls     # block still age 2
+
+    # Center-linked count (measured fix for これ, SEED-UTILITY-MEASURED.md): three SAME-CENTER but
+    # different-SIZE column_seed boxes (mimics a faint recall-source caption whose bbox extent varies
+    # between hits) have pairwise IoU < match_iou=0.5, so IoU-only matching would spawn 3 separate
+    # age-1 tracks. With center_r=20 they center-link into ONE track and OCR exactly once at the 3rd hit.
+    sparse = [
+        BK((100, 100, 140, 140), "column_seed"),  # 40x40, center (120,120)
+        BK((115, 115, 125, 125), "column_seed"),  # 10x10 concentric -> IoU vs prior = 0.0625
+        BK((108, 108, 132, 132), "column_seed"),  # 24x24 concentric -> IoU vs prior = 0.174
+    ]
+    cache6 = TemporalBlockCache(stable_frames=2, expire_frames=3, center_r=20.0,
+                                stable_by_kind={"column_seed": 3})
+    sparse_calls = [cache6.update([b])[0]["ocr_called"] for b in sparse]
+    assert sparse_calls == [False, False, True], sparse_calls   # center-link -> 1 track -> OCR at hit 3
+    assert len(cache6.tracks) == 1, cache6.tracks                # proves it's ONE track, not 3
+
+    # Control: center_r=0 disables the fallback (a distance >= 0 can never be < 0), so the SAME 3 boxes
+    # spawn 3 separate age-1 tracks under IoU-only matching -> never reach the count-3 gate -> zero OCR.
+    # Proves CENTER-LINK, not the count threshold alone, is what admits the sparse caption.
+    cache7 = TemporalBlockCache(stable_frames=2, expire_frames=3, center_r=0.0,
+                                stable_by_kind={"column_seed": 3})
+    control_calls = [cache7.update([b])[0]["ocr_called"] for b in sparse]
+    assert control_calls == [False, False, False], control_calls
+    assert len(cache7.tracks) == 3, cache7.tracks                 # 3 distinct spawns, never linked
     print("temporal_cache self-check OK")
 
 
