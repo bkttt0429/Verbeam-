@@ -27,12 +27,22 @@ def main():
     ap.add_argument("--step", type=int, default=1, help="frame stride")
     ap.add_argument("--stable", type=int, default=2)
     ap.add_argument("--expire", type=int, default=3)
+    ap.add_argument("--seed-stable", type=int, default=4,
+                    help="column_seed admission age; set = --stable for accuracy mode (no seed gating)")
     args = ap.parse_args()
 
     cap = cv2.VideoCapture(args.src)
     fps = cap.get(cv2.CAP_PROP_FPS) or 24.0
     start = int(args.start * fps)
-    cache = TemporalBlockCache(stable_frames=args.stable, expire_frames=args.expire)
+    cache = TemporalBlockCache(stable_frames=args.stable, expire_frames=args.expire,
+                               stable_by_kind={"column_seed": args.seed_stable})
+
+    def where(b):  # tag the two rescued captions so we can confirm gating never kills them
+        x0, y0 = b[0], b[1]
+        if 740 <= x0 <= 800 and y0 < 300: return "KORE"
+        if 830 <= x0 <= 860 and y0 < 600: return "KATATTOITE"
+        return None
+    captions_ocrd = set()
 
     naive_total = cache_total = 0
     spawns_by_kind = Counter()      # 4A: which proposal kinds spawn new tracks (-> re-OCR)
@@ -55,6 +65,9 @@ def main():
             blocks_by_kind[b.kind] += 1
             if r["ocr_called"]:
                 ocr_by_kind[b.kind] += 1
+                w = where(b.bbox)
+                if w:
+                    captions_ocrd.add(w)
             if r["spawned"] and i > 0:  # frame 0 spawns are unavoidable cold start
                 spawns_by_kind[b.kind] += 1
                 iou = r["best_iou"]
@@ -67,7 +80,9 @@ def main():
     cap.release()
 
     saved = (1 - cache_total / naive_total) * 100 if naive_total else 0.0
-    print(f"\nOCR calls: naive={naive_total}  cache={cache_total}  saved={saved:.0f}%")
+    print(f"\nmode: seed_stable={args.seed_stable} (block/broad stable={args.stable})")
+    print(f"OCR calls: naive={naive_total}  cache={cache_total}  saved={saved:.0f}%")
+    print(f"captions OCR'd (must be both): {sorted(captions_ocrd)}")
     print(f"blocks_by_kind:  {dict(blocks_by_kind)}")
     print(f"ocr_by_kind:     {dict(ocr_by_kind)}")
     print(f"spawns_by_kind (frame>0, = jitter re-OCR source): {dict(spawns_by_kind)}")

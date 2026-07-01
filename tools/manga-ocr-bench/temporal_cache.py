@@ -31,11 +31,15 @@ def _iou(a, b):
 
 
 class TemporalBlockCache:
-    def __init__(self, stable_frames=2, expire_frames=3, match_iou=0.5):
+    def __init__(self, stable_frames=2, expire_frames=3, match_iou=0.5, stable_by_kind=None):
         self.stable_frames = stable_frames
+        # seed admission (Patch 5): a flickering column_seed lands at a new position each frame so its
+        # track never reaches this age -> never OCR'd; a real caption (これ/語っといて) persists and does.
+        # e.g. {"column_seed": 4}. block_merged/broad_split fall back to stable_frames.
+        self.stable_by_kind = stable_by_kind or {}
         self.expire_frames = expire_frames
         self.match_iou = match_iou
-        self.tracks = {}      # id -> {bbox, age, missed, state, text, ocr_done}
+        self.tracks = {}      # id -> {bbox, kind, age, missed, state, text, ocr_done}
         self._next_id = 0
 
     def _best(self, bbox):
@@ -60,8 +64,8 @@ class TemporalBlockCache:
             if tid is None:
                 tid = self._next_id
                 self._next_id += 1
-                self.tracks[tid] = {"bbox": b.bbox, "age": 1, "missed": 0,
-                                    "state": NEW, "text": None, "ocr_done": False}
+                self.tracks[tid] = {"bbox": b.bbox, "kind": getattr(b, "kind", None), "age": 1,
+                                    "missed": 0, "state": NEW, "text": None, "ocr_done": False}
             else:
                 t = self.tracks[tid]
                 t["bbox"] = b.bbox
@@ -71,7 +75,8 @@ class TemporalBlockCache:
             seen.add(tid)
 
             ocr_called = False
-            if not t["ocr_done"] and t["age"] >= self.stable_frames:
+            need = self.stable_by_kind.get(t["kind"], self.stable_frames)
+            if not t["ocr_done"] and t["age"] >= need:
                 if ocr_fn is not None:
                     t["text"] = ocr_fn(b)
                 t["ocr_done"] = True
@@ -121,6 +126,16 @@ def _demo():
     cache3 = TemporalBlockCache(stable_frames=2)
     total = sum(cache3.update([B(static)], ocr_fn=lambda b: "x")[0]["ocr_called"] for _ in range(10))
     assert total == 1, total
+
+    # kind-tiered admission: a column_seed needs 4 frames, a block_merged only 2.
+    class BK:
+        def __init__(self, bbox, kind): self.bbox, self.kind = bbox, kind
+    cache4 = TemporalBlockCache(stable_frames=2, stable_by_kind={"column_seed": 4})
+    seed_calls = [cache4.update([BK(static, "column_seed")])[0]["ocr_called"] for _ in range(5)]
+    assert seed_calls == [False, False, False, True, False], seed_calls   # OCR at age 4, not 2
+    cache5 = TemporalBlockCache(stable_frames=2, stable_by_kind={"column_seed": 4})
+    blk_calls = [cache5.update([BK(static, "block_merged")])[0]["ocr_called"] for _ in range(5)]
+    assert blk_calls == [False, True, False, False, False], blk_calls     # block still age 2
     print("temporal_cache self-check OK")
 
 

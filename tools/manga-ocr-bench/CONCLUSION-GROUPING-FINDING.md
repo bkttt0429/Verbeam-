@@ -305,6 +305,38 @@ won't pay off before the precision/deferral decision above. Recommend deciding (
 
 ---
 
+## UPDATE 9 — 2026-06-30 — Patch 5 (seed admission) = ONE lever: kind-tiered stable_frames. Mode A/B shipped.
+
+4A said the residual is column_seed *precision*, not matching. The fix is a single lever, not a
+SeedAdmissionController: a flickering seed lands at a NEW position each frame, so its track never reaches a
+higher stable-age gate, while a real caption persists and does. `TemporalBlockCache(stable_by_kind=
+{"column_seed": N})`; block_merged/broad_split keep `stable_frames=2`.
+
+**Measured (48.0s × 15 frames):**
+
+| mode | `seed_stable` | OCR calls | captions read |
+|---|---|---|---|
+| **Accuracy (A)** | 2 | 23 | これ + 語っといて |
+| **Realtime (B)** | 4 | **15** ✅ | 語っといて (これ dropped) |
+
+(seed_stable=3 → 16, これ still dropped.) column_seed OCR 11 → 3 in realtime; block_merged/broad_split
+unchanged. **Hits the ≤15 realtime target.** These is itself a flickery recall micro-caption — it never
+persists 3+ frames (the recall source detects it intermittently), so persistence-gating sacrifices it. That
+IS the intended Mode-B tradeoff (realtime drops low-contrast micro-captions for stability + cost); Mode A
+keeps it.
+
+**Patch 5's other parts (edge/trusted/recall classification, seed OCR budget, admission-reason taxonomy) are
+NOT needed to hit the target** — the one lever does it (YAGNI). Recall-source CC gating (4F) remains a minor
+CPU optimisation (extra morphology/frame, NOT OCR), low priority. Cache default = no gating (accuracy);
+`temporal_stream.py --seed-stable` selects the mode. Self-check extended (column_seed OCRs at age N,
+block_merged at 2). Core gate unaffected (no detector change this step).
+
+**Phase 4/5 done.** Realtime mainline: stable captions HOLD, flickery seeds gated, OCR ~15/15-frames (86%
+fewer). Accuracy mode retains full recall (23, keeps これ). Remaining is only the learned-detector/VLM path
+for the hard_mixed 既視感/視感 region (unchanged — cheap-CV can't separate it).
+
+---
+
 ## 1. Current pipeline (what already works)
 
 ```
