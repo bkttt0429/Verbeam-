@@ -346,6 +346,54 @@ def _graph_edge(a, b, mode):
     return False
 
 
+def _graph_edges_vec(comps, mode):
+    """Vectorized _graph_edge over all pairs: returns an iterable of (i, j) edge index pairs.
+    Formula-for-formula identical to _graph_edge (same expressions, same float ops, strict/non-strict
+    comparisons preserved) — equivalence asserted against the scalar version in detector self-checks.
+    Replaces the profiled hotspot (49K scalar _graph_edge calls / 15 frames, debug_prof.py)."""
+    n = len(comps)
+    x = np.array([c.x for c in comps], dtype=np.float64)
+    y = np.array([c.y for c in comps], dtype=np.float64)
+    w = np.array([c.w for c in comps], dtype=np.float64)
+    h = np.array([c.h for c in comps], dtype=np.float64)
+    cx = np.array([c.cx for c in comps], dtype=np.float64)
+    cy = np.array([c.cy for c in comps], dtype=np.float64)
+
+    s = 0.5 * (w + h)
+    ratio = s[:, None] / s[None, :]
+    size_ok = (s[:, None] > 0) & (s[None, :] > 0) & \
+              (ratio >= 1.0 / GRAPH_SIZE_RATIO) & (ratio <= GRAPH_SIZE_RATIO)
+
+    if mode == "horizontal":
+        lo0, lo1, crc = x, x + w, cy
+        cr0, cr1 = y, y + h
+        along, cross = w, h
+    else:
+        lo0, lo1, crc = y, y + h, cx
+        cr0, cr1 = x, x + w
+        along, cross = h, w
+    along_ext = 0.5 * (along[:, None] + along[None, :])
+    cross_ext = 0.5 * (cross[:, None] + cross[None, :])
+
+    cross_center_delta = np.abs(crc[:, None] - crc[None, :])
+    along_gap = np.maximum(0.0, np.maximum(lo0[:, None], lo0[None, :])
+                           - np.minimum(lo1[:, None], lo1[None, :]))
+    same_col = (cross_center_delta < GRAPH_ALIGN_FRAC * cross_ext) & \
+               (along_gap < GRAPH_STACK_GAP * along_ext)
+
+    along_overlap = np.maximum(0.0, np.minimum(lo1[:, None], lo1[None, :])
+                               - np.maximum(lo0[:, None], lo0[None, :]))
+    along_min = np.maximum(1.0, np.minimum((lo1 - lo0)[:, None], (lo1 - lo0)[None, :]))
+    cross_gap = np.maximum(0.0, np.maximum(cr0[:, None], cr0[None, :])
+                           - np.minimum(cr1[:, None], cr1[None, :]))
+    adjacent = (along_overlap / along_min > GRAPH_ADJ_OVERLAP) & \
+               (cross_gap < GRAPH_ADJ_GAP * cross_ext)
+
+    edge = size_ok & (same_col | adjacent)
+    ii, jj = np.nonzero(np.triu(edge, k=1))
+    return zip(ii.tolist(), jj.tolist())
+
+
 def _graph_groups(comps, mode):
     """Union-find over component edges -> list of comp-groups (each = one block proposal)."""
     n = len(comps)
@@ -357,14 +405,10 @@ def _graph_groups(comps, mode):
             i = parent[i]
         return i
 
-    # ponytail: O(N^2) pair scan. N is the filtered frame-scale comp count (tens-low hundreds);
-    # add a grid spatial index only if a frame's comp count makes this measurably slow.
-    for i in range(n):
-        for j in range(i + 1, n):
-            if _graph_edge(comps[i], comps[j], mode):
-                ri, rj = find(i), find(j)
-                if ri != rj:
-                    parent[ri] = rj
+    for i, j in _graph_edges_vec(comps, mode):
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[ri] = rj
 
     groups = {}
     for i in range(n):
@@ -876,13 +920,16 @@ def _confirm_seed(frame, seed, stats=None):
     crop re-columnizes as no_text (a faint vertical column columnize's local mask loses — e.g. the
     purple-on-purple 語っといて, which component_filter_global DID see at frame scale), trust the seed
     geometry as one vertical_rl column instead of dropping it. Art guard: reject if dense (occ) or
-    line-dominated, per UPDATE 3 — the same trust trick UPDATE 2 uses for broad-split children."""
-    normal = _confirm_candidate_on_raw(frame, seed, require_vertical=True, stats=stats)
-    if normal is not None:
-        return [normal]
+    line-dominated, per UPDATE 3 — the same trust trick UPDATE 2 uses for broad-split children.
+    columnize runs ONCE and is shared with the normal path — profiling (debug_prof.py) showed the old
+    two-call version made columnize the #1 hotspot (235 of 471 calls/15 frames came from seeds)."""
     x0, y0, x1, y1 = seed.bbox
     roi = frame[y0:y1, x0:x1]
     result = columnize(roi)
+    normal = _confirm_candidate_on_raw(frame, seed, require_vertical=True, stats=stats,
+                                       result=result, roi=roi)
+    if normal is not None:
+        return [normal]
     occ = float(result["mask_dbg"].get("occ", 1.0))
     features = _line_noise_features(result.get("mask"), roi.shape, comps=result.get("components"))
     aspect = (y1 - y0) / float(max(1, x1 - x0))

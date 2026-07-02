@@ -144,10 +144,18 @@ Metrics: `all_caption_recall`, `must_have_recall`, `garbage_output_count`, `ocr_
 `useful_ocr_per_call`, `dropped_by_deferral_count`. Acceptance becomes: **must_have_recall = 100% AND
 garbage_output_count = 0 AND ocr_calls ≤ target** — which catches exactly the `x>1200` white-card kill.
 
-### P3 — Detector latency optimisation (item "detector 540ms") — "下下個目標" (next-next)
-~540 ms/frame is not realtime; **group (~191 ms) + confirm (~204 ms)** dominate. Candidates: spatial index
-for the O(N²) graph pair-scan; cache/skip confirm on stable tracks (once a track is HOLD, trust its bbox and
-skip re-columnize); coarse-locate → ROI-tile two-stage. Not urgent — deferred to after P1/P2.
+### P3 — Detector latency optimisation [SHIPPED — see `P3-DETECTOR-LATENCY.md`]
+**Implemented 2026-07-02.** Profiling refuted the plan's own assumptions: group was only ~13–28 ms (not a
+co-lever) and the real #1 hotspot was a **duplicate columnize call in `_confirm_seed`** (235 of 471
+calls); the "skip confirm on stable tracks" memo idea was killed by measurement (proposal bboxes repeat
+0% exactly / 20% at 8px across frames). Two output-identical cuts shipped: columnize dedup (confirm
+−27%) + vectorized `_graph_edges_vec` (group −89%, equivalence asserted on 70,829 real pairs, zero
+mismatches). **~209 ms/frame ≈ 4.8 fps** now; all counters/gate/OCR counts unchanged. This is the
+identical-output plateau — further gains are semantic (gate the recall source; ROI-scoped detection at
+P5 integration; the C# port).
+
+Original plan (kept for context): ~540 ms/frame; candidates: spatial index for the O(N²) graph pair-scan;
+cache/skip confirm on stable tracks; coarse-locate → ROI-tile two-stage.
 
 ### P4 — hard_mixed (視感 / 既視感): learned detector / VLM (item "hard_mixed")
 cheap-CV has no separating signal (same colour/size/position/density; art passes confirm — measured). Two
