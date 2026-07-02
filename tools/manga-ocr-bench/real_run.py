@@ -8,10 +8,13 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+import json
+
 from block_detector import detect_text_blocks
 from temporal_cache import TemporalBlockCache
 from deferral import apply_deferral_regions
 from reader_routes import JapaneseMangaOcrReader
+from eval_captions import evaluate, MANIFEST
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 SRC = r"D:\LocalTranslateHub\outputs\youtube_transcripts\0YF8vecQWYs\source_1080p.mp4"
@@ -34,6 +37,7 @@ def where(bbox):
     x0, y0 = bbox[0], bbox[1]
     if 740 <= x0 <= 800 and y0 < 300: return "KORE(これ)"
     if 830 <= x0 <= 860 and y0 < 600: return "KATATTOITE(語っといて)"
+    if 1200 <= x0 <= 1440 and y0 < 520: return "WHITEBOX(何がそんな不満なんだ)"
     return None
 
 
@@ -48,16 +52,20 @@ def ocr_block(frame, b, reader):
     return "　".join(parts)
 
 
-def run_mode(name, frames, reader, defer_rects, log):
+def run_mode(name, frames, reader, defer_rects, log, allow_rects=None):
     cache = TemporalBlockCache(stable_frames=2, expire_frames=3, center_r=20.0,
                                stable_by_kind={"column_seed": 3})
     total_ocr = 0
+    deferred_total = 0
     captions = {}
+    ocr_results = []  # for eval_captions.evaluate: {"bbox", "text"} per OCR call
     last = None  # (frame, res) of final frame for the annotated render
-    log.append(f"\n## {name}  (center_r=20, column_seed count=3, defer={defer_rects or 'none'})\n")
+    log.append(f"\n## {name}  (center_r=20, column_seed count=3, defer={defer_rects or 'none'}, "
+               f"allow={allow_rects or 'none'})\n")
     log.append("frame  t      kind          bbox                       ms    text")
     for i, frame in enumerate(frames):
-        blocks, _deferred = apply_deferral_regions(frame_blocks[i], defer_rects)
+        blocks, deferred = apply_deferral_regions(frame_blocks[i], defer_rects, allow_regions=allow_rects)
+        deferred_total += len(deferred)
         t0 = time.perf_counter()
         res = cache.update(blocks, ocr_fn=lambda b: ocr_block(frame, b, reader))
         for b, r in zip(blocks, res):
@@ -67,13 +75,19 @@ def run_mode(name, frames, reader, defer_rects, log):
                 t = (START * 24.0 + i) / 24.0
                 # log r["bbox"] (the actual OCR'd geometry, incl. any cache tail-extension), not the raw block
                 log.append(f"{i:<5d}  {i:<5d}  {b.kind:<12}  {str(r['bbox']):<26}  {'':<4}  {r['text']!r}")
+                ocr_results.append({"bbox": r["bbox"], "text": r["text"]})
                 w = where(b.bbox)
                 if w:
                     captions[w] = r["text"]
         last = (frame, res)
     log.append(f"\n**{name}: total OCR = {total_ocr}**")
-    for k in ("KORE(これ)", "KATATTOITE(語っといて)"):
+    for k in ("KORE(これ)", "KATATTOITE(語っといて)", "WHITEBOX(何がそんな不満なんだ)"):
         log.append(f"  - {k}: {captions.get(k, '<<NOT READ>>')!r}")
+
+    with open(MANIFEST, encoding="utf-8") as fh:
+        expected = json.load(fh)
+    metrics = evaluate(expected, ocr_results, deferred_count=deferred_total)
+    log.append(f"  - eval: {metrics}")
 
     # annotated render of the final frame (boxes + cached text)
     frame, res = last
@@ -117,9 +131,13 @@ log = [f"# Real manga-ocr run — {SRC}", f"window {START}s, {len(frames)} frame
 print("Full Recall...");  fr_ocr, fr_png = run_mode("FullRecall", frames, reader, [], log)
 print("Realtime...");     rt_ocr, rt_png = run_mode("Realtime", frames, reader,
                                                      [(1200, 0, 1920, 1080)], log)
+print("Realtime+Allowlist...")
+ra_ocr, ra_png = run_mode("RealtimeAllow", frames, reader, [(1200, 0, 1920, 1080)], log,
+                          allow_rects=[(1200, 90, 1440, 520)])   # P2: rescue the whitebox caption
 
 with open(OUT_MD, "w", encoding="utf-8") as fh:
     fh.write("\n".join(log) + "\n")
 print(f"\nRESULTS  -> {OUT_MD}")
 print(f"FullRecall render -> {fr_png}  (OCR={fr_ocr})")
+print(f"RealtimeAllow render -> {ra_png}  (OCR={ra_ocr})")
 print(f"Realtime  render -> {rt_png}  (OCR={rt_ocr})")

@@ -34,6 +34,26 @@ Perf (1080p, measured): the two knobs add **~1.1 ms/frame** (negligible). The st
 experimental full-frame detector at **~540 ms/frame** (group + confirm ≈ 400 ms). OCR (~570 ms/col CPU,
 ~240 MiB VRAM iGPU-DML) is amortised by the cache (96 frames → 19 OCR calls in the rendered clip).
 
+**P2 + P2b + P2c SHIPPED (2026-07-02), real manga-ocr run, not synthetic.** `deferral.py` now takes
+polygon regions (ray-cast point test) and an `allow_regions` list that wins over `deferral_regions`
+(`load_profile_regions()` reads the §3c JSON config format). `ocr_quality.py` is the dot-ratio/jp-ratio
+gate (reuses `reader_routes.jp_ratio`, doesn't reimplement it). `eval_captions.py` scores
+`expected_captions.json` (all-caption recall, not just KORE/KATATTOITE). `real_run.py` now runs a third
+operating point, **RealtimeAllow** (defer x>1200 + allow the white text panel `[1200,90,1440,520]`), and
+measured the exact bug P2 targets:
+
+| point | OCR | これ | 語っといて | whitebox (何がそんな不満なんだ) | garbage cached |
+|---|---|---|---|---|---|
+| Full Recall | 15 | ✓ | ✓ | ✓ | 5 (pre-gate) |
+| Realtime (old, x>1200 only) | 5 | ✓ | ✓ | **✗ killed** | 0 |
+| **Realtime+Allowlist** | **10** | ✓ | ✓ | **✓ rescued** | 0 |
+
+Realtime+Allowlist keeps the deferral savings (10 vs 15, still cuts the art-region OCR) while no longer
+dropping the white-panel caption. `python deferral.py` / `ocr_quality.py` / `eval_captions.py` self-checks
+pass; `robustness.py --no-ocr` unchanged at `raw 16/20 | core 15/15`; `temporal_cache.py` self-check
+unchanged. Not yet done: wiring `ocr_quality`'s `OCR_REJECTED` behaviour into `temporal_cache.py`'s state
+machine itself (left for whoever does P1 — same function, avoid a second touch to the admission core).
+
 ---
 
 ## Open items — owner-prioritised
@@ -60,7 +80,7 @@ the per-frame rescues are noisy:
 - Guardrail: keep it column_seed-scoped first; measure `center_match_collision_count` so prediction never
   fuses adjacent columns. Pick the MAD threshold from measured static-vs-changed crops, not a guess.
 
-### P2 — Deferral ROI → profile system: polygon + allowlist (item "deferral ROI")
+### P2 — Deferral ROI → profile system: polygon + allowlist (item "deferral ROI") [SHIPPED]
 The blunt `x>1200` band used in the demo is a **stand-in** and it **kills a legit caption**: 何がそんな
 不満なんだ (white card, x≈1208–1437) sits in the same right-side band as the 視感 art and is wrongly
 deferred (it IS read in Full Recall). A vertical line can't separate them. Ship a **per-game/profile
@@ -79,7 +99,7 @@ deferred region. Metrics to add: `deferred_count`, `dropped_by_deferral_count`,
 `deferred_useful_text_count` (a deferred block whose Full-Recall OCR was quality-OK = a config bug signal).
 Config format drafted in `SEED-ADMISSION-IMPL-SPEC.md` §3c.
 
-### P2b — OCR output quality gate (garbage filter)
+### P2b — OCR output quality gate (garbage filter) [SHIPPED — `ocr_quality.py`]
 The Full-Recall real run still caches garbage from the art region: `．．．．．．`, `«`, `．．．` etc.
 These must not enter the final overlay / translation / cache-as-final-text. Post-OCR gate:
 
@@ -98,7 +118,7 @@ Behaviour: `ok` → cache/overlay/translate; garbage → mark track `OCR_REJECTE
 Full Recall **even before** any learned detector exists. Thresholds are first-guess — verify against the
 real-run outputs (all current garbage lines hit `dot_ratio>0.45`; the legit captions don't).
 
-### P2c — Evaluation upgrade: all-caption recall (`expected_captions.json`)
+### P2c — Evaluation upgrade: all-caption recall (`expected_captions.json`) [SHIPPED — `eval_captions.py`]
 Current acceptance tracks only two tags (KORE/KATATTOITE) — good for seed admission, not enough for
 productization: a config could score perfect OCR counts while deferral silently kills real right-side text.
 Add a manifest of every caption in the test window:
@@ -136,9 +156,9 @@ cache → reader behind the existing Region tab — is scheduled last, after the
 | # | item | decision | model tier |
 |---|---|---|---|
 | **P1** | Kalman track + crop-diff (cross-frame logic) | **next** — unifies て-stability + stale-guard | **strong model** (algorithm design; touches admission core; measure-first discipline required) |
-| **P2** | deferral profile: polygon + **allowlist** | near-term — fixes 何がそんな不満なんだ collateral | semantics need care; implementation is mechanical |
-| **P2b** | OCR quality gate (dot/jp ratio) | near-term, small | mechanical (spec above is complete) |
-| **P2c** | all-caption recall eval (`expected_captions.json`) | near-term, small | mechanical (data plumbing) |
+| **P2** | deferral profile: polygon + **allowlist** | **SHIPPED** — measured fix for 何がそんな不満なんだ collateral | done |
+| **P2b** | OCR quality gate (dot/jp ratio) | **SHIPPED** | done |
+| **P2c** | all-caption recall eval (`expected_captions.json`) | **SHIPPED** | done |
 | **P3** | detector latency (group+confirm ~400ms) | 下下個目標 (next-next) | profiling + judgment |
 | **P4** | hard_mixed learned-detector / VLM | long-term / parallel | training-pipeline experience, separate workstream |
 | **P5** | live region engine integration | 最後做 (last) | codebase familiarity |

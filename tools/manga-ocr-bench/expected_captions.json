@@ -1,0 +1,7 @@
+[
+  { "id": "kore", "text": "これ", "must_have": true, "region": [740, 150, 830, 270] },
+  { "id": "katattoite", "text": "語っといて", "must_have": true, "region": [830, 520, 910, 820] },
+  { "id": "whitebox", "text_contains": ["何がそんな", "不満なんだ"],
+    "must_have": true, "region": [1200, 90, 1440, 520] },
+  { "id": "art_shikan", "deferred": true }
+]
