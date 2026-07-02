@@ -58,7 +58,17 @@ machine itself (left for whoever does P1 — same function, avoid a second touch
 
 ## Open items — owner-prioritised
 
-### P1 — Cross-frame temporal state: Kalman track + crop-diff (items "て instability" + "stale guard")
+### P1 — Cross-frame temporal state: Kalman track + crop-diff [SHIPPED — see `P1-KALMAN-CROPDIFF.md`]
+**Implemented 2026-07-02.** Alpha-beta (steady-state Kalman) center prediction per column_seed track feeds
+`_best_center` (drift-gap re-link, self-checked with a stripped-filter control); measured crop-diff stale
+guard (tracked-bbox thumbs, per-kind thresholds `column_seed` 7.5 / others 12.0, 2-frame confirm); P2b
+`quality_fn` wired into the cache (garbage read HOLDs previous good text). Production Realtime point
+**unchanged at 5 OCR** with zero false re-fires on real text; Full Recall 19 (+4 = genuine art-region
+animation, quality-gated). ⚠ thresholds are one-clip calibrated — re-check on more footage. The roadmap's
+original guessed design (fixed box, 32×32, MAD 18) was **refuted by measurement twice**; the report has
+the distributions.
+
+Original plan (kept for context):
 **These are one workstream (cross-frame change logic), not two.** The subtitles MOVE (animated scene), and
 the per-frame rescues are noisy:
 - `_extend_column_tails` re-detects て with a fresh CLAHE probe every frame → measured: it hits て on

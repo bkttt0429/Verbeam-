@@ -82,7 +82,7 @@ def main():
                                     emit_seeds=True, confirm_raw=True)
         blocks, deferred = apply_deferral_regions(blocks, defer_rects)
         deferred_total += len(deferred)
-        res = cache.update(blocks)  # ocr_fn=None: we only COUNT would-be OCR calls
+        res = cache.update(blocks, frame=frame)  # ocr_fn=None: we only COUNT would-be OCR calls
         ocr_now = sum(r["ocr_called"] for r in res)
         naive_total += len(blocks)
         cache_total += ocr_now

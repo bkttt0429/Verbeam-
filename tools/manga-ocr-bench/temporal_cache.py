@@ -12,8 +12,19 @@ State machine per tracklet:
     EXPIRE    missed > expire_frames                     -> dropped
 
 hard_mixed_art_text never reaches here (it is a confirm reject, not a kept block), so it is skipped for
-free. ponytail: matching is position-IoU only; a same-position SCENE CHANGE would reuse stale text — add a
-crop-diff re-OCR trigger if that shows up on real clips (cheap mean-abs-diff on the cached crop).
+free.
+
+P1 cross-frame state (measured, debug_mad3.py / NEXT-STEPS-ROADMAP.md P1):
+- Captions MOVE (語っといて drifts x 843->872 over 13 frames). Each column_seed track carries an
+  alpha-beta filter (steady-state Kalman) on its center; `_best_center` matches against the PREDICTED
+  center, so a drifting caption re-links across detection gaps where its static last-position would
+  fall outside `center_r`. Falls back to the raw bbox center when no filter state exists.
+- Stale guard: pass `frame=` to update() and each OCR'd track stores a thumbnail of its crop; on later
+  matched frames a mean-abs-diff (MAD) above `stale_mad` for `stale_confirm` consecutive frames re-arms
+  OCR (dialogue changed at the same position). MEASURED design, not guessed: thumbs must be taken at the
+  TRACKED bbox (detected x-range × track union-y) — a fixed screen box accumulates drift misalignment and
+  same-content noise (max 13.8) then OVERLAPS the hardest change case (same-style column swap, 10.4).
+  At the tracked bbox: same-content <= 2.7, hardest swap >= 9.3 (3.4x separation) -> stale_mad=5.0.
 
 Seed admission (measured, SEED-UTILITY-MEASURED.md): a real sparse caption (これ, detected only 3/15
 frames) recurs near the same CENTER, but its recall-source bbox EXTENT varies between hits enough that
@@ -27,7 +38,34 @@ count-of-hits rather than consecutive age. `center_r` must stay below the minimu
 
 import copy
 
+import cv2
+import numpy as np
+
 NEW, OCR_DONE, HOLD, EXPIRE = "new", "ocr_done", "hold", "expire"
+
+THUMB_SIZE = (24, 96)   # column-shaped (w, h): squashing a tall crop to a square destroys the glyphs
+
+
+class _AlphaBeta:
+    """Steady-state (fixed-gain) Kalman filter on a track center — constant-velocity model, position
+    measurement, one independent filter per axis. gains 0.6/0.4 learn a caption's velocity within ~3
+    hits (a sparse caption gives us no more), at the cost of some measurement-noise passthrough —
+    detection-center jitter is a few px, well inside center_r, so responsiveness wins here.
+    Hand-rolled (no cv2.KalmanFilter): 10 lines, trivially portable to the C# live engine later."""
+
+    def __init__(self, cx, cy, alpha=0.6, beta=0.4):
+        self.cx, self.cy, self.vx, self.vy = float(cx), float(cy), 0.0, 0.0
+        self.alpha, self.beta = alpha, beta
+
+    def predict(self, dt=1.0):
+        return self.cx + self.vx * dt, self.cy + self.vy * dt
+
+    def update(self, mx, my, dt=1.0):
+        px, py = self.predict(dt)
+        rx, ry = mx - px, my - py
+        self.cx, self.cy = px + self.alpha * rx, py + self.alpha * ry
+        self.vx += self.beta * rx / dt
+        self.vy += self.beta * ry / dt
 
 
 def _extend_seed_y(b, y_top, y_bot):
@@ -63,7 +101,8 @@ def _iou(a, b):
 
 class TemporalBlockCache:
     def __init__(self, stable_frames=2, expire_frames=3, match_iou=0.5, stable_by_kind=None,
-                 center_r=20.0):
+                 center_r=20.0, stale_mad=12.0, stale_mad_by_kind=None, stale_confirm=2,
+                 quality_fn=None):
         self.stable_frames = stable_frames
         # seed admission: a flickering column_seed lands at a new position each frame so its track
         # never reaches this age -> never OCR'd; a real caption (これ/語っといて) persists and does.
@@ -72,8 +111,39 @@ class TemporalBlockCache:
         self.expire_frames = expire_frames
         self.match_iou = match_iou
         self.center_r = center_r   # column_seed center-link radius; see _best_center
-        self.tracks = {}      # id -> {bbox, kind, age, missed, state, text, ocr_done}
+        # stale guard (only active when update() gets frame=). Per-kind thresholds, all measured
+        # (debug_mad3.py / debug_stale.py): a column_seed bbox is TIGHT around its column — live floor
+        # 6.2 (drifting caption + growing y-union), hardest same-style swap 9.0 -> 7.5 between; a
+        # block_merged/broad_split bbox is LOOSE (padding + multi-column) so animated background inside
+        # it raises the same-TEXT floor to ~8.5 on the moving-diamond clip, while a genuine text swap
+        # measures 45+ -> 12.0. 2-frame confirm rides out one-frame spikes (a 15.5 transient on a clean
+        # track was measured and held). ⚠ one-clip calibration, thin column_seed margin — re-check on
+        # more footage (NEXT-STEPS-ROADMAP P1 note).
+        self.stale_mad = stale_mad
+        self.stale_mad_by_kind = stale_mad_by_kind or {"column_seed": 7.5}
+        self.stale_confirm = stale_confirm
+        # optional post-OCR quality gate (P2b, e.g. ocr_quality.ocr_quality): a read that isn't "ok"
+        # never becomes the track's text — the previous good text (if any) is HELD instead, and the
+        # track still counts as OCR'd (no per-frame retry loop on a garbage region).
+        self.quality_fn = quality_fn
+        self.tracks = {}      # id -> {bbox, kind, age, missed, state, text, ocr_done, kf, thumb, dirty}
         self._next_id = 0
+
+    def _thumb(self, frame, bbox, t):
+        """Gray column-shaped thumbnail of the TRACKED crop: current detected x-range × the track's
+        union y-extent for a column_seed (stable vertical framing while the tail-probe flickers), raw
+        bbox otherwise. Tracking the bbox (not a fixed screen box) is what makes same-content MAD
+        collapse to detection jitter — see module docstring."""
+        x0, y0, x1, y1 = bbox
+        if t.get("kind") == "column_seed" and "y_top" in t:
+            y0, y1 = t["y_top"], t["y_bot"]
+        h, w = frame.shape[:2]
+        x0, y0 = max(0, int(x0)), max(0, int(y0))
+        x1, y1 = min(w, int(x1)), min(h, int(y1))
+        if x1 - x0 < 2 or y1 - y0 < 2:
+            return None
+        gray = cv2.cvtColor(frame[y0:y1, x0:x1], cv2.COLOR_BGR2GRAY)
+        return cv2.resize(gray, THUMB_SIZE).astype(np.float32)
 
     def _best(self, bbox):
         """Best-overlapping track and its IoU, regardless of threshold (for 4A jitter diagnostics)."""
@@ -85,25 +155,33 @@ class TemporalBlockCache:
         return best_id, best_iou
 
     def _best_center(self, bbox):
-        """Nearest COLUMN_SEED track whose center is within center_r (see module docstring). Only
-        used as a fallback when IoU matching fails, and only for column_seed candidates/tracks — block_
-        merged/broad_split never use center-linking."""
+        """Nearest COLUMN_SEED track whose PREDICTED center is within center_r (see module docstring).
+        Only used as a fallback when IoU matching fails, and only for column_seed candidates/tracks —
+        block_merged/broad_split never use center-linking. Prediction (alpha-beta, dt = frames since the
+        track was last seen) is what lets a drifting caption re-link across a gap where drift × gap
+        would push its LAST position outside center_r; falls back to the raw bbox center if the track
+        has no filter state."""
         cx, cy = (bbox[0] + bbox[2]) * 0.5, (bbox[1] + bbox[3]) * 0.5
         best_id, best_d = None, self.center_r
         for tid, t in self.tracks.items():
             if t.get("kind") != "column_seed":
                 continue
-            tcx = (t["bbox"][0] + t["bbox"][2]) * 0.5
-            tcy = (t["bbox"][1] + t["bbox"][3]) * 0.5
+            kf = t.get("kf")
+            if kf is not None:
+                tcx, tcy = kf.predict(t["missed"] + 1)
+            else:
+                tcx = (t["bbox"][0] + t["bbox"][2]) * 0.5
+                tcy = (t["bbox"][1] + t["bbox"][3]) * 0.5
             d = ((cx - tcx) ** 2 + (cy - tcy) ** 2) ** 0.5
             if d < best_d:
                 best_id, best_d = tid, d
         return best_id
 
-    def update(self, blocks, ocr_fn=None):
+    def update(self, blocks, ocr_fn=None, frame=None):
         """blocks: objects with a .bbox tuple (and whatever ocr_fn needs). ocr_fn(block)->text is called
-        AT MOST once per tracklet, the frame it stabilises. Returns one dict per input block:
-        {id, bbox, state, ocr_called, text, spawned, best_iou}."""
+        once per tracklet when it stabilises — and again if the stale guard sees the crop content change
+        (only when `frame`, the full BGR frame, is passed; without it the guard is off). Returns one dict
+        per input block: {id, bbox, state, ocr_called, text, spawned, best_iou}."""
         seen = set()
         out = []
         for b in blocks:
@@ -115,29 +193,59 @@ class TemporalBlockCache:
                     cand_id, matched = cid, True
             spawned = not matched
             tid = None if spawned else cand_id
+            cx, cy = (b.bbox[0] + b.bbox[2]) * 0.5, (b.bbox[1] + b.bbox[3]) * 0.5
             if tid is None:
                 tid = self._next_id
                 self._next_id += 1
                 self.tracks[tid] = {"bbox": b.bbox, "kind": getattr(b, "kind", None), "age": 1,
-                                    "missed": 0, "state": NEW, "text": None, "ocr_done": False}
+                                    "missed": 0, "state": NEW, "text": None, "ocr_done": False,
+                                    "dirty": 0}
+                if self.tracks[tid]["kind"] == "column_seed":
+                    self.tracks[tid]["kf"] = _AlphaBeta(cx, cy)
             else:
                 t = self.tracks[tid]
+                dt = t["missed"] + 1              # frames since this track was last seen
                 t["bbox"] = b.bbox
                 t["age"] += 1
                 t["missed"] = 0
+                if t.get("kf") is not None:
+                    t["kf"].update(cx, cy, dt)
             t = self.tracks[tid]
             seen.add(tid)
             if t["kind"] == "column_seed":   # remember the track's max Y-extent for tail recovery
                 t["y_top"] = min(t.get("y_top", b.bbox[1]), b.bbox[1])
                 t["y_bot"] = max(t.get("y_bot", b.bbox[3]), b.bbox[3])
 
+            # stale guard: same track, but the pixels changed (dialogue swap at the same position).
+            # 2 consecutive dirty frames re-arm OCR; the admission block below then re-fires this frame.
+            if frame is not None and not spawned and t["ocr_done"] and t.get("thumb") is not None:
+                cur = self._thumb(frame, b.bbox, t)
+                if cur is not None:
+                    mad = float(np.mean(np.abs(cur - t["thumb"])))
+                    if hasattr(self, "stale_log"):   # diagnostics only (debug scripts attach the list)
+                        self.stale_log.append((tid, t["kind"], round(mad, 1), b.bbox))
+                    if mad > self.stale_mad_by_kind.get(t["kind"], self.stale_mad):
+                        t["dirty"] += 1
+                    else:
+                        t["dirty"] = 0
+                    if t["dirty"] >= self.stale_confirm:
+                        t["ocr_done"] = False
+                        t["dirty"] = 0
+
             ocr_called = False
+            ocr_rejected = False
             need = self.stable_by_kind.get(t["kind"], self.stable_frames)
             if not t["ocr_done"] and t["age"] >= need:
                 if t["kind"] == "column_seed":
                     b = _extend_seed_y(b, t["y_top"], t["y_bot"])   # OCR the max observed column height
                 if ocr_fn is not None:
-                    t["text"] = ocr_fn(b)
+                    text = ocr_fn(b)
+                    if self.quality_fn is not None and self.quality_fn(text) != "ok":
+                        ocr_rejected = True          # garbage read: HOLD previous good text (or None)
+                    else:
+                        t["text"] = text
+                if frame is not None:
+                    t["thumb"] = self._thumb(frame, b.bbox, t)   # baseline for the stale guard
                 t["ocr_done"] = True
                 t["state"] = OCR_DONE
                 ocr_called = True
@@ -146,7 +254,8 @@ class TemporalBlockCache:
             else:
                 t["state"] = NEW
             out.append({"id": tid, "bbox": b.bbox, "state": t["state"], "ocr_called": ocr_called,
-                        "text": t["text"], "spawned": spawned, "best_iou": round(best_iou, 3)})
+                        "ocr_rejected": ocr_rejected, "text": t["text"], "spawned": spawned,
+                        "best_iou": round(best_iou, 3)})
 
         for tid in list(self.tracks):
             if tid not in seen:
@@ -219,6 +328,80 @@ def _demo():
     control_calls = [cache7.update([b])[0]["ocr_called"] for b in sparse]
     assert control_calls == [False, False, False], control_calls
     assert len(cache7.tracks) == 3, cache7.tracks                 # 3 distinct spawns, never linked
+
+    # P1 Kalman drift-link: a caption drifting 8px/frame, hits f0-f3 then a 3-frame gap then f7.
+    # Across the gap the drift is 32px: the STATIC last center (144) misses the f7 center (176) by
+    # 32 > center_r=20, but the alpha-beta prediction (142.1 + 8.3*4 = 175.4) lands 0.6px away ->
+    # linked, age reaches the count-5 gate at f7, OCR fires exactly once.
+    def drift_box(f):
+        return BK((100 + 8 * f, 100, 140 + 8 * f, 300), "column_seed")
+    cache8 = TemporalBlockCache(stable_frames=2, expire_frames=3, center_r=20.0,
+                                stable_by_kind={"column_seed": 5})
+    drift_calls = []
+    for f in (0, 1, 2, 3):
+        drift_calls.append(cache8.update([drift_box(f)])[0]["ocr_called"])
+    for _ in range(3):
+        cache8.update([])                                        # gap: track coasts, missed grows
+    drift_calls.append(cache8.update([drift_box(7)])[0]["ocr_called"])
+    assert drift_calls == [False, False, False, False, True], drift_calls
+    assert len(cache8.tracks) == 1, cache8.tracks                 # one track across the gap
+
+    # Control: strip the filter after every update -> _best_center falls back to the static bbox
+    # center -> the f7 hit (32px away) spawns a NEW track -> the count-5 gate is never reached.
+    cache9 = TemporalBlockCache(stable_frames=2, expire_frames=3, center_r=20.0,
+                                stable_by_kind={"column_seed": 5})
+    total9 = 0
+    for f in (0, 1, 2, 3):
+        total9 += cache9.update([drift_box(f)])[0]["ocr_called"]
+        for t in cache9.tracks.values():
+            t.pop("kf", None)
+    for _ in range(3):
+        cache9.update([])
+    total9 += cache9.update([drift_box(7)])[0]["ocr_called"]
+    # the f7 hit spawned FRESH (age 1; the old track, unmatched at f7, hit missed=4 and expired) and
+    # the count-5 gate was never reached -> zero OCR. With the filter (cache8) the same input OCR'd.
+    assert total9 == 0, total9
+    assert [t["age"] for t in cache9.tracks.values()] == [1], cache9.tracks
+
+    # P1 stale guard: same position, content swaps -> re-OCR once after the 2-frame confirm.
+    def synth_frame(pattern, shift=0):
+        fr = np.full((200, 120, 3), 200, np.uint8)
+        rows = ((40, 50), (90, 100)) if pattern == "A" else ((65, 75), (140, 150))
+        for r0, r1 in rows:
+            fr[r0:r1, 10:58] = 0
+        return cv2.add(fr, shift) if shift else fr
+    bbox = (10, 10, 58, 190)
+    reads = []
+    cache10 = TemporalBlockCache(stable_frames=2, expire_frames=3)   # block_merged stale_mad=12 default
+    seqs = [("A", 0), ("A", 0), ("A", 2), ("B", 0), ("B", 0), ("B", 0)]
+    calls10 = []
+    for i, (pat, sh) in enumerate(seqs):
+        fr = synth_frame(pat, sh)
+        r = cache10.update([BK(bbox, "block_merged")], ocr_fn=lambda b: f"read{len(reads)}", frame=fr)[0]
+        if r["ocr_called"]:
+            reads.append(i)
+        calls10.append(r["ocr_called"])
+    # f1: stabilises (OCR #1, thumb stored). f2: +2 brightness = MAD 2 < 12, clean. f3: pattern swap
+    # (MAD ~44 > 12), dirty 1 (no OCR yet). f4: dirty 2 -> re-armed -> OCR #2 same frame. f5: clean.
+    assert calls10 == [False, True, False, False, True, False], calls10
+    assert reads == [1, 4], reads
+
+    # P2b quality gate wiring: a garbage read never becomes the track text, and the track still counts
+    # as OCR'd (no per-frame retry loop); a later stale re-OCR that returns garbage HOLDs the good text.
+    qf = lambda s: "garbage_dots" if s.startswith("．") else "ok"
+    cache11 = TemporalBlockCache(stable_frames=2, quality_fn=qf)
+    cache11.update([B(static)], ocr_fn=lambda b: "．．．")
+    r = cache11.update([B(static)], ocr_fn=lambda b: "．．．")[0]
+    assert r["ocr_called"] and r["ocr_rejected"] and r["text"] is None, r
+    r = cache11.update([B(static)], ocr_fn=lambda b: "x")[0]
+    assert not r["ocr_called"] and r["state"] == HOLD and r["text"] is None, r   # no retry loop
+
+    cache12 = TemporalBlockCache(stable_frames=2, quality_fn=qf)   # stale re-OCR returns garbage
+    texts = iter(["good", "．．．"])
+    for i, (pat, sh) in enumerate([("A", 0), ("A", 0), ("B", 0), ("B", 0)]):
+        r = cache12.update([BK(bbox, "block_merged")], ocr_fn=lambda b: next(texts),
+                           frame=synth_frame(pat, sh))[0]
+    assert r["ocr_called"] and r["ocr_rejected"] and r["text"] == "good", r      # previous text HELD
     print("temporal_cache self-check OK")
 
 

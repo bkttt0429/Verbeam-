@@ -61,7 +61,7 @@ for i in range(FRAMES):
         break
     blocks = detect_text_blocks(frame, scorer="cc", group="graph", emit_seeds=True, confirm_raw=True)
     blocks, _ = apply_deferral_regions(blocks, DEFER)
-    res = cache.update(blocks, ocr_fn=lambda b: ocr_block(frame, b, reader))
+    res = cache.update(blocks, ocr_fn=lambda b: ocr_block(frame, b, reader), frame=frame)
     ocr_total += sum(r["ocr_called"] for r in res)
 
     img = frame.copy()

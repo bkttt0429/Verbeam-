@@ -67,7 +67,7 @@ def run_mode(name, frames, reader, defer_rects, log, allow_rects=None):
         blocks, deferred = apply_deferral_regions(frame_blocks[i], defer_rects, allow_regions=allow_rects)
         deferred_total += len(deferred)
         t0 = time.perf_counter()
-        res = cache.update(blocks, ocr_fn=lambda b: ocr_block(frame, b, reader))
+        res = cache.update(blocks, ocr_fn=lambda b: ocr_block(frame, b, reader), frame=frame)
         for b, r in zip(blocks, res):
             if r["ocr_called"]:
                 total_ocr += 1
