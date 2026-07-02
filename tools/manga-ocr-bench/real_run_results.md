@@ -28,6 +28,7 @@ frame  t      kind          bbox                       ms    text
   - KORE(これ): 'これ'
   - KATATTOITE(語っといて): '語っといて'
   - WHITEBOX(何がそんな不満なんだ): '«\u3000何がそんな\u3000不満なんだ'
+  - KATATTOITE tail: raw y2=744 -> ocr y2=792  (て must reach y2>=790)
   - eval: {'all_caption_recall': 1.0, 'must_have_recall': 1.0, 'garbage_output_count': 7, 'ocr_calls': 19, 'useful_ocr_per_call': 0.158, 'dropped_by_deferral_count': 0, 'found': ['katattoite', 'kore', 'whitebox'], 'missing_must_have': []}
 
 ## Realtime  (center_r=20, column_seed count=3, defer=[(1200, 0, 1920, 1080)], allow=none)
@@ -43,6 +44,7 @@ frame  t      kind          bbox                       ms    text
   - KORE(これ): 'これ'
   - KATATTOITE(語っといて): '語っといて'
   - WHITEBOX(何がそんな不満なんだ): '<<NOT READ>>'
+  - KATATTOITE tail: raw y2=744 -> ocr y2=792  (て must reach y2>=790)
   - eval: {'all_caption_recall': 0.667, 'must_have_recall': 0.667, 'garbage_output_count': 0, 'ocr_calls': 5, 'useful_ocr_per_call': 0.4, 'dropped_by_deferral_count': 46, 'found': ['katattoite', 'kore'], 'missing_must_have': ['whitebox']}
 
 ## RealtimeAllow  (center_r=20, column_seed count=3, defer=[(1200, 0, 1920, 1080)], allow=[(1200, 90, 1440, 520)])
@@ -64,4 +66,5 @@ frame  t      kind          bbox                       ms    text
   - KORE(これ): 'これ'
   - KATATTOITE(語っといて): '語っといて'
   - WHITEBOX(何がそんな不満なんだ): '«\u3000何がそんな\u3000不満なんだ'
+  - KATATTOITE tail: raw y2=744 -> ocr y2=792  (て must reach y2>=790)
   - eval: {'all_caption_recall': 1.0, 'must_have_recall': 1.0, 'garbage_output_count': 0, 'ocr_calls': 11, 'useful_ocr_per_call': 0.273, 'dropped_by_deferral_count': 26, 'found': ['katattoite', 'kore', 'whitebox'], 'missing_must_have': []}

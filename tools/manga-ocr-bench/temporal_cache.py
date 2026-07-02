@@ -128,6 +128,12 @@ class TemporalBlockCache:
         self.quality_fn = quality_fn
         self.tracks = {}      # id -> {bbox, kind, age, missed, state, text, ocr_done, kf, thumb, dirty}
         self._next_id = 0
+        # center_r=20 is single-clip calibrated and must stay below the smallest real inter-column gap
+        # (~54px measured) or adjacent columns fuse. These counters are the tripwire: collision = a
+        # detection with MORE THAN ONE column_seed track inside center_r (ambiguous link = fusion risk).
+        # If center_collision > 0 shows up on real footage, switch to adaptive
+        # center_r = clamp(0.6 * median_seed_width, 12, 20) — not before (don't pre-generalize).
+        self.metrics = {"center_link": 0, "center_collision": 0, "center_link_max_d": 0.0}
 
     def _thumb(self, frame, bbox, t):
         """Gray column-shaped thumbnail of the TRACKED crop: current detected x-range × the track's
@@ -163,6 +169,7 @@ class TemporalBlockCache:
         has no filter state."""
         cx, cy = (bbox[0] + bbox[2]) * 0.5, (bbox[1] + bbox[3]) * 0.5
         best_id, best_d = None, self.center_r
+        within = 0          # column_seed tracks whose predicted center is inside center_r of this bbox
         for tid, t in self.tracks.items():
             if t.get("kind") != "column_seed":
                 continue
@@ -173,8 +180,15 @@ class TemporalBlockCache:
                 tcx = (t["bbox"][0] + t["bbox"][2]) * 0.5
                 tcy = (t["bbox"][1] + t["bbox"][3]) * 0.5
             d = ((cx - tcx) ** 2 + (cy - tcy) ** 2) ** 0.5
+            if d < self.center_r:
+                within += 1
             if d < best_d:
                 best_id, best_d = tid, d
+        if best_id is not None:
+            self.metrics["center_link"] += 1
+            self.metrics["center_link_max_d"] = max(self.metrics["center_link_max_d"], best_d)
+            if within > 1:   # >1 track competed for this bbox -> ambiguous link, fusion tripwire
+                self.metrics["center_collision"] += 1
         return best_id
 
     def update(self, blocks, ocr_fn=None, frame=None):
@@ -319,6 +333,12 @@ def _demo():
     sparse_calls = [cache6.update([b])[0]["ocr_called"] for b in sparse]
     assert sparse_calls == [False, False, True], sparse_calls   # center-link -> 1 track -> OCR at hit 3
     assert len(cache6.tracks) == 1, cache6.tracks                # proves it's ONE track, not 3
+    # metrics tripwire: boxes 1 and 2 center-linked (box 0 spawned with no track present), and with a
+    # single track there was never >1 candidate in radius -> zero collisions. If center_collision ever
+    # goes non-zero on real footage, center_r is too wide for the inter-column gap (see __init__ note).
+    assert cache6.metrics["center_link"] == 2, cache6.metrics
+    assert cache6.metrics["center_collision"] == 0, cache6.metrics
+    assert cache6.metrics["center_link_max_d"] < 20.0, cache6.metrics   # concentric boxes -> ~0, in radius
 
     # Control: center_r=0 disables the fallback (a distance >= 0 can never be < 0), so the SAME 3 boxes
     # spawn 3 separate age-1 tracks under IoU-only matching -> never reach the count-3 gate -> zero OCR.

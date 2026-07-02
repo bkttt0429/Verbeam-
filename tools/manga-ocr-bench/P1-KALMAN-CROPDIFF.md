@@ -57,6 +57,12 @@ stale-guard content-swap, quality-gate HOLD-previous) and passing.
 - **One-clip calibration, thin `column_seed` margin** (floor 6.2 vs swap 9.0 → 7.5). Must re-check on more
   footage before calling the numbers defaults; `stale_log` diagnostics hook + `debug_stale.py` exist for
   exactly that.
+- **`center_r=20` fusion tripwire is now measurable, not adaptive yet.** `TemporalBlockCache.metrics`
+  counts `center_link` / `center_collision` / `center_link_max_d` in `_best_center`. A collision = a
+  detection with >1 column_seed track inside `center_r` (ambiguous link ⇒ adjacent columns could fuse;
+  the smallest real inter-column gap measured ~54px). Self-check asserts 0 collisions on the sparse-caption
+  case. **The adaptive fallback stays unbuilt on purpose** — only if `center_collision > 0` appears on
+  real footage, switch to `center_r = clamp(0.6 * median_seed_width, 12, 20)`. Don't pre-generalize.
 - The clip has **no natural same-position dialogue change**; the swap distribution is a proxy
   (cross-caption same-style columns) plus a synthetic self-check. Live validation needs a clip where the
   dialogue actually changes in place.

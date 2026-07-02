@@ -58,6 +58,7 @@ def run_mode(name, frames, reader, defer_rects, log, allow_rects=None):
     total_ocr = 0
     deferred_total = 0
     captions = {}
+    caption_geom = {}  # last OCR'd (raw_bbox, ocr_bbox) per named caption, for the tail regression check
     ocr_results = []  # for eval_captions.evaluate: {"bbox", "text"} per OCR call
     last = None  # (frame, res) of final frame for the annotated render
     log.append(f"\n## {name}  (center_r=20, column_seed count=3, defer={defer_rects or 'none'}, "
@@ -79,10 +80,21 @@ def run_mode(name, frames, reader, defer_rects, log, allow_rects=None):
                 w = where(b.bbox)
                 if w:
                     captions[w] = r["text"]
+                    caption_geom[w] = (b.bbox, r["bbox"])   # raw block vs OCR'd (tail-recovered) geom
         last = (frame, res)
     log.append(f"\n**{name}: total OCR = {total_ocr}**")
     for k in ("KORE(これ)", "KATATTOITE(語っといて)", "WHITEBOX(何がそんな不満なんだ)"):
         log.append(f"  - {k}: {captions.get(k, '<<NOT READ>>')!r}")
+
+    # HARD tail-regression guard (WEB analysis 優化 0): the trailing て of 語っといて sits at the column
+    # tail. The OCR'd crop must reach y2>=790 or て is clipped again. This asserts the RECOVERED geometry
+    # (detector _extend_column_tails and/or cache _extend_seed_y — either path is fine), not which fix
+    # ran; ext>raw isn't asserted because the detector can pre-extend the raw block on the firing frame.
+    kt = caption_geom.get("KATATTOITE(語っといて)")
+    if kt is not None:
+        raw, ext = kt
+        log.append(f"  - KATATTOITE tail: raw y2={raw[3]} -> ocr y2={ext[3]}  (て must reach y2>=790)")
+        assert ext[3] >= 790, f"{name}: KATATTOITE OCR crop y2={ext[3]} < 790 — te tail clipped (regression)"
 
     with open(MANIFEST, encoding="utf-8") as fh:
         expected = json.load(fh)
